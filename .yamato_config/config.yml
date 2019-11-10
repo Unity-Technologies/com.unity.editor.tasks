@@ -17,8 +17,8 @@ editors:
 
 packages:
   - name: com.unity.editor.tasks
-    unixpath: build/packages/
-    path: build\packages\
+    unixpath: build/packages/com.unity.editor.tasks
+    path: build\packages\com.unity.editor.tasks
     safename: com_unity_editor_tasks
     nuget: https://artifactory.internal.unity3d.com/api/nuget/core-utilities
     npm: https://artifactory.internal.unity3d.com/api/npm/core-npm
