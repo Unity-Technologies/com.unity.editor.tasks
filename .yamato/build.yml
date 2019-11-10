@@ -10,7 +10,8 @@ build:
     DOTNET_CLI_TELEMETRY_OPTOUT: 1
 
   commands:
-    - if "x%GIT_BRANCH%"=="xmaster" (build -r -p) else (build -r)
+    - powershell scripts\Get-Deps.ps1
+    - if "x%GIT_BRANCH%"=="xmaster" (pack -r -b -p) else (pack -r -b)
     - mkdir build\npm
 {% for package in packages %}
     - |
@@ -35,6 +36,9 @@ build:
       - "master"
 
   artifacts:
+    nuget:
+      paths:
+        - "build/nuget/**/*.nupkg"
     npm:
       paths:
         - "build/npm/**/*"

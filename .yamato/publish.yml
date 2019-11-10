@@ -1,5 +1,25 @@
 {% metadata_file .yamato_config/config.yml %}
 ---
+publish_nuget:
+  name: Publish Nuget
+  agent:
+    type: Unity::VM
+    image: core-kaunas/win10-vs2017-dotnetcore:latest
+    flavor: m1.large
+  interpreter: powershell
+  skip_checkout: true
+  variables:
+    DOTNET_CLI_TELEMETRY_OPTOUT: 1
+
+  commands:
+    - |
+      Push-Location build\nuget\Release
+      Get-ChildItem | %{ dotnet nuget push $_.Name -k $($env:ARTIFACTORY) -s {{ package.nuget }} }
+      Pop-Location
+
+  dependencies:
+  - .yamato/build.yml#build
+
 publish_npm:
   name: Publish Npm
   agent:
@@ -11,11 +31,11 @@ publish_npm:
     DOTNET_CLI_TELEMETRY_OPTOUT: 1
 
   commands:
-    - curl -u%ARTIFACTORY% https://artifactory.internal.unity3d.com/api/npm/core-npm/auth/artifactory > %USERPROFILE%\.npmrc
 {% for package in packages %}
+    - curl -u{{ package.npm }}/auth/artifactory > %USERPROFILE%\.npmrc
     - |
       pushd {{ package.path }}
-      (call npm publish --quiet --registry https://artifactory.internal.unity3d.com/api/npm/core-npm) && goto end
+      (call npm publish --quiet --registry {{ package.npm }}) && goto end
       echo "Publishing failed"
       :end
       popd

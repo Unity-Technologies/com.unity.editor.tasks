@@ -13,10 +13,12 @@ platforms:
 #    flavor: b1.small
 
 editors:
-  - version: 2019.1
+  - version: 2019.2
 
 packages:
   - name: com.unity.editor.tasks
     unixpath: build/packages/
     path: build\packages\
     safename: com_unity_editor_tasks
+    nuget: https://artifactory.internal.unity3d.com/api/nuget/core-utilities
+    npm: https://artifactory.internal.unity3d.com/api/npm/core-npm
