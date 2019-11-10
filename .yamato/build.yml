@@ -1,0 +1,52 @@
+{% metadata_file .yamato_config/config.yml %}
+---
+build:
+  name: Build
+  agent:
+    type: Unity::VM
+    image: core-kaunas/win10-vs2017-dotnetcore:latest
+    flavor: m1.large
+  variables:
+    DOTNET_CLI_TELEMETRY_OPTOUT: 1
+
+  commands:
+    - if "x%GIT_BRANCH%"=="xmaster" (build -r -p) else (build -r)
+    - mkdir build\npm
+{% for package in packages %}
+    - |
+      pushd {{ package.path }}
+      for /f "delims=" %%f in ('call npm pack --quiet') do move %%f ..\..\npm\%%f && goto end
+      echo "Packing failed"
+      :end
+      popd
+{% endfor %}
+    - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+{% for package in packages %}
+    - upm-ci package pack --package-path {{ package.unixpath }}
+{% endfor %}
+
+  triggers:
+    pull_requests:
+      - targets:
+          only:
+            - "master"
+    branches:
+      only:
+      - "master"
+
+  artifacts:
+    npm:
+      paths:
+        - "build/npm/**/*"
+    packman:
+      paths:
+        - "upm-ci~/**/*"
+    binaries:
+      paths:
+        - "build/bin/**/*"
+    tests:
+      paths:
+        - "build/tests/bin/**/*"
+    sources:
+      paths:
+        - "build/packages/**/*"

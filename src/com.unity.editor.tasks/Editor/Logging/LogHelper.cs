@@ -1,0 +1,153 @@
+// Copyright 2016-2019 Andreia Gaita
+//
+// This work is licensed under the terms of the MIT license.
+// For a copy, see <https://opensource.org/licenses/MIT>.
+
+using System;
+
+namespace Unity.Editor.Tasks.Logging
+{
+	public static class LogHelper
+	{
+		private static readonly LogAdapterBase nullLogAdapter = new NullLogAdapter();
+
+		private static bool tracingEnabled;
+
+		private static LogAdapterBase logAdapter = nullLogAdapter;
+
+		private static ILogging instance;
+
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter")]
+		public static ILogging GetLogger<T>()
+		{
+			return GetLogger(typeof(T));
+		}
+
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1011:ConsiderPassingBaseTypesAsParameters")]
+		public static ILogging GetLogger(Type type)
+		{
+			return GetLogger(type.Name);
+		}
+
+		public static ILogging GetLogger(string context = null)
+		{
+			return new LogFacade($"<{context ?? "Global"}>");
+		}
+
+		public static void Info(string s)
+		{
+			Instance.Info(s);
+		}
+
+		public static void Debug(string s)
+		{
+			Instance.Debug(s);
+		}
+
+		public static void Trace(string s)
+		{
+			Instance.Trace(s);
+		}
+
+		public static void Warning(string s)
+		{
+			Instance.Warning(s);
+		}
+
+		public static void Error(string s)
+		{
+			Instance.Error(s);
+		}
+
+		public static void Error(Exception exception)
+		{
+			Instance.Error(exception);
+		}
+
+		public static void Info(string format, params object[] objects)
+		{
+			Instance.Info(format, objects);
+		}
+
+		public static void Debug(string format, params object[] objects)
+		{
+			Instance.Debug(format, objects);
+		}
+
+		public static void Trace(string format, params object[] objects)
+		{
+			Instance.Trace(format, objects);
+		}
+
+		public static void Warning(string format, params object[] objects)
+		{
+			Instance.Warning(format, objects);
+		}
+
+		public static void Error(string format, params object[] objects)
+		{
+			Instance.Error(format, objects);
+		}
+
+		public static void Info(Exception ex, string s)
+		{
+			Instance.Info(ex, s);
+		}
+
+		public static void Debug(Exception ex, string s)
+		{
+			Instance.Debug(ex, s);
+		}
+
+		public static void Trace(Exception ex, string s)
+		{
+			Instance.Trace(ex, s);
+		}
+
+		public static void Warning(Exception ex, string s)
+		{
+			Instance.Warning(ex, s);
+		}
+
+		public static void Error(Exception ex, string s)
+		{
+			Instance.Error(ex, s);
+		}
+
+		public static bool TracingEnabled
+		{
+			get
+			{
+				return tracingEnabled;
+			}
+			set
+			{
+				if (tracingEnabled != value)
+				{
+					tracingEnabled = value;
+					Instance.Info("Trace Logging " + (value ? "Enabled" : "Disabled"));
+				}
+			}
+		}
+
+		public static bool Verbose { get; set; }
+
+		public static LogAdapterBase LogAdapter
+		{
+			get { return logAdapter; }
+			set { logAdapter = value ?? nullLogAdapter; }
+		}
+
+		public static ILogging Instance
+		{
+			get {
+				if (instance == null)
+				{
+					instance = GetLogger();
+				}
+				return instance;
+			}
+			set { instance = value; }
+		}
+	}
+}

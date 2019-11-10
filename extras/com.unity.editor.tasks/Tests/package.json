@@ -1,0 +1,20 @@
+{
+    "name": "com.unity.editor.tasks.tests",
+    "displayName": "Tests - Unity Editor Tasks",
+    "description": "Tests - Unity Editor Tasks",
+    "type": "tests",
+    "version": "0.0.0-placeholder",
+    "license" : "MIT",
+    "author": {
+      "name": "Andreia Gaita",
+      "email": "shana@spoiledcat.net"
+    },
+    "repository" : {
+      "type" : "git",
+      "url": "ssh://git@github.com/Unity-Technologies/com.unity.editor.tasks.git",
+      "directory": ""
+    },
+    "dependencies": {
+        "com.unity.editor.tasks": "0.0.0-placeholder"
+    }
+}

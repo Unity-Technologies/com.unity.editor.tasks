@@ -1,0 +1,8 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+  <PropertyGroup>
+    <TargetFramework>net471</TargetFramework>
+    <SolutionDir Condition=" '$(SolutionDir)' == '' ">..\..\..\</SolutionDir>
+  </PropertyGroup>
+  <Import Project="$(SolutionDir)common\unityreferences.targets" />
+  <Import Project="$(SolutionDir)common\packaging.targets" />
+</Project>

@@ -1,0 +1,23 @@
+{
+  "scopedRegistries": [
+    {
+      "name": "Metadata",
+      "url": "http://packages.unity.com",
+      "scopes": [
+        "com.unity.package-manager.metadata"
+      ]
+    }
+  ],
+  "dependencies": {
+    "com.unity.editor.tasks": "1.0.2-preview",
+    "com.unity.package-manager-ui": "2.1.2",
+    "com.unity.modules.imageconversion": "1.0.0",
+    "com.unity.modules.imgui": "1.0.0",
+    "com.unity.modules.jsonserialize": "1.0.0",
+    "com.unity.modules.ui": "1.0.0"
+  },
+  "testables": [
+      "com.unity.editor.tasks.tests",
+      "com.spoiledcat.processmanager.tests"
+  ]
+}
