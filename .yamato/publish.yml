@@ -33,7 +33,7 @@ publish_npm:
     PUBLISH_URL: https://artifactory.internal.unity3d.com/api/npm/core-npm
 
   commands:
-    - curl -u%PUBLISH_URL%/auth/artifactory > %USERPROFILE%\.npmrc
+    - curl -u%ARTIFACTORY% %PUBLISH_URL%/auth/artifactory > %USERPROFILE%\.npmrc
 {% for package in packages %}
     - |
       pushd {{ package.path }}
