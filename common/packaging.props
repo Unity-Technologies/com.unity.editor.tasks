@@ -8,5 +8,6 @@
     <PackageName>$([System.IO.Path]::GetFileName($(PackageName)))</PackageName>
     <PackageTestName>$(PackageName).tests</PackageTestName>
     <PackageSubFolder>\Editor\</PackageSubFolder>
+    <NpmVersionSuffix>-preview</NpmVersionSuffix>
   </PropertyGroup>
 </Project>

@@ -14,14 +14,7 @@ before_build:
 - appveyor-retry dotnet restore -v Minimal
 
 build_script:
-- ps: |
-    if ($env:APPVEYOR_REPO_TAG -eq "true") {
-      # always stamp builds triggered from tags with a public version
-      dotnet build --no-restore -c $env:CONFIGURATION /p:PublicRelease=true
-    } else {
-      # let the version.json decide if it's a public build or not based on the branch name
-      dotnet build --no-restore -c $env:CONFIGURATION
-    }
+- dotnet build --no-restore -c %CONFIGURATION%
 
 test:
   assemblies:
@@ -33,6 +26,7 @@ test:
 
 after_test:
 - : |
+    dotnet pack --no-restore -c %CONFIGURATION%
     set OUTDIR=build\npm
     set SRCDIR=build\packages
     mkdir %OUTDIR% >nul 2>nul || ver>nul

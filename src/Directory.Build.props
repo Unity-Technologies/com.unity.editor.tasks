@@ -12,12 +12,12 @@
 
     <PackageOutputPath>$(RepoBuildPath)nuget\$(Configuration)\</PackageOutputPath>
 
-    <Authors>Unity Technologies</Authors>
+    <Authors>Unity Technologies, Andreia Gaita, GitHub</Authors>
     <Owners>Unity Technologies</Owners>
-    <Copyright>2019 Unity Technologies. All rights reserved.</Copyright>
-    <PackageProjectUrl>https://github.cds.internal.unity3d.com.com/unity/Unity.Ipc</PackageProjectUrl>
+    <Copyright>Copyright (c) 2019 Unity Technologies. Copyright (c) 2019 Andreia Gaita. Copyright (c) 2016-2018 GitHub</Copyright>
+    <PackageProjectUrl>https://github.com.com/Unity-Technologies/com.unity.editor.tasks</PackageProjectUrl>
     <PackageIcon>icon.png</PackageIcon>
-    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
 
     <MicroBuildPackageVersion>2.0.55</MicroBuildPackageVersion>
@@ -29,7 +29,7 @@
 </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Nerdbank.GitVersioning" Version="3.0.26" PrivateAssets="all" />
+    <PackageReference Include="Nerdbank.GitVersioning" Version="3.0.28" PrivateAssets="all" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-19367-01" PrivateAssets="All" />
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net471" Version="1.0.0-preview.2" PrivateAssets="All" IncludeAssets="runtime; build; native; contentfiles; analyzers" Condition=" '$(TargetFramework)' == 'net471' " />
   </ItemGroup>

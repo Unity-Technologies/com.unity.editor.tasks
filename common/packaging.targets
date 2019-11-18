@@ -13,7 +13,6 @@
 
   <ItemGroup>
     <None Include="$(SolutionDir)icon.png" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="icon.png" />
-    <None Include="$(SolutionDir)LICENSE.md" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="LICENSE.md" />
   </ItemGroup>
 
   <!-- Assemble all sources into a folder called (PackageName) -->
@@ -53,7 +52,8 @@
     <FileUpdate
       Files="$(PublishTo)$(PackageName)\package.json"
       Regex="&quot;version&quot;: &quot;.*&quot;"
-      ReplacementText="&quot;version&quot;: &quot;$(NuGetPackageVersion)&quot;">
+      ReplacementText="&quot;version&quot;: &quot;$(NuGetPackageVersion)$(NpmVersionSuffix)&quot;"
+      Encoding="utf-8-without-bom">
       <Output TaskParameter="AllItemsUpdated" PropertyName="FileWasStamped" />
     </FileUpdate>
 
@@ -61,14 +61,29 @@
       Condition="'$(FileWasStamped)' == 'true' "
       Files="$(PublishTo)$(PackageName)\package.json"
       Regex="(&quot;.*&quot;): &quot;0\.0\.0-placeholder&quot;"
-      ReplacementText="$1: &quot;$(NuGetPackageVersion)&quot;" />
+      ReplacementText="$1: &quot;$(NuGetPackageVersion)$(NpmVersionSuffix)&quot;"
+      Encoding="utf-8-without-bom" />
 
     <FileUpdate
       Files="$(PublishTo)$(PackageName)\package.json"
       Regex="&quot;directory&quot;: &quot;.*&quot;"
-      ReplacementText="&quot;directory&quot;: &quot;src/$(PackageName)&quot;" />
+      ReplacementText="&quot;directory&quot;: &quot;src/$(PackageName)&quot;"
+      Encoding="utf-8-without-bom" />
 
-    <Message Importance="High" Text="Stamping version $(NuGetPackageVersion)" Condition=" '$(FileWasStamped)' == 'true' "/>
+    <FileUpdate
+      Files="$(PublishTo)$(PackageName)\package.json"
+      Regex="&quot;revision&quot;: &quot;.*&quot;"
+      ReplacementText="&quot;revision&quot;: &quot;$(GitCommitId)&quot;"
+      Encoding="utf-8-without-bom" />
+
+    <FileUpdate
+      Condition="Exists('$(PublishTo)$(PackageName)\CHANGELOG.md')"
+      Files="$(PublishTo)$(PackageName)\CHANGELOG.md"
+      Regex="## \[VERSION\] - DATE"
+      ReplacementText="## [$(NuGetPackageVersion)] - $([System.DateTime]::Now.ToString(&quot;yyyy-MM-dd&quot;))"
+      Encoding="utf-8-without-bom" />
+
+    <Message Importance="High" Text="Nuget version: $(NuGetPackageVersion) NpmVersion: $(NuGetPackageVersion)$(NpmVersionSuffix)" Condition=" '$(FileWasStamped)' == 'true' "/>
 
   </Target>
 
@@ -123,7 +138,7 @@
     <FileUpdate
       Files="$(PublishTo)$(PackageTestName)\package.json"
       Regex="&quot;version&quot;: &quot;.*&quot;"
-      ReplacementText="&quot;version&quot;: &quot;$(NuGetPackageVersion)&quot;">
+      ReplacementText="&quot;version&quot;: &quot;$(NuGetPackageVersion)$(NpmVersionSuffix)&quot;">
       <Output TaskParameter="AllItemsUpdated" PropertyName="FileWasStamped" />
     </FileUpdate>
 
@@ -131,7 +146,7 @@
       Condition="'$(FileWasStamped)' == 'true' "
       Files="$(PublishTo)$(PackageTestName)\package.json"
       Regex="(&quot;.*&quot;): &quot;0\.0\.0-placeholder&quot;"
-      ReplacementText="$1: &quot;$(NuGetPackageVersion)&quot;" />
+      ReplacementText="$1: &quot;$(NuGetPackageVersion)$(NpmVersionSuffix)&quot;" />
 
     <FileUpdate
       Files="$(PublishTo)$(PackageTestName)\package.json"

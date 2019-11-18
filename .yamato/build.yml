@@ -11,7 +11,11 @@ build:
 
   commands:
     - powershell scripts\Get-Deps.ps1
-    - if "x%GIT_BRANCH%"=="xmaster" (pack -r -b -p) else (pack -r -b)
+    - |
+      set RELEASE=0
+      if "x%GIT_BRANCH%"=="xmaster" set RELEASE=1
+      if "x%GIT_TAG%"!==!"x" set RELEASE=1
+      if "%RELEASE%"=="1" (pack -r -b -p) else (pack -r -b)
     - mkdir build\npm
 {% for package in packages %}
     - |
@@ -39,6 +43,7 @@ build:
     nuget:
       paths:
         - "build/nuget/**/*.nupkg"
+        - "nuget.config"
     npm:
       paths:
         - "build/npm/**/*"
