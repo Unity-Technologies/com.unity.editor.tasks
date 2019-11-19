@@ -11,10 +11,6 @@
     <VersionFiles Include="$(IntermediateOutputPath)\$(AssemblyName).Version$(DefaultLanguageSourceExtension)" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Include="$(SolutionDir)icon.png" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="icon.png" />
-  </ItemGroup>
-
   <!-- Assemble all sources into a folder called (PackageName) -->
   <Target Name="EnumeratePackageFiles" Returns="@(SourcesToCopy)">
     <CreateItem
@@ -31,6 +27,7 @@
     Outputs="@(SourcesToCopy->'$(PublishTo)$(PackageName)\%(RecursiveDir)%(Filename)%(Extension)');@(VersionFiles->'$(PublishTo)$(PackageName)$(PackageSubFolder)Version%(Extension)')"
     Returns="$Ran"
     >
+
 
     <MakeDir Directories="$(PublishTo)$(PackageName)" />
 
@@ -49,10 +46,15 @@
   <Target Name="UpdatePackageJson" DependsOnTargets="CopySourcesToPackmanPackage" AfterTargets="CopySourcesToPackmanPackage"
      Condition=" '$(TargetFramework)' == 'net471' " >
 
+    <PropertyGroup>
+      <NpmVersion Condition="'$(PublicRelease)' != 'true'">$(BuildVersionSimple)$(NpmVersionSuffix)-g$(GitCommitIdShort)</NpmVersion>
+      <NpmVersion Condition="'$(PublicRelease)' == 'true'">$(NuGetPackageVersion)$(NpmVersionSuffix)</NpmVersion>
+    </PropertyGroup>
+
     <FileUpdate
       Files="$(PublishTo)$(PackageName)\package.json"
       Regex="&quot;version&quot;: &quot;.*&quot;"
-      ReplacementText="&quot;version&quot;: &quot;$(NuGetPackageVersion)$(NpmVersionSuffix)&quot;"
+      ReplacementText="&quot;version&quot;: &quot;$(NpmVersion)&quot;"
       Encoding="utf-8-without-bom">
       <Output TaskParameter="AllItemsUpdated" PropertyName="FileWasStamped" />
     </FileUpdate>
@@ -61,7 +63,7 @@
       Condition="'$(FileWasStamped)' == 'true' "
       Files="$(PublishTo)$(PackageName)\package.json"
       Regex="(&quot;.*&quot;): &quot;0\.0\.0-placeholder&quot;"
-      ReplacementText="$1: &quot;$(NuGetPackageVersion)$(NpmVersionSuffix)&quot;"
+      ReplacementText="$1: &quot;$(NpmVersion)&quot;"
       Encoding="utf-8-without-bom" />
 
     <FileUpdate
@@ -83,10 +85,17 @@
       ReplacementText="## [$(NuGetPackageVersion)] - $([System.DateTime]::Now.ToString(&quot;yyyy-MM-dd&quot;))"
       Encoding="utf-8-without-bom" />
 
-    <Message Importance="High" Text="Nuget version: $(NuGetPackageVersion) NpmVersion: $(NuGetPackageVersion)$(NpmVersionSuffix)" Condition=" '$(FileWasStamped)' == 'true' "/>
+    <Message Condition="'$(FileWasStamped)' == 'true'"
+      Importance="High"
+      Text="$(AssemblyName) -> $(NuGetPackageVersion)"
+    />
+
+    <Message Condition="'$(FileWasStamped)' == 'true' and '$(NpmVersion)' != '$(NuGetPackageVersion)'"
+      Importance="High"
+      Text="$(PackageName) -> $(NpmVersion)"
+    />
 
   </Target>
-
 
   <!--
     PACKAGE TESTS
@@ -135,10 +144,15 @@
     AfterTargets="CopyTestsToPackmanPackage"
     Condition="Exists('$(PackageSourceRoot)\Tests') and '$(TargetFramework)' == 'net471' " >
 
+    <PropertyGroup>
+    <NpmVersion Condition="'$(PublicRelease)' != 'true'">$(BuildVersionSimple)$(NpmVersionSuffix)-g$(GitCommitIdShort)</NpmVersion>
+    <NpmVersion Condition="'$(PublicRelease)' == 'true'">$(NuGetPackageVersion)$(NpmVersionSuffix)</NpmVersion>
+    </PropertyGroup>
+
     <FileUpdate
       Files="$(PublishTo)$(PackageTestName)\package.json"
       Regex="&quot;version&quot;: &quot;.*&quot;"
-      ReplacementText="&quot;version&quot;: &quot;$(NuGetPackageVersion)$(NpmVersionSuffix)&quot;">
+      ReplacementText="&quot;version&quot;: &quot;$(NpmVersion)&quot;">
       <Output TaskParameter="AllItemsUpdated" PropertyName="FileWasStamped" />
     </FileUpdate>
 
@@ -146,7 +160,7 @@
       Condition="'$(FileWasStamped)' == 'true' "
       Files="$(PublishTo)$(PackageTestName)\package.json"
       Regex="(&quot;.*&quot;): &quot;0\.0\.0-placeholder&quot;"
-      ReplacementText="$1: &quot;$(NuGetPackageVersion)$(NpmVersionSuffix)&quot;" />
+      ReplacementText="$1: &quot;$(NpmVersion)&quot;" />
 
     <FileUpdate
       Files="$(PublishTo)$(PackageTestName)\package.json"
@@ -155,38 +169,4 @@
 
   </Target>
 
-
-  <!-- Helper to get the updated version from the Nerdbank.GitVersioning nuget task -->
-  <Target Name="CheckIfVersionChanged" BeforeTargets="GenerateAssemblyVersionInfo" AfterTargets="GetBuildVersion"
-    Returns="$(VersionHasChanged)"
-    Condition="'$(Language)' != ''">
-    <PropertyGroup>
-      <VersionSourceFile>$(IntermediateOutputPath)\$(AssemblyName).Version$(DefaultLanguageSourceExtension)</VersionSourceFile>
-      <NewVersionSourceFile>$(VersionSourceFile).newnew</NewVersionSourceFile>
-    </PropertyGroup>
-    <MakeDir Directories="$(IntermediatePath)"/>
-    <Nerdbank.GitVersioning.Tasks.AssemblyVersionInfo
-                  OutputFile="$(NewVersionSourceFile)"
-                  CodeLanguage="$(Language)"
-                  AssemblyVersion="$(AssemblyVersion)"
-                  AssemblyFileVersion="$(AssemblyFileVersion)"
-                  AssemblyInformationalVersion="$(AssemblyInformationalVersion)"
-                  AssemblyName="$(AssemblyName)"
-                  RootNamespace="$(RootNamespace)"
-                  AssemblyOriginatorKeyFile="$(AssemblyOriginatorKeyFile)"
-                  AssemblyTitle="$(AssemblyTitle)"
-                  AssemblyProduct="$(AssemblyProduct)"
-                  AssemblyCopyright="$(AssemblyCopyright)"
-                  AssemblyCompany="$(AssemblyCompany)"
-                  AssemblyConfiguration="$(Configuration)"
-                  GitCommitId="$(GitCommitId)"
-                  GitCommitDateTicks="$(GitCommitDateTicks)"
-                  EmitNonVersionCustomAttributes="$(NBGV_EmitNonVersionCustomAttributes)"
-                  />
-    <!-- Avoid applying the newly generated AssemblyVersionInfo.cs file to the build
-         unless it has changed in order to allow for incremental building. -->
-    <Nerdbank.GitVersioning.Tasks.CompareFiles OriginalItems="$(VersionSourceFile)" NewItems="$(NewVersionSourceFile)">
-      <Output TaskParameter="AreChanged" PropertyName="VersionHasChanged" />
-    </Nerdbank.GitVersioning.Tasks.CompareFiles>
-  </Target>
 </Project>

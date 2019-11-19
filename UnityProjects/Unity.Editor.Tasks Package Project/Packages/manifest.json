@@ -6,6 +6,13 @@
       "scopes": [
         "com.unity.package-manager.metadata"
       ]
+    },
+    {
+      "name": "Internal",
+      "url": "https://artifactory.internal.unity3d.com/api/npm/core-npm",
+      "scopes": [
+        "com.unity.editor.tasks"
+      ]
     }
   ],
   "dependencies": {

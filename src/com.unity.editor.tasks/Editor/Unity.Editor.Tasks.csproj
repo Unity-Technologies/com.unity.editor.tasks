@@ -2,6 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net471</TargetFramework>
     <SolutionDir Condition=" '$(SolutionDir)' == '' ">..\..\..\</SolutionDir>
+    <Description>A friendly threaded task system for the Unity Editor.</Description>
   </PropertyGroup>
   <Import Project="$(SolutionDir)common\unityreferences.targets" />
   <Import Project="$(SolutionDir)common\packaging.targets" />

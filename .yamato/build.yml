@@ -13,7 +13,6 @@ build:
     - powershell scripts\Get-Deps.ps1
     - |
       set RELEASE=0
-      if "x%GIT_BRANCH%"=="xmaster" set RELEASE=1
       if "x%GIT_TAG%"!==!"x" set RELEASE=1
       if "%RELEASE%"=="1" (pack -r -b -p) else (pack -r -b)
     - mkdir build\npm
@@ -38,6 +37,9 @@ build:
     branches:
       only:
       - "master"
+    tags:
+      only:
+      - "/.*/"
 
   artifacts:
     nuget:

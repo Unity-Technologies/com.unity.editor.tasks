@@ -1,11 +1,9 @@
 <Project>
   <PropertyGroup>
-    <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\'))</RepoRoot>
-    <RepoBuildPath>$(RepoRoot)build\</RepoBuildPath>
-    <RepoBinPath>$(RepoBuildPath)bin\</RepoBinPath>
-    <RepoObjPath>$(RepoBuildPath)obj\</RepoObjPath>
+    <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
     <LangVersion>7.3</LangVersion>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\'))</RepoRoot>
     <NoWarn>NU5104</NoWarn>
     <IsPackable>false</IsPackable>
   </PropertyGroup>

@@ -3,6 +3,6 @@
 SOURCE="${BASH_SOURCE[0]}"
 DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 
-pushd $DIR
+pushd $DIR >/dev/null 2>&1
 git clean -xdf -e .Editor -e .vs -e .store
-popd
+popd >/dev/null 2>&1

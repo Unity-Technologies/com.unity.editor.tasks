@@ -48,7 +48,7 @@ if [[ x"$OS" == x"Windows" && x"$PUBLIC" != x"" ]]; then
   PUBLIC="/$PUBLIC"
 fi
 
-pushd $DIR
+pushd $DIR >/dev/null 2>&1
 dotnet restore
 dotnet build --no-restore -c $CONFIGURATION $PUBLIC
-popd
+popd >/dev/null 2>&1

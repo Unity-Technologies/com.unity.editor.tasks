@@ -6,5 +6,6 @@
       "enabled": true
     }
   },
+  "pathFilters": ["./", ":/extras/com.unity.editor.tasks", "/icon.png"],
   "inherit": true
 }
