@@ -15,6 +15,11 @@ test_{{ package.safename }}_{{ platform.name }}_{{ editor.version }}:
   commands:
     - dotnet restore
     - dotnet test
+    - |
+      npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+{% for package in upm %}
+      upm-ci package test --package-path build\upm\{{ package.name }}
+{% endfor %}
 
   dependencies:
     - .yamato/build.yml#build

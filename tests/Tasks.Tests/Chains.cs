@@ -2,6 +2,8 @@
 
 namespace ThreadingTests
 {
+	using System.Threading.Tasks;
+
 	// Unity does not support async/await tests, but it does
 	// have a special type of test with a [CustomUnityTest] attribute
 	// which mimicks a coroutine in EditMode. This attribute is
@@ -14,39 +16,39 @@ namespace ThreadingTests
 	partial class Chains
 	{
 		[Test]
-		public void CatchAlwaysRunsBeforeFinally_()
+		public async Task CatchAlwaysRunsBeforeFinally_()
 		{
-			RunTest(CatchAlwaysRunsBeforeFinally);
+			await RunTest(CatchAlwaysRunsBeforeFinally);
 		}
 
 		[Test]
-		public void FinallyCanAlsoNotReturnData_()
+		public async Task FinallyCanAlsoNotReturnData_()
 		{
-			RunTest(FinallyCanAlsoNotReturnData);
+			await RunTest(FinallyCanAlsoNotReturnData);
 		}
 
 		[Test]
-		public void FinallyCanReturnData_()
+		public async Task FinallyCanReturnData_()
 		{
-			RunTest(FinallyCanReturnData);
+			await RunTest(FinallyCanReturnData);
 		}
 
 		[Test]
-		public void FinallyReportsException_()
+		public async Task FinallyReportsException_()
 		{
-			RunTest(FinallyReportsException);
+			await RunTest(FinallyReportsException);
 		}
 
 		[Test]
-		public void ThrowingInterruptsTaskChainButAlwaysRunsFinallyAndCatch_()
+		public async Task ThrowingInterruptsTaskChainButAlwaysRunsFinallyAndCatch_()
 		{
-			RunTest(ThrowingInterruptsTaskChainButAlwaysRunsFinallyAndCatch);
+			await RunTest(ThrowingInterruptsTaskChainButAlwaysRunsFinallyAndCatch);
 		}
 
 		[Test]
-		public void YouCanUseCatchAtTheEndOfAChain_()
+		public async Task YouCanUseCatchAtTheEndOfAChain_()
 		{
-			RunTest(YouCanUseCatchAtTheEndOfAChain);
+			await RunTest(YouCanUseCatchAtTheEndOfAChain);
 		}
 	}
 }

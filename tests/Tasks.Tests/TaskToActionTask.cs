@@ -14,15 +14,15 @@ namespace ThreadingTests
 	partial class TaskToActionTask
 	{
 		[Test]
-		public void CanWrapATask_()
+		public async Task CanWrapATask_()
 		{
-			RunTest(CanWrapATask);
+			await RunTest(CanWrapATask);
 		}
 
 		[Test]
-		public void Inlining_()
+		public async Task Inlining_()
 		{
-			RunTest(Inlining);
+			await RunTest(Inlining);
 		}
 	}
 }

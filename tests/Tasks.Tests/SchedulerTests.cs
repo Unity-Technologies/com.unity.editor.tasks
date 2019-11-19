@@ -14,40 +14,39 @@ namespace ThreadingTests
 	partial class SchedulerTests
 	{
 		[Test]
-		public void ChainingOnDifferentSchedulers_()
+		public async Task ChainingOnDifferentSchedulers_()
 		{
-			RunTest(ChainingOnDifferentSchedulers);
+			await RunTest(ChainingOnDifferentSchedulers);
 		}
 
 		[Test]
-		public void ConcurrentSchedulerDoesNotGuaranteeOrdering_()
+		public async Task ConcurrentSchedulerDoesNotGuaranteeOrdering_()
 		{
-			RunTest(ConcurrentSchedulerDoesNotGuaranteeOrdering);
+			await RunTest(ConcurrentSchedulerDoesNotGuaranteeOrdering);
 		}
 
 		[Test]
-		public void ConcurrentSchedulerWithDependencyOrdering_()
+		public async Task ConcurrentSchedulerWithDependencyOrdering_()
 		{
-			RunTest(ConcurrentSchedulerWithDependencyOrdering);
+			await RunTest(ConcurrentSchedulerWithDependencyOrdering);
 		}
 
 		[Test]
-		public void ExclusiveSchedulerGuaranteesOrdering_()
+		public async Task ExclusiveSchedulerGuaranteesOrdering_()
 		{
-			RunTest(ExclusiveSchedulerGuaranteesOrdering);
+			await RunTest(ExclusiveSchedulerGuaranteesOrdering);
 		}
 
 		[Test]
-		public void NonUITasksAlwaysRunOnDifferentThreadFromUITasks_()
+		public async Task NonUITasksAlwaysRunOnDifferentThreadFromUITasks_()
 		{
-			RunTest(NonUITasksAlwaysRunOnDifferentThreadFromUITasks);
+			await RunTest(NonUITasksAlwaysRunOnDifferentThreadFromUITasks);
 		}
 
 		[Test]
-		public void UISchedulerGuaranteesOrdering_()
+		public async Task UISchedulerGuaranteesOrdering_()
 		{
-			RunTest(UISchedulerGuaranteesOrdering);
+			await RunTest(UISchedulerGuaranteesOrdering);
 		}
-
 	}
 }

@@ -20,8 +20,6 @@ namespace Unity.Editor.Tasks
 		private readonly List<ITask> queuedTasks = new List<ITask>();
 		private int finishedTaskCount;
 
-		protected TaskQueue() {}
-
 		public TaskQueue(ITaskManager taskManager) : base(taskManager)
 		{
 			Initialize(aggregateTask.Task);
@@ -101,7 +99,6 @@ namespace Unity.Editor.Tasks
 
 	public class TaskQueue<TResult> : TaskQueue<TResult, TResult>
 	{
-		protected TaskQueue() {}
 		public TaskQueue(ITaskManager taskManager) : base(taskManager) {}
 		public TaskQueue(ITaskManager taskManager, CancellationToken token) : base(taskManager, token) { }
 	}
@@ -113,8 +110,6 @@ namespace Unity.Editor.Tasks
 		private readonly List<ITask<TTaskResult>> queuedTasks = new List<ITask<TTaskResult>>();
 		private readonly Func<ITask<TTaskResult>, TResult> resultConverter;
 		private int finishedTaskCount;
-
-		protected TaskQueue() {}
 
 		/// <summary>
 		/// If <typeparamref name="TTaskResult"/> is not assignable to <typeparamref name="TResult"/>, you must pass a
@@ -231,101 +226,7 @@ namespace Unity.Editor.Tasks
 			}
 		}
 	}
-
-	public class TPLTask : TaskBase
-	{
-		private Task task;
-
-		protected TPLTask() { }
-		protected TPLTask(ITaskManager taskManager) : base(taskManager) { }
-		protected TPLTask(ITaskManager taskManager, CancellationToken token) : base(taskManager, token) { }
-		public TPLTask(ITaskManager taskManager, Task task) : this(taskManager, taskManager?.Token ?? default, task) { }
-
-		public TPLTask(ITaskManager taskManager, CancellationToken token, Task task)
-			: base(taskManager, token)
-		{
-			Initialize(task);
-		}
-
-		protected void Initialize(Task theTask)
-		{
-			task = theTask;
-			Task = new Task(RunSynchronously, Token, TaskCreationOptions.None);
-		}
-
-		protected override void Run(bool success)
-		{
-			base.Run(success);
-
-			Token.ThrowIfCancellationRequested();
-			try
-			{
-				if (task.Status == TaskStatus.Created && !task.IsCompleted &&
-					((task.CreationOptions & (TaskCreationOptions)512) == TaskCreationOptions.None))
-				{
-					var scheduler = TaskManager.GetScheduler(Affinity);
-					Token.ThrowIfCancellationRequested();
-					task.RunSynchronously(scheduler);
-				}
-				else
-					task.Wait();
-			}
-			catch (Exception ex)
-			{
-				if (!RaiseFaultHandlers(ex))
-					ThrownException.Rethrow();
-				Token.ThrowIfCancellationRequested();
-			}
-		}
-	}
-
-	public class TPLTask<T> : TaskBase<T>
-	{
-		private Task<T> task;
-
-		protected TPLTask() {}
-		protected TPLTask(ITaskManager taskManager) : this(taskManager, taskManager?.Token ?? default) {}
-		protected TPLTask(ITaskManager taskManager, CancellationToken token) : base(taskManager, token) {}
-		public TPLTask(ITaskManager taskManager, Task<T> task) : this(taskManager, taskManager?.Token ?? default, task) {}
-
-		public TPLTask(ITaskManager taskManager, CancellationToken token, Task<T> task)
-			: base(taskManager, token)
-		{
-			Initialize(task);
-		}
-
-		protected void Initialize(Task<T> theTask)
-		{
-			task = theTask;
-			Task = new Task<T>(RunSynchronously, Token, TaskCreationOptions.None);
-		}
-
-		protected override T RunWithReturn(bool success)
-		{
-			var ret = base.RunWithReturn(success);
-
-			Token.ThrowIfCancellationRequested();
-			try
-			{
-				if (task.Status == TaskStatus.Created && !task.IsCompleted &&
-					((task.CreationOptions & (TaskCreationOptions)512) == TaskCreationOptions.None))
-				{
-					var scheduler = TaskManager.GetScheduler(Affinity);
-					Token.ThrowIfCancellationRequested();
-					task.RunSynchronously(scheduler);
-				}
-				ret = task.Result;
-			}
-			catch (Exception ex)
-			{
-				if (!RaiseFaultHandlers(ex))
-					ThrownException.Rethrow();
-				Token.ThrowIfCancellationRequested();
-			}
-			return ret;
-		}
-	}
-
+	
 	public partial class ActionTask : TaskBase
 	{
 		protected ActionTask() {}

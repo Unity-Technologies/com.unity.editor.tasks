@@ -11,19 +11,10 @@ using NUnit.Framework;
 
 namespace BaseTests
 {
-	public partial class BaseTest : IDisposable
+	public partial class BaseTest
 	{
 		protected const int Timeout = 30000;
 		protected const int RandomSeed = 120938;
-
-		private ITaskManager TaskManager { get; }
-
-		protected void StopTest(Stopwatch watch, ILogging logger, ITaskManager taskManager)
-		{
-			watch.Stop();
-			logger.Trace($"END:{watch.ElapsedMilliseconds}ms");
-
-		}
 
 		protected void StartTrackTime(Stopwatch watch, ILogging logger, string message = "")
 		{

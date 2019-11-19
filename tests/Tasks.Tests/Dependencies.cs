@@ -3,6 +3,8 @@ using NUnit.Framework;
 
 namespace ThreadingTests
 {
+	using System.Threading.Tasks;
+
 	// Unity does not support async/await tests, but it does
 	// have a special type of test with a [CustomUnityTest] attribute
 	// which mimicks a coroutine in EditMode. This attribute is
@@ -14,21 +16,21 @@ namespace ThreadingTests
 	partial class Dependencies : BaseTest
 	{
 		[Test]
-		public void GetFirstStartableTask_ReturnsNullWhenItsAlreadyStarted_()
+		public async Task GetFirstStartableTask_ReturnsNullWhenItsAlreadyStarted_()
 		{
-			RunTest(GetFirstStartableTask_ReturnsNullWhenItsAlreadyStarted);
+			await RunTest(GetFirstStartableTask_ReturnsNullWhenItsAlreadyStarted);
 		}
 
 		[Test]
-		public void GetTopOfChain_ReturnsTopMostInCreatedState_()
+		public async Task GetTopOfChain_ReturnsTopMostInCreatedState_()
 		{
-			RunTest(GetTopOfChain_ReturnsTopMostInCreatedState);
+			await RunTest(GetTopOfChain_ReturnsTopMostInCreatedState);
 		}
 
 		[Test]
-		public void MergingTwoChainsWorks_()
+		public async Task MergingTwoChainsWorks_()
 		{
-			RunTest(MergingTwoChainsWorks);
+			await RunTest(MergingTwoChainsWorks);
 		}
 	}
 }

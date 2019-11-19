@@ -73,7 +73,7 @@ namespace Unity.Editor.Tasks
 			return task.Then(new FuncTask<T, TRet>(task.TaskManager, task.Token, continuation) { Affinity = affinity, Name = name ?? $"ThenFunc<{typeof(T)}, {typeof(TRet)}>" }, runOptions);
 		}
 
-		public static ITask<T> Then<T>(this ITask task, Task<T> continuation, string name = null, TaskAffinity affinity = TaskAffinity.Concurrent, TaskRunOptions runOptions = TaskRunOptions.OnSuccess)
+		public static ITask<T> Then<T>(this ITask task, Func<Task<T>> continuation, string name = null, TaskAffinity affinity = TaskAffinity.Concurrent, TaskRunOptions runOptions = TaskRunOptions.OnSuccess)
 		{
 			var cont = new TPLTask<T>(task.TaskManager, continuation) { Affinity = affinity, Name = name ?? $"ThenAsync<{typeof(T)}>" };
 			return task.Then(cont, runOptions);

@@ -481,7 +481,7 @@ namespace Unity.Editor.Tasks
 		/// </summary>
 		[DebuggerDisplay("Count={CountForDebugger}, MaxConcurrencyLevel={m_maxConcurrencyLevel}, Id={Id}")]
 		[DebuggerTypeProxy(typeof(ConcurrentExclusiveTaskScheduler.DebugView))]
-		private sealed class ConcurrentExclusiveTaskScheduler : TaskScheduler, ITaskScheduler
+		private sealed class ConcurrentExclusiveTaskScheduler : TaskScheduler
 		{
 			/// <summary>Cached delegate for invoking TryExecuteTaskShim.</summary>
 			private static readonly Func<object, bool> s_tryExecuteTaskShim = new Func<object, bool>(TryExecuteTaskShim);

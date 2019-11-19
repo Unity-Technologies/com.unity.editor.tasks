@@ -1,6 +1,6 @@
 {
     "name": "com.unity.editor.tasks",
-    "displayName": "Unity Editor Tasks library",
+    "displayName": "Unity Editor Tasks",
     "description": "A friendly threaded task system for the Unity Editor.",
     "version": "0.0.0-placeholder",
     "license" : "MIT",

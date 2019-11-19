@@ -14,15 +14,15 @@ namespace ThreadingTests
 	partial class DependencyTests
 	{
 		[Test]
-		public void RunningDifferentTasksDependingOnSuccessOrFailure_()
+		public async Task RunningDifferentTasksDependingOnSuccessOrFailure_()
 		{
-			RunTest(RunningDifferentTasksDependingOnSuccessOrFailure);
+			await RunTest(RunningDifferentTasksDependingOnSuccessOrFailure);
 		}
 
 		[Test]
-		public void TaskOnFailureGetsCalledWhenExceptionHappensUpTheChain_()
+		public async Task TaskOnFailureGetsCalledWhenExceptionHappensUpTheChain_()
 		{
-			RunTest(TaskOnFailureGetsCalledWhenExceptionHappensUpTheChain);
+			await RunTest(TaskOnFailureGetsCalledWhenExceptionHappensUpTheChain);
 		}
 
 	}

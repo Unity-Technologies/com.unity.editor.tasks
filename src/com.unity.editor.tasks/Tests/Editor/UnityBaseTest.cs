@@ -7,6 +7,8 @@ using Debug = UnityEngine.Debug;
 
 namespace BaseTests
 {
+	using System;
+
 	// Unity does not support async/await tests, but it does
 	// have a special type of test with a [CustomUnityTest] attribute
 	// which mimicks a coroutine in EditMode. This attribute is
@@ -18,7 +20,7 @@ namespace BaseTests
 	{ }
 
 
-	public partial class BaseTest
+	public partial class BaseTest : IDisposable
 	{
 		private LogAdapterBase existingLogger;
 		private bool existingTracing;
@@ -30,28 +32,32 @@ namespace BaseTests
 			existingTracing = LogHelper.TracingEnabled;
 			LogHelper.TracingEnabled = false;
 			LogHelper.LogAdapter = new NullLogAdapter();
-
-			TaskManager = new TaskManager().Initialize();
-
-			Debug.Log($"Starting test fixture. Main thread is {TaskManager.UIThread}");
 		}
 
 		public void Dispose()
 		{
-			TaskManager?.Dispose();
 			LogHelper.LogAdapter = existingLogger;
 			LogHelper.TracingEnabled = existingTracing;
 		}
 
 		protected void StartTest(out Stopwatch watch, out ILogging logger, out ITaskManager taskManager, [CallerMemberName] string testName = "test")
 		{
+			taskManager = new TaskManager().Initialize();
+
+			Debug.Log($"Starting test fixture. Main thread is {taskManager.UIThread}");
+
 			logger = new LogFacade(testName, new UnityLogAdapter(), true);
 			watch = new Stopwatch();
 
-			taskManager = TaskManager;
-
 			logger.Trace("START");
 			watch.Start();
+		}
+
+		protected void StopTest(Stopwatch watch, ILogging logger, ITaskManager taskManager)
+		{
+			watch.Stop();
+			logger.Trace($"END:{watch.ElapsedMilliseconds}ms");
+			taskManager.Dispose();
 		}
 	}
 }

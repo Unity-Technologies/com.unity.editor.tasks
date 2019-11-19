@@ -7,14 +7,18 @@ using System.Runtime.CompilerServices;
 
 namespace Unity.Editor.Tasks
 {
-	interface IAwaitable
+	public interface IAwaitable
 	{
 		IAwaiter GetAwaiter();
 	}
 
-	interface IAwaiter : INotifyCompletion
+	public interface IAwaiter : INotifyCompletion
 	{
 		void GetResult();
 		bool IsCompleted { get; }
+	}
+	public interface IAwaiter<T> : IAwaiter
+	{
+		new T GetResult();
 	}
 }

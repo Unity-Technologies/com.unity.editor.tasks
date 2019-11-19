@@ -14,33 +14,33 @@ namespace ThreadingTests
 	partial class Exceptions
 	{
 		[Test]
-		public void AllFinallyHandlersAreCalledOnException_()
+		public async Task AllFinallyHandlersAreCalledOnException_()
 		{
-			RunTest(AllFinallyHandlersAreCalledOnException);
+			await RunTest(AllFinallyHandlersAreCalledOnException);
 		}
 
 		[Test]
-		public void ContinueAfterException_()
+		public async Task ContinueAfterException_()
 		{
-			RunTest(ContinueAfterException);
+			await RunTest(ContinueAfterException);
 		}
 
 		[Test]
-		public void ExceptionPropagatesOutIfNoFinally_()
+		public async Task ExceptionPropagatesOutIfNoFinally_()
 		{
-			RunTest(ExceptionPropagatesOutIfNoFinally);
+			await RunTest(ExceptionPropagatesOutIfNoFinally);
 		}
 
 		[Test]
-		public void MultipleCatchStatementsCanHappen_()
+		public async Task MultipleCatchStatementsCanHappen_()
 		{
-			RunTest(MultipleCatchStatementsCanHappen);
+			await RunTest(MultipleCatchStatementsCanHappen);
 		}
 
 		[Test]
-		public void StartAndEndAreAlwaysRaised_()
+		public async Task StartAndEndAreAlwaysRaised_()
 		{
-			RunTest(StartAndEndAreAlwaysRaised);
+			await RunTest(StartAndEndAreAlwaysRaised);
 		}
 
 	}

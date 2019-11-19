@@ -14,9 +14,9 @@ namespace ThreadingTests
 	partial class TaskQueueTests
 	{
 		[Test]
-		public void DoubleSchedulingStartsOnlyOnce_()
+		public async Task DoubleSchedulingStartsOnlyOnce_()
 		{
-			RunTest(DoubleSchedulingStartsOnlyOnce);
+			await RunTest(DoubleSchedulingStartsOnlyOnce);
 		}
 	}
 }

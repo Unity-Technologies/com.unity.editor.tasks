@@ -21,7 +21,7 @@ namespace ThreadingTests
 			var expected = new double[] { 2.1, Math.PI, 1.0 };
 			var queue = new TaskQueue<string, double>(taskManager, task => Double.Parse(task.Result));
 			vals.All(s => {
-				queue.Queue(new TPLTask<string>(taskManager, Task.FromResult<string>(s)));
+				queue.Queue(new TPLTask<string>(taskManager, () => Task.FromResult<string>(s)));
 				return true;
 			});
 			var ret = queue.RunSynchronously();
@@ -85,7 +85,7 @@ namespace ThreadingTests
 			StartTest(out var watch, out var logger, out var taskManager);
 
 			var queue = new TaskQueue(taskManager);
-			var task = new ActionTask(taskManager, () => throw new InvalidOperationException()).Finally((s, e) => {});
+			var task = new ActionTask(taskManager, () => throw new InvalidOperationException()).Finally((s, e) => { });
 			queue.Queue(task);
 			Assert.Throws<InvalidOperationException>(() => queue.RunSynchronously());
 

@@ -10,6 +10,6 @@
     "com.unity.modules.ui": "1.0.0"
   },
   "testables": [
-    "com.unity.editor.tasks.tests",
+    "com.unity.editor.tasks.tests"
   ]
 }

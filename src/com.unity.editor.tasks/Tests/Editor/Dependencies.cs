@@ -14,7 +14,7 @@ namespace ThreadingTests
 		class TestActionTask : ActionTask
 		{
 			public TestActionTask(ITaskManager taskManager, Action<bool> action) : base(taskManager, action)
-			{}
+			{ }
 
 			public TaskBase Test_GetFirstStartableTask()
 			{
@@ -33,13 +33,13 @@ namespace ThreadingTests
 		{
 			StartTest(out var watch, out var logger, out var taskManager);
 
-			var task = new ActionTask(taskManager, () => {});
+			var task = new ActionTask(taskManager, () => { });
 
 			// wait for the tasks to finish
 			foreach (var frame in StartAndWaitForCompletion(task)) yield return frame;
 
-			var task2 = new TestActionTask(taskManager, _ => {});
-			var task3 = new TestActionTask(taskManager, _ => {});
+			var task2 = new TestActionTask(taskManager, _ => { });
+			var task3 = new TestActionTask(taskManager, _ => { });
 
 			task.Then(task2).Then(task3);
 
@@ -55,9 +55,9 @@ namespace ThreadingTests
 		{
 			StartTest(out var watch, out var logger, out var taskManager);
 
-			var task1 = new ActionTask(taskManager, () => {});
-			var task2 = new TestActionTask(taskManager, _ => {});
-			var task3 = new TestActionTask(taskManager, _ => {});
+			var task1 = new ActionTask(taskManager, () => { });
+			var task2 = new TestActionTask(taskManager, _ => { });
+			var task3 = new TestActionTask(taskManager, _ => { });
 
 			task1.Then(task2).Then(task3);
 
@@ -72,13 +72,13 @@ namespace ThreadingTests
 		{
 			StartTest(out var watch, out var logger, out var taskManager);
 
-			var task = new ActionTask(taskManager, () => {});
+			var task = new ActionTask(taskManager, () => { });
 
 			// wait for the tasks to finish
 			foreach (var frame in StartAndWaitForCompletion(task)) yield return frame;
 
-			var task2 = new TestActionTask(taskManager, _ => {});
-			var task3 = new TestActionTask(taskManager, _ => {});
+			var task2 = new TestActionTask(taskManager, _ => { });
+			var task3 = new TestActionTask(taskManager, _ => { });
 
 			task.Then(task2).Then(task3);
 
@@ -93,9 +93,9 @@ namespace ThreadingTests
 		{
 			StartTest(out var watch, out var logger, out var taskManager);
 
-			var task1 = new TPLTask(taskManager, Task.FromResult(true));
-			var task2 = new TestActionTask(taskManager, _ => {});
-			var task3 = new TestActionTask(taskManager, _ => {});
+			var task1 = new TPLTask(taskManager, () => Task.FromResult(true));
+			var task2 = new TestActionTask(taskManager, _ => { });
+			var task3 = new TestActionTask(taskManager, _ => { });
 
 			task1.Then(task2).Then(task3);
 
@@ -155,7 +155,7 @@ namespace ThreadingTests
 			Action<ITask<int>, int, bool, Exception> onEndInt = (t, _, __, ___) => logger.Trace($"OnEnd {t.Name}");
 
 
-			innerChainTask1 = new TPLTask(taskManager, Task.FromResult(true)) { Name = nameof(innerChainTask1) };
+			innerChainTask1 = new TPLTask(taskManager, () => Task.FromResult(true)) { Name = nameof(innerChainTask1) };
 			innerChainTask1.OnStart += t => {
 				onStart(t);
 				callOrder.Add(nameof(innerChainTask1));

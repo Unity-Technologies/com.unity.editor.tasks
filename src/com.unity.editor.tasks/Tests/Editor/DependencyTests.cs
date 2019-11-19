@@ -81,7 +81,7 @@ namespace ThreadingTests
 					   .Catch(ex => exceptions.Add(ex))
 					   .Then(() => runOrder.Add("OnFailure"),
 						   runOptions: TaskRunOptions.OnFailure)
-					   .Finally((s, e) => {});
+					   .Finally((s, e) => { });
 
 			// wait for the tasks to finish
 			foreach (var frame in StartAndWaitForCompletion(task)) yield return frame;

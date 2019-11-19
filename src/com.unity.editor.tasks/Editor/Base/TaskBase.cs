@@ -895,12 +895,4 @@ namespace Unity.Editor.Tasks
 			OnData?.Invoke(data);
 		}
 	}
-
-	public enum TaskAffinity
-	{
-		Concurrent,
-		Exclusive,
-		UI,
-		LongRunning
-	}
 }

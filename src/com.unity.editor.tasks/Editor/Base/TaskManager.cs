@@ -49,7 +49,6 @@ namespace Unity.Editor.Tasks
 
 		private readonly ProgressReporter progressReporter = new ProgressReporter();
 		private CancellationTokenSource cts;
-		private ThreadingHelper threadingHelper;
 
 		public event Action<IProgress> OnProgress
 		{
@@ -61,17 +60,19 @@ namespace Unity.Editor.Tasks
 		{
 			cts = new CancellationTokenSource();
 			manager = new ConcurrentExclusiveSchedulerPairCustom(cts.Token);
-			threadingHelper = new ThreadingHelper();
 			logger = LogHelper.GetLogger<TaskManager>();
 		}
 
-	/// <summary>
-	/// Run this on the thread you would like to use as the main thread
-	/// </summary>
-	/// <returns></returns>
-	public ITaskManager Initialize()
+		/// <summary>
+		/// Run this on the thread you would like to use as the main thread
+		/// </summary>
+		/// <returns></returns>
+		public ITaskManager Initialize()
 		{
-			return Initialize(ThreadingHelper.GetUIScheduler(SynchronizationContext.Current));
+			SetUIThread();
+			if (UIScheduler == null)
+				UIScheduler = ThreadingHelper.GetUIScheduler(SynchronizationContext.Current);
+			return this;
 		}
 
 		/// <summary>
@@ -82,16 +83,14 @@ namespace Unity.Editor.Tasks
 		/// <returns></returns>
 		public ITaskManager Initialize(SynchronizationContext synchronizationContext)
 		{
-			synchronizationContext.Send(s => ((ITaskManager)s).Initialize(), this);
+			UIScheduler = ThreadingHelper.GetUIScheduler(synchronizationContext);
+			synchronizationContext.Send(_ => SetUIThread(), null);
 			return this;
 		}
 
-		private ITaskManager Initialize(TaskScheduler uiTaskScheduler)
+		public void SetUIThread()
 		{
-			UIScheduler = uiTaskScheduler;
-			threadingHelper.SetUIThread();
-			LongRunningScheduler = new TaskSchedulerExcludingThread(threadingHelper.MainThread);
-			return this;
+			UIThread = Thread.CurrentThread.ManagedThreadId;
 		}
 
 		public TaskScheduler GetScheduler(TaskAffinity affinity)
@@ -104,6 +103,8 @@ namespace Unity.Editor.Tasks
 					return UIScheduler;
 				case TaskAffinity.LongRunning:
 					return LongRunningScheduler;
+				case TaskAffinity.ThreadPool:
+					return TaskScheduler.Default;
 				case TaskAffinity.Concurrent:
 				default:
 					return ConcurrentScheduler;
@@ -134,10 +135,10 @@ namespace Unity.Editor.Tasks
 				// we run this exception handler in the long running scheduler so it doesn't get blocked
 				// by any exclusive tasks that might be running
 				task.Task.ContinueWith(tt => {
-						Exception ex = tt.Exception.GetBaseException();
-						while (ex.InnerException != null) ex = ex.InnerException;
-						logger.Trace(ex, $"Exception on {schedulerName} thread: {tt.Id} {task.Name}");
-					},
+					Exception ex = tt.Exception.GetBaseException();
+					while (ex.InnerException != null) ex = ex.InnerException;
+					logger.Trace(ex, $"Exception on {schedulerName} thread: {tt.Id} {task.Name}");
+				},
 					cts.Token,
 					TaskContinuationOptions.OnlyOnFaulted,
 					GetScheduler(TaskAffinity.LongRunning)
@@ -182,10 +183,11 @@ namespace Unity.Editor.Tasks
 		public TaskScheduler UIScheduler { get; set; }
 		public TaskScheduler ConcurrentScheduler => manager.ConcurrentScheduler;
 		public TaskScheduler ExclusiveScheduler => manager.ExclusiveScheduler;
-		public TaskScheduler LongRunningScheduler { get; private set; }
+		private TaskScheduler longRunningScheduler;
+		public TaskScheduler LongRunningScheduler => longRunningScheduler ?? (longRunningScheduler = new TaskSchedulerExcludingThread(UIThread));
 		public CancellationToken Token => cts.Token;
-		public bool InUIThread => threadingHelper.InUIThread;
-		public int UIThread => threadingHelper.MainThread;
+		public int UIThread { get; private set; }
+		public bool InUIThread => UIThread == 0 || Thread.CurrentThread.ManagedThreadId == UIThread;
 	}
 }
 

@@ -9,18 +9,12 @@ namespace ThreadingTests
 {
 	partial class TaskToActionTask : BaseTest
 	{
-		private async Task<List<int>> GetData(List<int> v)
+		private async Task SetDataExclusiveAsync(ITaskManager taskManager, List<string> list, string data)
 		{
-			await Task.Delay(10);
-			v.Add(1);
-			return v;
-		}
+			Assert.AreNotEqual(taskManager.UIThread, System.Threading.Thread.CurrentThread.ManagedThreadId, "async task ran on the main thread when it shouldn't have");
 
-		private async Task<List<int>> GetData2(List<int> v)
-		{
 			await Task.Delay(10);
-			v.Add(3);
-			return v;
+			list.Add(data);
 		}
 
 		[CustomUnityTest]
@@ -29,11 +23,12 @@ namespace ThreadingTests
 			StartTest(out var watch, out var logger, out var taskManager);
 
 			var runOrder = new List<string>();
-			var tplTask = new Task(() => runOrder.Add($"ran"));
-			var task = new TPLTask(taskManager, tplTask) { Affinity = TaskAffinity.Exclusive };
+			var task = new TPLTask(taskManager, () => SetDataExclusiveAsync(taskManager, runOrder, "ran")) { Affinity = TaskAffinity.Exclusive };
 
 			// wait for the tasks to finish
 			foreach (var frame in StartAndWaitForCompletion(task)) yield return frame;
+
+			Assert.IsTrue(task.Successful, "Task did not complete successfully");
 
 			CollectionAssert.AreEqual(new[] { $"ran" }, runOrder);
 
@@ -47,13 +42,13 @@ namespace ThreadingTests
 
 			var runOrder = new List<string>();
 			var task = new ActionTask(taskManager, _ => runOrder.Add($"started")) { Name = "Inlining 1" }
-					   .Then(Task.FromResult(1), "Inlining 2", TaskAffinity.Exclusive)
-					   .Then((_, n) => n + 1, "Inlining 3")
-					   .Then((_, n) => runOrder.Add(n.ToString()), "Inlining 4")
-					   .Then(Task.FromResult(20f), "Inlining 5", TaskAffinity.Exclusive)
-					   .Then((_, n) => n + 1, "Inlining 6")
-					   .Then((_, n) => runOrder.Add(n.ToString()), "Inlining 7")
-					   .Finally((s, _) => runOrder.Add("done"));
+			           .Then(() => Task.FromResult(1), "Inlining 2", TaskAffinity.Exclusive)
+			           .Then((_, n) => n + 1, "Inlining 3")
+			           .Then((_, n) => runOrder.Add(n.ToString()), "Inlining 4")
+			           .Then(() => Task.FromResult(20f), "Inlining 5", TaskAffinity.Exclusive)
+			           .Then((_, n) => n + 1, "Inlining 6")
+			           .Then((_, n) => runOrder.Add(n.ToString()), "Inlining 7")
+			           .Finally((s, _) => runOrder.Add("done"));
 
 			// wait for the tasks to finish
 			foreach (var frame in StartAndWaitForCompletion(task)) yield return frame;

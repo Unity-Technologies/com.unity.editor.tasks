@@ -23,10 +23,10 @@ namespace ThreadingTests
 			for (int i = 1; i < 100; i++)
 			{
 				tasks.Add(GetTask(taskManager, TaskAffinity.UI, i, id => {
-						lock(output) output.Add(id, KeyValuePair.Create(Thread.CurrentThread.ManagedThreadId, -1));
-					}).Then(GetTask(taskManager, i % 2 == 0 ? TaskAffinity.Concurrent : TaskAffinity.Exclusive, i, id => {
-						  lock(output) output[id] = KeyValuePair.Create(output[id].Key, Thread.CurrentThread.ManagedThreadId);
-					  }))
+					lock (output) output.Add(id, KeyValuePair.Create(Thread.CurrentThread.ManagedThreadId, -1));
+				}).Then(GetTask(taskManager, i % 2 == 0 ? TaskAffinity.Concurrent : TaskAffinity.Exclusive, i, id => {
+					lock (output) output[id] = KeyValuePair.Create(output[id].Key, Thread.CurrentThread.ManagedThreadId);
+				}))
 					  .Start());
 			}
 
@@ -59,7 +59,7 @@ namespace ThreadingTests
 			{
 				tasks.Add(GetTask(taskManager, TaskAffinity.Concurrent, i, id => {
 					new ManualResetEventSlim().Wait(rand.Next(100, 200));
-					lock(runningOrder) runningOrder.Add(id);
+					lock (runningOrder) runningOrder.Add(id);
 				}));
 			}
 
@@ -89,7 +89,7 @@ namespace ThreadingTests
 			{
 				startTasks.Add(GetTask(taskManager, TaskAffinity.Concurrent, i + 1, id => {
 					new ManualResetEventSlim().Wait(rand.Next(100, 200));
-					lock(runningOrder) runningOrder.Add(id);
+					lock (runningOrder) runningOrder.Add(id);
 				}));
 			}
 
@@ -99,7 +99,7 @@ namespace ThreadingTests
 				var previousTask = startTasks[i];
 				midTasks.Add(previousTask.Then(GetTask(taskManager, TaskAffinity.Concurrent, i + 11, id => {
 					new ManualResetEventSlim().Wait(rand.Next(100, 200));
-					lock(runningOrder) runningOrder.Add(id);
+					lock (runningOrder) runningOrder.Add(id);
 				})));
 				;
 			}
@@ -110,7 +110,7 @@ namespace ThreadingTests
 				var previousTask = midTasks[i];
 				endTasks.Add(previousTask.Then(GetTask(taskManager, TaskAffinity.Concurrent, i + 21, id => {
 					new ManualResetEventSlim().Wait(rand.Next(100, 200));
-					lock(runningOrder) runningOrder.Add(id);
+					lock (runningOrder) runningOrder.Add(id);
 				})));
 			}
 
@@ -139,7 +139,7 @@ namespace ThreadingTests
 			{
 				tasks.Add(GetTask(taskManager, TaskAffinity.Exclusive, i, id => {
 					new ManualResetEventSlim().Wait(rand.Next(100, 200));
-					lock(runningOrder) runningOrder.Add(id);
+					lock (runningOrder) runningOrder.Add(id);
 				}));
 			}
 
@@ -163,7 +163,7 @@ namespace ThreadingTests
 			for (int i = 1; i < 100; i++)
 			{
 				tasks.Add(GetTask(taskManager, i % 2 == 0 ? TaskAffinity.Concurrent : TaskAffinity.Exclusive, i, id => {
-					lock(output) output.Add(id, Thread.CurrentThread.ManagedThreadId);
+					lock (output) output.Add(id, Thread.CurrentThread.ManagedThreadId);
 				}).Start());
 			}
 
@@ -187,7 +187,7 @@ namespace ThreadingTests
 			{
 				tasks.Add(GetTask(taskManager, TaskAffinity.UI, i, id => {
 					new ManualResetEventSlim().Wait(rand.Next(100, 200));
-					lock(runningOrder) runningOrder.Add(id);
+					lock (runningOrder) runningOrder.Add(id);
 				}));
 			}
 
