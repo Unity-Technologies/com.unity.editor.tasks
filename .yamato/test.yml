@@ -13,13 +13,9 @@ test_{{ package.safename }}_{{ platform.name }}_{{ editor.version }}:
     DOTNET_CLI_TELEMETRY_OPTOUT: 1
 
   commands:
-    - dotnet restore
-    - dotnet test
     - |
       npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
-{% for package in upm %}
-      upm-ci package test --package-path build\upm\{{ package.name }}
-{% endfor %}
+      upm-ci package test --package-path build\upm\{{ package.name }} -u {{editor.version}}
 
   dependencies:
     - .yamato/build.yml#build
@@ -42,3 +38,14 @@ test_trigger:
     {% endfor %}
     {% endfor %}
     {% endfor %}
+  triggers:
+    pull_requests:
+      - targets:
+          only:
+            - "master"
+    branches:
+      only:
+      - "master"
+    tags:
+      only:
+      - "/.*/"

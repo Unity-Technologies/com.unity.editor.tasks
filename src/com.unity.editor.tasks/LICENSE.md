@@ -1,3 +1,5 @@
+com.unity.editor.tasks copyright © 2019 Unity Technologies ApS
+
 MIT License
 
 Copyright (c) 2019 Unity Technologies

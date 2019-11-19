@@ -11,6 +11,7 @@ fi
 CONFIGURATION=""
 PUBLIC=""
 BUILD=0
+UPM=0
 
 while (( "$#" )); do
   case "$1" in
@@ -28,6 +29,10 @@ while (( "$#" )); do
     ;;
     -b|--build)
       BUILD=1
+      shift
+    ;;
+    -u|--upm)
+      UPM=1
       shift
     ;;
     -*|--*=) # unsupported flags
@@ -59,4 +64,8 @@ if [[ x"$BUILD" == x"1" ]]; then
   dotnet build --no-restore -c $CONFIGURATION $PUBLIC
 fi
 dotnet pack --no-build --no-restore -c $CONFIGURATION $PUBLIC
+
+if [[ x"$UPM" == x"1" ]]; then
+  powershell scripts/Pack-Upm.ps1
+fi
 popd >/dev/null 2>&1

@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
   <PropertyGroup>
-    <TargetFramework>net471</TargetFramework>
+    <TargetFrameworks>net471;netcoreapp2.2</TargetFrameworks>
     <SolutionDir Condition=" '$(SolutionDir)' == '' ">..\..\..\</SolutionDir>
     <Description>A friendly threaded task system for the Unity Editor.</Description>
   </PropertyGroup>

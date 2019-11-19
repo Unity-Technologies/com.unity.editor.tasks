@@ -11,30 +11,11 @@ build:
 
   commands:
     - powershell scripts\Get-Deps.ps1
+      npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
     - |
       set RELEASE=0
       if "x%GIT_TAG%"!==!"x" set RELEASE=1
-      if "%RELEASE%"=="1" (pack -r -b -p) else (pack -r -b)
-    - |
-      npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
-      mkdir build\upm
-{% for package in upm %}
-      powershell copy-item build\packages\{{ package.name }} build\upm\{{ package.name }}\ -recurse
-      powershell copy-item build\packages\{{ package.name }}.tests\ build\upm\{{ package.name }}\Tests\ -recurse
-      upm-ci package pack --package-path build\upm\{{ package.name }}
-{% endfor %}
-
-  triggers:
-    pull_requests:
-      - targets:
-          only:
-            - "master"
-    branches:
-      only:
-      - "master"
-    tags:
-      only:
-      - "/.*/"
+      if "%RELEASE%"=="1" (pack -r -b -p -u) else (pack -r -b -u)
 
   artifacts:
     nuget:

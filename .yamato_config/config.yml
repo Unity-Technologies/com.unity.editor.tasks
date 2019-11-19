@@ -18,9 +18,3 @@ editors:
 packages:
   - name: com.unity.editor.tasks
     safename: com_unity_editor_tasks
-  - name: com.unity.editor.tasks.tests
-    safename: com_unity_editor_tasks_tests
-
-upm:
-  - name: com.unity.editor.tasks
-    safename: upm_com_unity_editor_tasks

@@ -20,16 +20,30 @@ namespace Unity.Editor.Tasks
 		private readonly List<ITask> queuedTasks = new List<ITask>();
 		private int finishedTaskCount;
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="taskManager"></param>
 		public TaskQueue(ITaskManager taskManager) : base(taskManager)
 		{
 			Initialize(aggregateTask.Task);
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="taskManager"></param>
+		/// <param name="token"></param>
 		public TaskQueue(ITaskManager taskManager, CancellationToken token) : base(taskManager, token)
 		{
 			Initialize(aggregateTask.Task);
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="task"></param>
+		/// <returns></returns>
 		public ITask Queue(ITask task)
 		{
 			// if this task fails, both OnEnd and Catch will be called
@@ -99,7 +113,16 @@ namespace Unity.Editor.Tasks
 
 	public class TaskQueue<TResult> : TaskQueue<TResult, TResult>
 	{
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="taskManager"></param>
 		public TaskQueue(ITaskManager taskManager) : base(taskManager) {}
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="taskManager"></param>
+		/// <param name="token"></param>
 		public TaskQueue(ITaskManager taskManager, CancellationToken token) : base(taskManager, token) { }
 	}
 
@@ -231,10 +254,21 @@ namespace Unity.Editor.Tasks
 	{
 		protected ActionTask() {}
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="taskManager"></param>
+		/// <param name="action"></param>
 		public ActionTask(ITaskManager taskManager, Action action)
 			: this(taskManager, taskManager?.Token ?? default, action)
 		{}
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="taskManager"></param>
+		/// <param name="token"></param>
+		/// <param name="action"></param>
 		public ActionTask(ITaskManager taskManager, CancellationToken token, Action action)
 			: base(taskManager, token)
 		{
@@ -243,10 +277,21 @@ namespace Unity.Editor.Tasks
 			Name = "ActionTask";
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="taskManager"></param>
+		/// <param name="action"></param>
 		public ActionTask(ITaskManager taskManager, Action<bool> action)
 			: this(taskManager, taskManager?.Token ?? default, action)
 		{}
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="taskManager"></param>
+		/// <param name="token"></param>
+		/// <param name="action"></param>
 		public ActionTask(ITaskManager taskManager, CancellationToken token, Action<bool> action)
 			: base(taskManager, token)
 		{
@@ -255,10 +300,21 @@ namespace Unity.Editor.Tasks
 			Name = "ActionTask";
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="taskManager"></param>
+		/// <param name="action"></param>
 		public ActionTask(ITaskManager taskManager, Action<bool, Exception> action)
 			: this(taskManager, taskManager?.Token ?? default, action)
 		{}
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="taskManager"></param>
+		/// <param name="token"></param>
+		/// <param name="action"></param>
 		public ActionTask(ITaskManager taskManager, CancellationToken token, Action<bool, Exception> action)
 			: base(taskManager, token)
 		{
