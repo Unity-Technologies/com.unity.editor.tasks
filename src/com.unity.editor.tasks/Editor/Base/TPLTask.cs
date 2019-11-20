@@ -1,6 +1,7 @@
 namespace Unity.Editor.Tasks
 {
 	using System;
+	using System.Linq;
 	using System.Threading;
 	using System.Threading.Tasks;
 	using Extensions;
@@ -52,7 +53,7 @@ namespace Unity.Editor.Tasks
 			Token.ThrowIfCancellationRequested();
 			try
 			{
-				var scheduler = TaskManager.GetScheduler(requestedAffinity);
+				var scheduler = TaskManager.GetScheduler(TaskAffinity.ThreadPool);
 				if (taskGetter != null)
 				{
 					var innerTask = Task.Factory.StartNew(taskGetter, CancellationToken.None, TaskCreationOptions.None, scheduler);
@@ -75,13 +76,6 @@ namespace Unity.Editor.Tasks
 					ThrownException.Rethrow();
 				Token.ThrowIfCancellationRequested();
 			}
-		}
-
-		private TaskAffinity requestedAffinity;
-		public override TaskAffinity Affinity
-		{
-			get => TaskAffinity.ThreadPool;
-			set => requestedAffinity = value;
 		}
 	}
 
@@ -132,7 +126,7 @@ namespace Unity.Editor.Tasks
 			Token.ThrowIfCancellationRequested();
 			try
 			{
-				var scheduler = TaskManager.GetScheduler(requestedAffinity);
+				var scheduler = TaskManager.GetScheduler(TaskAffinity.ThreadPool);
 				if (taskGetter != null)
 				{
 					var innerTask = Task<Task<T>>.Factory.StartNew(taskGetter, CancellationToken.None, TaskCreationOptions.None, scheduler);
@@ -155,13 +149,6 @@ namespace Unity.Editor.Tasks
 				Token.ThrowIfCancellationRequested();
 			}
 			return ret;
-		}
-
-		private TaskAffinity requestedAffinity;
-		public override TaskAffinity Affinity
-		{
-			get => TaskAffinity.ThreadPool;
-			set => requestedAffinity = value;
 		}
 	}
 }

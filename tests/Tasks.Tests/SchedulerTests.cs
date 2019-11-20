@@ -48,5 +48,11 @@ namespace ThreadingTests
 		{
 			await RunTest(UISchedulerGuaranteesOrdering);
 		}
+
+		[Test]
+		public async Task AsyncAwaitTasks_ExclusiveScheduler_RunInSchedulingOrder_()
+		{
+			await RunTest(AsyncAwaitTasks_ExclusiveScheduler_RunInSchedulingOrder);
+		}
 	}
 }

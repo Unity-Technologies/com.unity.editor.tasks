@@ -9,6 +9,8 @@ using Unity.Editor.Tasks;
 
 namespace ThreadingTests
 {
+	using System.Threading.Tasks;
+
 	partial class SchedulerTests : BaseTest
 	{
 		[CustomUnityTest]
@@ -138,7 +140,7 @@ namespace ThreadingTests
 			for (int i = 1; i < 11; i++)
 			{
 				tasks.Add(GetTask(taskManager, TaskAffinity.Exclusive, i, id => {
-					new ManualResetEventSlim().Wait(rand.Next(100, 200));
+					new ManualResetEventSlim().Wait(rand.Next(10, 20));
 					lock (runningOrder) runningOrder.Add(id);
 				}));
 			}
@@ -197,6 +199,64 @@ namespace ThreadingTests
 			Assert.AreEqual(Enumerable.Range(1, 10), runningOrder);
 
 			StopTest(watch, logger, taskManager);
+		}
+
+		[CustomUnityTest]
+		public IEnumerator AsyncAwaitTasks_ExclusiveScheduler_RunInSchedulingOrder()
+		{
+			StartTest(out var watch, out var logger, out var taskManager);
+
+			var runOrder = new List<string>();
+			var task1 = new TPLTask(taskManager, () => SetDataExclusiveAsync(taskManager, runOrder, "task1")) { Name="Task1", Affinity = TaskAffinity.Exclusive };
+			var task2 = new TPLTask(taskManager, () => SetDataExclusiveAsync1(taskManager, runOrder, "task2")) { Name = "Task2", Affinity = TaskAffinity.Exclusive };
+			var task3 = new TPLTask(taskManager, () => SetDataExclusiveAsync2(taskManager, runOrder, "task3")) { Name = "Task3", Affinity = TaskAffinity.Exclusive };
+
+			task1.Start();
+			task2.Start();
+			task3.Start();
+
+			// wait for the tasks to finish
+			foreach (var frame in WaitForCompletion(task1, task2, task3)) yield return frame;
+
+			CollectionAssert.AreEqual(new[] { "task1 start", "task1 then", "task1 end", "task2 start", "task2 then", "task2 end", "task3 start", "task3 then", "task3 end" }, runOrder);
+
+			StopTest(watch, logger, taskManager);
+		}
+
+
+		class TestData
+		{
+			public bool Done = false;
+		}
+
+		private async Task SetDataExclusiveAsync(ITaskManager taskManager, List<string> list, string data)
+		{
+			Assert.AreNotEqual(taskManager.UIThread, Thread.CurrentThread.ManagedThreadId, "async task ran on the main thread when it shouldn't have");
+
+			list.Add($"{data} start");
+			await Task.Delay(10);
+			list.Add($"{data} then");
+			await Task.Delay(10);
+			list.Add($"{data} end");
+		}
+		private async Task<bool> SetDataExclusiveAsync1(ITaskManager taskManager, List<string> list, string data)
+		{
+			Assert.AreNotEqual(taskManager.UIThread, Thread.CurrentThread.ManagedThreadId, "async task ran on the main thread when it shouldn't have");
+			list.Add($"{data} start");
+			await Task.Delay(2);
+			list.Add($"{data} then");
+			await Task.Delay(3);
+			list.Add($"{data} end");
+			return true;
+		}
+
+		private Task SetDataExclusiveAsync2(ITaskManager taskManager, List<string> list, string data)
+		{
+			Assert.AreNotEqual(taskManager.UIThread, Thread.CurrentThread.ManagedThreadId, "async task ran on the main thread when it shouldn't have");
+			list.Add($"{data} start");
+			list.Add($"{data} then");
+			list.Add($"{data} end");
+			return Task.CompletedTask;
 		}
 	}
 }
