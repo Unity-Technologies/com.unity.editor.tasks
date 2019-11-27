@@ -1,8 +1,7 @@
 <Project>
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
     <LangVersion>7.3</LangVersion>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
 
     <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\'))</RepoRoot>
     <RepoBuildPath>$(RepoRoot)build\</RepoBuildPath>
@@ -10,8 +9,6 @@
     <RepoObjPath>$(RepoBuildPath)obj\</RepoObjPath>
     <BaseIntermediateOutputPath>$(RepoObjPath)$(MSBuildProjectName)\</BaseIntermediateOutputPath>
     <BaseOutputPath Condition=" '$(BaseOutputPath)' == '' ">$(RepoBinPath)$(MSBuildProjectName)\</BaseOutputPath>
-    <GenerateDocumentationFile>false</GenerateDocumentationFile>
-
     <PackageOutputPath>$(RepoBuildPath)nuget\$(Configuration)\</PackageOutputPath>
 
     <Authors>Unity Technologies, Andreia Gaita</Authors>
@@ -33,8 +30,6 @@ Copyright (c) 2016-2018 GitHub</Copyright>
 </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Nerdbank.GitVersioning" Version="3.1.38-beta-g5d1f8441c5" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-19367-01" PrivateAssets="All" />
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net471" Version="1.0.0-preview.2" PrivateAssets="All" IncludeAssets="runtime; build; native; contentfiles; analyzers" Condition=" '$(TargetFramework)' == 'net471' " />
   </ItemGroup>
 

@@ -568,7 +568,7 @@ namespace Unity.Editor.Tasks
 
 		IProcessTask IProcessTask.Start()
 		{
-			base.Start();
+			Start();
 			return this;
 		}
 

@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
   <PropertyGroup>
     <TargetFramework>net471</TargetFramework>
+    <RootDir>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\'))</RootDir>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\src\com.unity.editor.tasks\Tests\**\*.cs" Exclude="..\..\src\com.unity.editor.tasks\Tests\**\UnityBaseTest.cs" />
@@ -8,7 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="$(SolutionDir)LICENSE.md" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="LICENSE.md" />
+    <None Include="$(RootDir)LICENSE.md" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="LICENSE.md" />
   </ItemGroup>
   
   <ItemGroup>

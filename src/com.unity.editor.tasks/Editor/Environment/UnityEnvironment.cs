@@ -8,7 +8,6 @@ namespace Unity.Editor.Tasks
 	public interface IEnvironment
 	{
 		IEnvironment Initialize(string projectPath,
-			string Application_dataPath,
 			string unityVersion = null,
 			string EditorApplication_applicationPath = default,
 			string EditorApplication_applicationContentsPath = default);
@@ -26,7 +25,6 @@ namespace Unity.Editor.Tasks
 		string UnityVersion { get; }
 		string UnityApplication { get; }
 		string UnityApplicationContents { get; }
-		string UnityAssetsPath { get; }
 		string UnityProjectPath { get; }
 		string ApplicationName { get; }
 	}
@@ -40,14 +38,12 @@ namespace Unity.Editor.Tasks
 
 		public virtual IEnvironment Initialize(
 			string projectPath,
-			string Application_dataPath,
 			string unityVersion = null,
 			string EditorApplication_applicationPath = default,
 			string EditorApplication_applicationContentsPath = default
 		)
 		{
 			UnityProjectPath = projectPath;
-			UnityAssetsPath = Application_dataPath;
 			UnityVersion = unityVersion;
 			UnityApplication = EditorApplication_applicationPath;
 			UnityApplicationContents = EditorApplication_applicationContentsPath;
@@ -83,7 +79,6 @@ namespace Unity.Editor.Tasks
 		public string UnityVersion { get; set; }
 		public string UnityApplication { get; set; }
 		public string UnityApplicationContents { get; set; }
-		public string UnityAssetsPath { get; set; }
 		public string UnityProjectPath { get; set; }
 		public string WorkingDirectory { get; private set; }
 
