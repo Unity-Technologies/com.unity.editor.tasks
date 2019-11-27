@@ -5,9 +5,7 @@
 
 using System;
 using UnityEngine;
-#if UNITY_EDITOR
 using UnityEditor;
-#endif
 
 namespace Unity.Editor.Tasks
 {
@@ -16,18 +14,14 @@ namespace Unity.Editor.Tasks
 		[NonSerialized] private IEnvironment environment;
 		[SerializeField] private string unityApplication;
 		[SerializeField] private string unityApplicationContents;
-		[SerializeField] private string unityAssetsPath;
 		[SerializeField] private string unityVersion;
 		[SerializeField] private string projectPath;
 
 		public void Flush()
 		{
-#if UNITY_EDITOR
 			unityApplication = Environment.UnityApplication;
 			unityApplicationContents = Environment.UnityApplicationContents;
 			unityVersion = Environment.UnityVersion;
-#endif
-			unityAssetsPath = Environment.UnityAssetsPath;
 			Save(true);
 		}
 
@@ -40,16 +34,15 @@ namespace Unity.Editor.Tasks
 				if (environment == null)
 				{
 					environment = new UnityEnvironment(ApplicationName ?? Application.productName);
-					if (unityAssetsPath == null)
+					if (projectPath == null)
 					{
 						projectPath = System.IO.Path.GetFullPath(".");
+						unityVersion = Application.unityVersion;
 						unityApplication = EditorApplication.applicationPath;
 						unityApplicationContents = EditorApplication.applicationContentsPath;
-						unityVersion = Application.unityVersion;
-						unityAssetsPath = Application.dataPath;
 					}
 
-					environment.Initialize(projectPath, unityAssetsPath, unityVersion, unityApplication);
+					environment.Initialize(projectPath, unityVersion, unityApplication, unityApplicationContents);
 					Flush();
 				}
 				return environment;

@@ -3,9 +3,9 @@
 build:
   name: Build
   agent:
-    type: Unity::VM
-    image: core-kaunas/win10-vs2017-dotnetcore:latest
-    flavor: m1.large
+    type: {{ build_agent_type }}
+    image: {{ build_agent_image }}
+    flavor: {{ build_agent_flavor }}
   variables:
     DOTNET_CLI_TELEMETRY_OPTOUT: 1
 
@@ -15,7 +15,15 @@ build:
     - |
       set RELEASE=0
       if "x%GIT_TAG%"!==!"x" set RELEASE=1
-      if "%RELEASE%"=="1" (pack -r -b -p -u) else (pack -r -b -u)
+      if "%RELEASE%"=="1" (build -r -p) else (build -r)
+    - |
+      set RELEASE=0
+      if "x%GIT_TAG%"!==!"x" set RELEASE=1
+      if "%RELEASE%"=="1" (test -r -p) else (test -r)
+    - |
+      set RELEASE=0
+      if "x%GIT_TAG%"!==!"x" set RELEASE=1
+      if "%RELEASE%"=="1" (pack -r -p -u) else (pack -r -u)
 
   artifacts:
     nuget:
@@ -31,6 +39,7 @@ build:
     tests:
       paths:
         - "build/tests/bin/**/*"
+        - "tests/**/TestResults/*"
     sources:
       paths:
         - "build/upm/**/*"
