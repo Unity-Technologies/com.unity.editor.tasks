@@ -39,6 +39,9 @@ while (( "$#" )); do
       echo "Error: Unsupported flag $1" >&2
       exit 1
       ;;
+    *)
+      shift
+    ;;
   esac
 done
 

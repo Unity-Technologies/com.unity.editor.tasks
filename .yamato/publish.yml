@@ -32,7 +32,9 @@ publish_npm:
     AUTH_URL: https://artifactory.internal.unity3d.com/api/npm/auth
 
   commands:
-    - curl -u%ARTIFACTORY% %AUTH_URL%/auth > %USERPROFILE%\.npmrc
+    - |
+      @echo off
+      curl -u%ARTIFACTORY% %AUTH_URL% > %USERPROFILE%\.npmrc
     - for /f "delims=" %%d in ('dir /b "upm-ci~\packages\*.tgz"') do (call npm publish "upm-ci~\packages\%%d" --quiet --registry %PUBLISH_URL%)
 
   dependencies:

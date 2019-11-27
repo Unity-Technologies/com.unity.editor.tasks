@@ -12,6 +12,7 @@ CONFIGURATION=Release
 PUBLIC=""
 BUILD=0
 UPM=0
+UNITYVERSION=2019.2
 
 while (( "$#" )); do
   case "$1" in
@@ -34,11 +35,16 @@ while (( "$#" )); do
     -u|--upm)
       UPM=1
       shift
+      UNITYVERSION=$1
+      shift
     ;;
     -*|--*=) # unsupported flags
       echo "Error: Unsupported flag $1" >&2
       exit 1
       ;;
+    *)
+      shift
+    ;;
   esac
 done
 
@@ -55,7 +61,7 @@ fi
 dotnet test --no-build --no-restore -c $CONFIGURATION $PUBLIC --logger "trx;LogFileName=dotnet-test-result.trx" --logger "html;LogFileName=dotnet-test-result.html"
 
 if [[ x"$UPM" == x"1" ]]; then
-  powershell scripts/Test-Upm.ps1
+  powershell scripts/Test-Upm.ps1 -UnityVersion $UNITYVERSION
 fi
 
 popd >/dev/null 2>&1
