@@ -57,7 +57,7 @@ namespace Unity.Editor.Tasks
 			catch (Exception ex)
 			{
 				if (!RaiseFaultHandlers(ex))
-					ThrownException.Rethrow();
+					Exception.Rethrow();
 			}
 			return result;
 		}

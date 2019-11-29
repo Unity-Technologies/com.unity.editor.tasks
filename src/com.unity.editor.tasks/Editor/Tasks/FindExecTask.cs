@@ -10,6 +10,6 @@ namespace Unity.Editor.Tasks
 				execToFind)
 		{}
 
-		public override TaskAffinity Affinity => TaskAffinity.ThreadPool;
+		public override TaskAffinity Affinity => TaskAffinity.None;
 	}
 }

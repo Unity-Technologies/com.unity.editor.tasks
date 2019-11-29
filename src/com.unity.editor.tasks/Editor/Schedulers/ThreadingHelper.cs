@@ -92,7 +92,7 @@ namespace Unity.Editor.Tasks
 		}
 
 		/// <summary>
-		/// An awaiter returned from <see cref="GetAwaiter(TaskScheduler)"/>.
+		/// An awaiter returned from GetAwaiter(TaskScheduler />.
 		/// </summary>
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1815:OverrideEqualsAndOperatorEqualsOnValueTypes")]
 		internal readonly struct TaskSchedulerAwaiter : ICriticalNotifyCompletion, IAwaiter
@@ -102,13 +102,10 @@ namespace Unity.Editor.Tasks
 			/// </summary>
 			private readonly TaskScheduler scheduler;
 
-
 			/// <summary>
 			/// Initializes a new instance of the <see cref="TaskSchedulerAwaiter"/> struct.
 			/// </summary>
 			/// <param name="scheduler">The scheduler for continuations.</param>
-			/// <param name="alwaysYield">A value indicating whether the caller should yield even if
-			/// already executing on the desired task scheduler.</param>
 			public TaskSchedulerAwaiter(TaskScheduler scheduler)
 			{
 				this.scheduler = scheduler;

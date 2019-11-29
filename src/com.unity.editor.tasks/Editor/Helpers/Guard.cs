@@ -69,6 +69,7 @@ namespace Unity.Editor.Tasks.Helpers
 		/// </summary>
 		/// <param name = "value">The argument value to check.</param>
 		/// <param name = "name">The name of the argument.</param>
+		/// <param name="caller"></param>
 		public static string EnsureNotNullOrWhiteSpace(this string value, string name, [CallerMemberName] string caller = "")
 		{
 			if (value != null && value.Trim().Length > 0)

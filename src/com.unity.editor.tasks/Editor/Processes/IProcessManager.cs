@@ -1,30 +1,25 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
-using System.Threading;
-
-namespace Unity.Editor.Tasks
+﻿namespace Unity.Editor.Tasks
 {
-	public interface IProcess
-	{
-		event Action<IProcess> OnEndProcess;
-		event Action<string> OnErrorData;
-		event Action<IProcess> OnStartProcess;
-		void Configure(Process existingProcess);
-		void Configure(ProcessStartInfo psi);
-		void Stop();
-		StreamWriter StandardInput { get; }
-		int ProcessId { get; }
-		string ProcessName { get; }
-		string ProcessArguments { get; }
-		Process Process { get; set; }
-	}
 
-
+	/// <summary>
+	/// A process manager that configures processes for running and keeps track of running processes.
+	/// </summary>
 	public interface IProcessManager
 	{
+		/// <summary>
+		/// Helper that configures all the necessary parts in order to run a process. This must be called before running
+		/// a ProcessTask.
+		/// </summary>
 		T Configure<T>(T processTask, string workingDirectory = null) where T : IProcessTask;
+
+		/// <summary>
+		/// Stops all running processes managed by this manager.
+		/// </summary>
 		void Stop();
+
+		/// <summary>
+		/// The default process environment, with default working directory.
+		/// </summary>
 		IProcessEnvironment DefaultProcessEnvironment { get; }
 	}
 }

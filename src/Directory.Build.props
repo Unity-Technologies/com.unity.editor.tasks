@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <LangVersion>7.3</LangVersion>
-    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
     <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\'))</RepoRoot>
     <RepoBuildPath>$(RepoRoot)build\</RepoBuildPath>

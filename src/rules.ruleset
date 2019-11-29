@@ -95,5 +95,8 @@
       <Rule Id="CA1000" Action="None" />
       <Rule Id="CA5351" Action="None" />
       <Rule Id="CA1801" Action="None" />         <!-- analyser is broken and fires this rule on required Serialization methods -->
+
+
+      <Rule Id="CS1591" Action="None" /> <!-- supress documentation missing warnings for now -->
    </Rules>
 </RuleSet>

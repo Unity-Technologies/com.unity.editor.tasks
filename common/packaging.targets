@@ -6,8 +6,20 @@
   <Import Project="packageversionfiles.targets" />
 
   <ItemGroup>
-    <PackageReference Include="SpoiledCat.MSBuild.Tasks.FileUpdate" Version="1.0.13" PrivateAssets="All" IncludeAssets="runtime; build; native; contentfiles; analyzers" />
+    <PackageReference Include="SpoiledCat.MSBuild.Tasks.FileUpdate" Version="1.0.13" PrivateAssets="All" IncludeAssets="runtime; build; native; contentfiles; analyzers" Private="false" />
+
   </ItemGroup>
+
+  <Target Name="PreventMSBuildSDKCopyLocal" AfterTargets="ResolveReferences">
+    <ItemGroup>
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="
+        $([System.String]::new('%(ReferenceCopyLocalPaths.NuGetPackageId)').StartsWith('Microsoft.Build')) or
+        $([System.String]::new('%(ReferenceCopyLocalPaths.NuGetPackageId)').StartsWith('Microsoft.Win32')) or
+        $([System.String]::new('%(ReferenceCopyLocalPaths.NuGetPackageId)').StartsWith('System.Collections.Immutable')) or
+        $([System.String]::new('%(ReferenceCopyLocalPaths.NuGetPackageId)').StartsWith('System.Text'))
+        " />
+    </ItemGroup>
+  </Target>
 
   <!-- Assemble all sources into a folder called (PackageName) -->
   <Target Name="EnumeratePackageFiles" Returns="@(SourcesToCopy)">

@@ -12,27 +12,37 @@ namespace Unity.Editor.Tasks.Logging
 	{
 		public override void Info(string context, string message)
 		{
+#if UNITY_EDITOR
 			UnityEngine.Debug.Log(GetMessage(context, message));
+#endif
 		}
 
 		public override void Debug(string context, string message)
 		{
+#if UNITY_EDITOR
 			UnityEngine.Debug.Log(GetMessage(context, message));
+#endif
 		}
 
 		public override void Trace(string context, string message)
 		{
+#if UNITY_EDITOR
 			UnityEngine.Debug.Log(GetMessage(context, message));
+#endif
 		}
 
 		public override void Warning(string context, string message)
 		{
+#if UNITY_EDITOR
 			UnityEngine.Debug.LogWarning(GetMessage(context, message));
+#endif
 		}
 
 		public override void Error(string context, string message)
 		{
+#if UNITY_EDITOR
 			UnityEngine.Debug.LogError(GetMessage(context, message));
+#endif
 		}
 
 		private string GetMessage(string context, string message)

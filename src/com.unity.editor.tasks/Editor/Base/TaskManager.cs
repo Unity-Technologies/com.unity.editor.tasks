@@ -104,7 +104,7 @@ namespace Unity.Editor.Tasks
 					return UIScheduler;
 				case TaskAffinity.LongRunning:
 					return LongRunningScheduler;
-				case TaskAffinity.ThreadPool:
+				case TaskAffinity.None:
 					return TaskScheduler.Default;
 				case TaskAffinity.Concurrent:
 				default:

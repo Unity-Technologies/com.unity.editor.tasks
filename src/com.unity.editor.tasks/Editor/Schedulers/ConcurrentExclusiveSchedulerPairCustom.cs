@@ -88,11 +88,11 @@ namespace Unity.Editor.Tasks
 			this(token, TaskScheduler.Default, DefaultMaxConcurrencyLevel, DEFAULT_MAXITEMSPERTASK)
 		{ }
 
-
 		/// <summary>
 		/// Initializes the ConcurrentExclusiveSchedulerCustom to target the specified scheduler with a maximum
 		/// concurrency level and a maximum number of scheduled tasks that may be processed as a unit.
 		/// </summary>
+		/// <param name="token"></param>
 		/// <param name="taskScheduler">The target scheduler on which this pair should execute.</param>
 		/// <param name="maxConcurrencyLevel">The maximum number of tasks to run concurrently.</param>
 		/// <param name="maxItemsPerTask">The maximum number of tasks to process for each underlying scheduled task used by the pair.</param>
@@ -1311,7 +1311,6 @@ namespace Unity.Editor.Tasks
 				private readonly SingleProducerSingleConsumerQueue<T> m_queue;
 
 				/// <summary>Initializes the debug view.</summary>
-				/// <param name="enumerable">The queue being debugged.</param>
 				public SingleProducerSingleConsumerQueue_DebugView(SingleProducerSingleConsumerQueue<T> queue)
 				{
 					Contract.Requires(queue != null, "Expected a non-null queue.");

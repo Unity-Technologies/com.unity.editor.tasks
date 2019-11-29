@@ -11,19 +11,65 @@ namespace Unity.Editor.Tasks
 {
 	using Logging;
 	using Helpers;
+
+	/// <summary>
+	/// Sets where a task will run depending on the success/failure of the tasks it depends on.
+	/// </summary>
 	public enum TaskRunOptions
 	{
+        /// <summary>
+		/// Only run when previous tasks did not fail.
+		/// </summary>
 		OnSuccess,
+        /// <summary>
+		/// Only run when previous tasks failed.
+		/// </summary>
 		OnFailure,
+        /// <summary>
+		/// Always run regardless of success/failure of previous tasks.
+		/// </summary>
 		OnAlways
 	}
 
+    /// <summary>
+	/// A task.
+	/// </summary>
 	public interface ITask : IAsyncResult
 	{
-		event Action<ITask, bool, Exception> OnEnd;
+        /// <summary>
+		/// Raised when the task is starting. This is called on the same thread as the task.
+		/// </summary>
 		event Action<ITask> OnStart;
+
+        /// <summary>
+		/// Raised when the task is finished, regardless of failure or success. This is called on the same thread as the task.
+		/// </summary>
+		event Action<ITask, bool, Exception> OnEnd;
+
+        /// <summary>
+		/// Append a task that will run when this task has finished running.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="continuation"></param>
+		/// <param name="runOptions"></param>
+		/// <param name="taskIsTopOfChain"></param>
+		/// <returns></returns>
 		T Then<T>(T continuation, TaskRunOptions runOptions = TaskRunOptions.OnSuccess, bool taskIsTopOfChain = false) where T : ITask;
+
+        /// <summary>
+		/// Handler called when a task fails.
+		/// </summary>
+		/// <param name="handler"></param>
+		/// <returns></returns>
 		ITask Catch(Action<Exception> handler);
+
+        /// <summary>
+		/// Handler called when a task fails. This will run on the same thread as the task.
+		/// If this handler returns true, the task becomes successful. Any exceptions supressed by this handler
+		/// will still be available in the task object.
+		/// </summary>
+		/// <param name="handler"></param>
+		/// <returns>True to supress this failure.</returns>
 		ITask Catch(Func<Exception, bool> handler);
 
 		/// <summary>
@@ -34,44 +80,129 @@ namespace Unity.Editor.Tasks
 		/// <summary>
 		/// Run a callback at the end of the task execution, on a separate thread, regardless of execution state
 		/// </summary>
-		ITask Finally(Action<bool, Exception> actionToContinueWith, string name = null, TaskAffinity affinity = TaskAffinity.ThreadPool);
+		ITask Finally(Action<bool, Exception> actionToContinueWith, string name = null, TaskAffinity affinity = TaskAffinity.None);
 
 		/// <summary>
 		/// Run another task at the end of the task execution, on a separate thread, regardless of execution state
 		/// </summary>
 		T Finally<T>(T taskToContinueWith) where T : ITask;
 
+        /// <summary>
+		/// Start a task.
+		/// </summary>
+		/// <returns></returns>
 		ITask Start();
+
+        /// <summary>
+		/// Executes the body of the task. This is called when tasks run, but if you want to run the task directly, you can call this.
+		/// </summary>
 		void RunSynchronously();
 
+        /// <summary>
+		/// Handler called with progress reporting for the task. This runs on the same thread as the task.
+		/// </summary>
+		/// <param name="progressHandler"></param>
+		/// <returns></returns>
 		ITask Progress(Action<IProgress> progressHandler);
+
+        /// <summary>
+		/// Method called by tasks to update their progress.
+		/// </summary>
+		/// <param name="value"></param>
+		/// <param name="total"></param>
+		/// <param name="message"></param>
 		void UpdateProgress(long value, long total, string message = null);
 
+        /// <summary>
+		/// Get the task at the beginning of a chain of tasks.
+		/// </summary>
+		/// <param name="onlyCreated"></param>
+		/// <returns></returns>
 		ITask GetTopOfChain(bool onlyCreated = true);
+
+        /// <summary>
+		/// Get the task at the end of a chain of tasks. This is a bit iffy, because tasks can be a tree with multiple endpoints.
+		/// </summary>
+		/// <returns></returns>
 		ITask GetEndOfChain();
 
-		/// <summary>
+        /// <summary>
+		/// Was the task successful?
 		/// </summary>
-		/// <returns>true if any task on the chain is marked as exclusive</returns>
-		bool IsChainExclusive();
-
 		bool Successful { get; }
+
+        /// <summary>
+		/// Any errors the task set.
+		/// </summary>
 		string Errors { get; }
+
+        /// <summary>
+		/// The TPL task object, useful for direct awaiting.
+		/// </summary>
 		Task Task { get; }
+
+        /// <summary>
+		/// The name of this task, useful for logging.
+		/// </summary>
 		string Name { get; }
+
+        /// <summary>
+		/// The task affinity.
+		/// </summary>
 		TaskAffinity Affinity { get; set; }
+
+        /// <summary>
+		/// The cancellation token this task is listening to.
+		/// </summary>
 		CancellationToken Token { get; }
+
+        /// <summary>
+		/// The task manager this task is attached to.
+		/// </summary>
 		ITaskManager TaskManager { get; }
+
+        /// <summary>
+		/// The task that this task depends on, if any.
+		/// </summary>
 		TaskBase DependsOn { get; }
+
+        /// <summary>
+		/// Error message.
+		/// </summary>
 		string Message { get; }
+
+        /// <summary>
+		/// Exceptions set by this task.
+		/// </summary>
 		Exception Exception { get; }
 	}
 
+    /// <summary>
+	/// An ITask that returns a result.
+	/// </summary>
+	/// <typeparam name="TResult"></typeparam>
 	public interface ITask<TResult> : ITask
 	{
-		new event Action<ITask<TResult>, TResult, bool, Exception> OnEnd;
+		/// <summary>
+		/// Raised when the task is starting.  Runs on the same thread as the task.
+		/// </summary>
 		new event Action<ITask<TResult>> OnStart;
+        /// <summary>
+		/// Raised when the task is finished, regardless of failure. Runs on the same thread as the task.
+		/// </summary>
+		new event Action<ITask<TResult>, TResult, bool, Exception> OnEnd;
+
+        /// <summary>
+        /// Handler called when a task fails.
+        /// </summary>
+        
 		new ITask<TResult> Catch(Action<Exception> handler);
+
+        /// <summary>
+        /// Handler called when a task fails. This will run on the same thread as the task.
+        /// If this handler returns true, the task becomes successful. Any exceptions supressed by this handler
+        /// will still be available in the task object.
+        /// </summary>
 		new ITask<TResult> Catch(Func<Exception, bool> handler);
 
 		/// <summary>
@@ -82,139 +213,145 @@ namespace Unity.Editor.Tasks
 		/// <summary>
 		/// Run a callback at the end of the task execution, on a separate thread, regardless of execution state
 		/// </summary>
-		ITask<TResult> Finally(Func<bool, Exception, TResult, TResult> continuation, string name = null, TaskAffinity affinity = TaskAffinity.ThreadPool);
+		ITask<TResult> Finally(Func<bool, Exception, TResult, TResult> continuation, string name = null, TaskAffinity affinity = TaskAffinity.None);
 
 		/// <summary>
 		/// Run a callback at the end of the task execution, on a separate thread, regardless of execution state
 		/// </summary>
-		ITask Finally(Action<bool, Exception, TResult> continuation, string name = null, TaskAffinity affinity = TaskAffinity.ThreadPool);
+		ITask Finally(Action<bool, Exception, TResult> continuation, string name = null, TaskAffinity affinity = TaskAffinity.None);
 
+        /// <summary>
+		/// Starts a task.
+		/// </summary>
+		/// <returns></returns>
 		new ITask<TResult> Start();
-		new TResult RunSynchronously();
-		new ITask<TResult> Progress(Action<IProgress> progressHandler);
 
+        /// <summary>
+        /// Executes the body of the task. This is called when tasks run, but if you want to run the task directly, you can call this.
+        /// </summary>
+		new TResult RunSynchronously();
+
+        /// <summary>
+        /// Handler called with progress reporting for the task. This runs on the same thread as the task.
+        /// </summary>
+        /// <param name="progressHandler"></param>
+        /// <returns></returns>
+        new ITask<TResult> Progress(Action<IProgress> progressHandler);
+
+        /// <summary>
+		/// The result value of the task.
+		/// </summary>
 		TResult Result { get; }
+
+        /// <summary>
+		/// The underlying TPL task object, useful for awaiting.
+		/// </summary>
 		new Task<TResult> Task { get; }
 	}
 
+    /// <summary>
+	/// An ITask that raises an event whenever it creates data.
+	/// </summary>
+	/// <typeparam name="TData"></typeparam>
+	/// <typeparam name="T"></typeparam>
 	public interface ITask<TData, T> : ITask<T>
 	{
+        /// <summary>
+		/// Raised when the task creates data.
+		/// </summary>
 		event Action<TData> OnData;
 	}
 
-	public class TaskData : ITask
+    /// <summary>
+	/// A task.
+	/// </summary>
+    public class TaskBase : ITask
 	{
-		public Progress progress;
-
-		event Action<ITask, bool, Exception> ITask.OnEnd
-		{
-			add => throw new NotImplementedException();
-			remove => throw new NotImplementedException();
-		}
-
-		event Action<ITask> ITask.OnStart
-		{
-			add => throw new NotImplementedException();
-			remove => throw new NotImplementedException();
-		}
-
-		public TaskData(string name, long total)
-		{
-			Message = name;
-			Name = name;
-			progress = new Progress(this);
-			progress.Total = total;
-		}
-
-		public void UpdateProgress(long value, long total, string message = null)
-		{
-			progress.UpdateProgress(value, total, Name);
-		}
-
-		ITask ITask.Catch(Action<Exception> handler) => throw new NotImplementedException();
-
-		ITask ITask.Catch(Func<Exception, bool> handler) => throw new NotImplementedException();
-
-		ITask ITask.FinallyInline(Action<bool> handler) => throw new NotImplementedException();
-
-		ITask ITask.Finally(Action<bool, Exception> actionToContinueWith, string name, TaskAffinity affinity) => throw new NotImplementedException();
-
-		T ITask.Finally<T>(T taskToContinueWith) => throw new NotImplementedException();
-
-		ITask ITask.GetEndOfChain() => throw new NotImplementedException();
-
-		ITask ITask.GetTopOfChain(bool onlyCreated) => throw new NotImplementedException();
-
-		bool ITask.IsChainExclusive() => throw new NotImplementedException();
-
-		ITask ITask.Progress(Action<IProgress> progressHandler) => throw new NotImplementedException();
-
-		void ITask.RunSynchronously() => throw new NotImplementedException();
-
-		ITask ITask.Start() => throw new NotImplementedException();
-
-		T ITask.Then<T>(T continuation, TaskRunOptions runOptions, bool taskIsTopOfChain) => throw new NotImplementedException();
-
-		public string Message { get; set; }
-		public string Name { get; set; }
-
-		bool ITask.Successful => throw new NotImplementedException();
-
-		string ITask.Errors => throw new NotImplementedException();
-
-		Task ITask.Task => throw new NotImplementedException();
-
-		TaskAffinity ITask.Affinity { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-
-		CancellationToken ITask.Token => throw new NotImplementedException();
-
-		ITaskManager ITask.TaskManager => throw new NotImplementedException();
-
-		TaskBase ITask.DependsOn => throw new NotImplementedException();
-
-		Exception ITask.Exception => throw new NotImplementedException();
-
-		object IAsyncResult.AsyncState => throw new NotImplementedException();
-
-		WaitHandle IAsyncResult.AsyncWaitHandle => throw new NotImplementedException();
-
-		bool IAsyncResult.CompletedSynchronously => throw new NotImplementedException();
-
-		bool IAsyncResult.IsCompleted => throw new NotImplementedException();
-	}
-
-	public class TaskBase : ITask
-	{
+        /// <summary>
+		/// The TPL enums for running continuations that we rely on.
+		/// </summary>
 		protected const TaskContinuationOptions runAlwaysOptions = TaskContinuationOptions.None;
+        /// <summary>
+        /// The TPL enums for running continuations that we rely on.
+        /// </summary>
 		protected const TaskContinuationOptions runOnSuccessOptions = TaskContinuationOptions.OnlyOnRanToCompletion;
+        /// <summary>
+        /// The TPL enums for running continuations that we rely on.
+        /// </summary>
 		protected const TaskContinuationOptions runOnFaultOptions = TaskContinuationOptions.OnlyOnFaulted;
+
+        /// <summary>
+		/// A default empty completed task.
+		/// </summary>
 		public static ITask Default = new TaskBase { Name = "Global", Task = TaskHelpers.GetCompletedTask() };
+
+        /// <summary>
+		/// The continuation to schedule when this task is done.
+		/// </summary>
 		protected TaskBase continuationOnAlways;
+        /// <summary>
+		/// The continuation to schedule if this task fails.
+		/// </summary>
 		protected TaskBase continuationOnFailure;
 
+        /// <summary>
+		/// The continuation to schedule if this task succeeds.
+		/// </summary>
 		protected TaskBase continuationOnSuccess;
+
+        /// <summary>
+		/// If this task failed but a catch handler suppressed the failure, this will be true.
+		/// </summary>
 		protected bool exceptionWasHandled = false;
+        /// <summary>
+		/// If this task failed but a catch handler suppressed the failure, this will be true.
+		/// </summary>
+        protected bool taskFailed = false;
+
+		/// <summary>
+		/// Has this task run?
+		/// </summary>
 		protected bool hasRun = false;
-		private ILogging logger;
+
+		/// <summary>
+		/// If the previous task failed, this will have that exception.
+		/// </summary>
 		protected Exception previousException;
 
+        /// <summary>
+		/// The previous task success value.
+		/// </summary>
 		protected bool? previousSuccess;
 
+        /// <summary>
+		/// This tasks's progress reporting object.
+		/// </summary>
 		protected Progress progress;
-		protected bool taskFailed = false;
+
+        /// <inheritdoc />
+        public event Action<ITask> OnStart;
+        /// <inheritdoc />
 		public event Action<ITask, bool, Exception> OnEnd;
 
-		public event Action<ITask> OnStart;
-
+        /// <summary>
+		/// The catch handler, if any.
+		/// </summary>
 		protected event Func<Exception, bool> catchHandler;
-		private event Action<bool> finallyHandler;
 
+        private event Action<bool> finallyHandler;
+		private ILogging logger;
+		private Exception exception;
+
+		/// <summary>
+		/// Empty constructor for default instances.
+		/// </summary>
 		protected TaskBase() {}
 
-		protected TaskBase(ITaskManager taskManager)
-			: this(taskManager, taskManager?.Token ?? default)
-		{}
-
+        /// <summary>
+		/// Creates an instance of TaskBase.
+		/// </summary>
+		/// <param name="taskManager"></param>
+		/// <param name="token"></param>
 		protected TaskBase(ITaskManager taskManager, CancellationToken token)
 		{
 			taskManager.EnsureNotNull(nameof(taskManager));
@@ -225,7 +362,8 @@ namespace Unity.Editor.Tasks
 			Task = new Task(RunSynchronously, Token, TaskCreationOptions.None);
 		}
 
-		public virtual T Then<T>(T nextTask, TaskRunOptions runOptions = TaskRunOptions.OnSuccess, bool taskIsTopOfChain = false)
+        /// <inheritdoc />
+        public virtual T Then<T>(T nextTask, TaskRunOptions runOptions = TaskRunOptions.OnSuccess, bool taskIsTopOfChain = false)
 			where T : ITask
 		{
 			Guard.EnsureNotNull(nextTask, nameof(nextTask));
@@ -317,7 +455,7 @@ namespace Unity.Editor.Tasks
 		/// <summary>
 		/// Run a callback at the end of the task execution, on a separate thread, regardless of execution state
 		/// </summary>
-		public ITask Finally(Action<bool, Exception> actionToContinueWith, string name = null, TaskAffinity affinity = TaskAffinity.ThreadPool)
+		public ITask Finally(Action<bool, Exception> actionToContinueWith, string name = null, TaskAffinity affinity = TaskAffinity.None)
 		{
 			Guard.EnsureNotNull(actionToContinueWith, nameof(actionToContinueWith));
 
@@ -350,6 +488,7 @@ namespace Unity.Editor.Tasks
 			return this;
 		}
 
+		/// <inheritdoc />
 		public ITask Start()
 		{
 			var depends = GetTopMostStartableTask();
@@ -357,6 +496,7 @@ namespace Unity.Editor.Tasks
 			return this;
 		}
 
+		/// <inheritdoc />
 		public virtual void RunSynchronously()
 		{
 			RaiseOnStart();
@@ -380,11 +520,13 @@ namespace Unity.Editor.Tasks
 			}
 		}
 
+		/// <inheritdoc />
 		public ITask GetTopOfChain(bool onlyCreated = true)
 		{
 			return GetTopMostTask(null, onlyCreated, false);
 		}
 
+		/// <inheritdoc />
 		public ITask GetEndOfChain()
 		{
 			if (continuationOnSuccess != null)
@@ -394,26 +536,21 @@ namespace Unity.Editor.Tasks
 			return this;
 		}
 
-		/// <summary>
-		/// </summary>
-		/// <returns>true if any task on the chain is marked as exclusive</returns>
-		public bool IsChainExclusive()
-		{
-			if (Affinity == TaskAffinity.Exclusive)
-				return true;
-			return DependsOn?.IsChainExclusive() ?? false;
-		}
-
+		/// <inheritdoc />
 		public void UpdateProgress(long value, long total, string message = null)
 		{
 			progress.UpdateProgress(value, total, message ?? Message);
 		}
 
+		/// <inheritdoc />
 		public override string ToString()
 		{
 			return $"{Task?.Id ?? -1} {Name} {GetType()}";
 		}
 
+        /// <summary>
+		/// Schedules this task on the task manager, if it hasn't been scheduled yet.
+		/// </summary>
 		protected virtual void Schedule()
 		{
 			if (Task.Status == TaskStatus.Created)
@@ -435,6 +572,9 @@ namespace Unity.Editor.Tasks
 			SetContinuation();
 		}
 
+		/// <summary>
+		/// Set the continuationOnAlways continuation with runAlwaysOptions, if there's one.
+		/// </summary>
 		protected void SetContinuation()
 		{
 			if (continuationOnAlways != null)
@@ -443,6 +583,11 @@ namespace Unity.Editor.Tasks
 			}
 		}
 
+        /// <summary>
+		/// Set a continuation to run one this task is done.
+		/// </summary>
+		/// <param name="continuation"></param>
+		/// <param name="runOptions"></param>
 		protected void SetContinuation(TaskBase continuation, TaskContinuationOptions runOptions)
 		{
 			Token.ThrowIfCancellationRequested();
@@ -456,6 +601,11 @@ namespace Unity.Editor.Tasks
 				TaskManager.GetScheduler(continuation.Affinity));
 		}
 
+        /// <summary>
+		/// Set a task that this task depends on.
+		/// </summary>
+		/// <param name="dependsOn"></param>
+		/// <returns></returns>
 		protected ITask SetDependsOn(ITask dependsOn)
 		{
 			DependsOn = (TaskBase)dependsOn;
@@ -471,16 +621,31 @@ namespace Unity.Editor.Tasks
 			return GetTopMostTask(null, true, true);
 		}
 
+        /// <summary>
+		/// Returns the first task in a created state on the chain.
+		/// </summary>
+		/// <returns></returns>
 		protected TaskBase GetTopMostCreatedTask()
 		{
 			return GetTopMostTask(null, true, false);
 		}
 
+        /// <summary>
+		/// Returns the top most task of the chain.
+		/// </summary>
+		/// <returns></returns>
 		protected TaskBase GetTopMostTask()
 		{
 			return GetTopMostTask(null, false, false);
 		}
 
+        /// <summary>
+		/// Returns the top most task of the chain according to the parameters.
+		/// </summary>
+		/// <param name="ret"></param>
+		/// <param name="onlyCreated"></param>
+		/// <param name="onlyUnstartedChain"></param>
+		/// <returns></returns>
 		protected TaskBase GetTopMostTask(TaskBase ret, bool onlyCreated, bool onlyUnstartedChain)
 		{
 			ret = (!onlyCreated || Task.Status == TaskStatus.Created ? this : ret);
@@ -496,36 +661,53 @@ namespace Unity.Editor.Tasks
 			return depends.GetTopMostTask(ret, onlyCreated, onlyUnstartedChain);
 		}
 
+        /// <summary>
+        /// Sets state prior to executing the body of a task. This runs in thread and is overridden
+        /// by subclasses to actually execute the body of the task. It should be called before anything else.
+        /// </summary>
+		/// <param name="success"></param>
 		protected virtual void Run(bool success)
 		{
 			taskFailed = false;
 			hasRun = false;
-			ThrownException = null;
+			Exception = null;
 			Token.ThrowIfCancellationRequested();
 		}
 
+        /// <summary>
+		/// Raises the OnStart event, setting the progress reporting object to 0.
+		/// </summary>
 		protected virtual void RaiseOnStart()
 		{
 			UpdateProgress(0, 100);
 			RaiseOnStartInternal();
 		}
 
+        /// <summary>
+		/// Raises the OnStart event.
+		/// </summary>
 		protected void RaiseOnStartInternal()
 		{
 			Logger.Trace($"OnStart: {Name} [{(TaskManager.InUIThread ? "UI Thread" : Affinity.ToString())}]");
 			OnStart?.Invoke(this);
 		}
 
+        /// <summary>
+		/// Calls catch handlers and sets exception and message properties. This should be called in a Run
+		/// override when a task fails, before throwing the exception. If this returns true, the task should not throw.
+		/// </summary>
+		/// <param name="ex"></param>
+		/// <returns></returns>
 		protected virtual bool RaiseFaultHandlers(Exception ex)
 		{
-			ThrownException = ex;
-			if (ThrownException is AggregateException)
-				ThrownException = ThrownException.GetBaseException() ?? ThrownException;
-			Errors = ThrownException.Message;
+			Exception = ex;
+			if (Exception is AggregateException)
+				Exception = Exception.GetBaseException() ?? Exception;
+			Errors = Exception.Message;
 			taskFailed = true;
 			if (catchHandler == null)
 				return false;
-			var args = new object[] { ThrownException };
+			var args = new object[] { Exception };
 			foreach (var handler in catchHandler.GetInvocationList())
 			{
 				if ((bool)handler.DynamicInvoke(args))
@@ -538,6 +720,9 @@ namespace Unity.Editor.Tasks
 			return exceptionWasHandled;
 		}
 
+        /// <summary>
+		/// Raises the OnEnd event, setting the progress reporting object to 100 and setting up continuations.
+		/// </summary>
 		protected virtual void RaiseOnEnd()
 		{
 			hasRun = true;
@@ -546,12 +731,18 @@ namespace Unity.Editor.Tasks
 			UpdateProgress(100, 100);
 		}
 
+        /// <summary>
+		/// Raises the OnEnd event.
+		/// </summary>
 		protected void RaiseOnEndInternal()
 		{
 			Logger.Trace($"OnEnd: {Name} [{(TaskManager.InUIThread ? "UI Thread" : Affinity.ToString())}]");
-			OnEnd?.Invoke(this, !taskFailed, ThrownException);
+			OnEnd?.Invoke(this, !taskFailed, Exception);
 		}
 
+        /// <summary>
+		/// Set up continuations when the task is done. Also calls in-thread finally handlers.
+		/// </summary>
 		protected void SetupContinuations()
 		{
 			if (!taskFailed || exceptionWasHandled)
@@ -580,18 +771,25 @@ namespace Unity.Editor.Tasks
 			}
 		}
 
+        /// <summary>
+		/// Calls any in-thread finally handlers.
+		/// </summary>
 		protected virtual void CallFinallyHandler()
 		{
 			finallyHandler?.Invoke(!taskFailed);
 		}
 
+        /// <summary>
+		/// Gets the exception that was thrown by the task or any tasks before it.
+		/// </summary>
+		/// <returns></returns>
 		protected Exception GetThrownException()
 		{
 			var depends = DependsOn;
 			while (depends != null)
 			{
 				if (depends.taskFailed)
-					return depends.ThrownException;
+					return depends.Exception;
 				depends = depends.DependsOn;
 			}
 			return null;
@@ -624,45 +822,84 @@ namespace Unity.Editor.Tasks
 			DependsOn?.SetFaultHandler(handler);
 		}
 
-		protected Exception ThrownException { get; set; }
+		/// <inheritdoc />
+		public Exception Exception
+		{
+			get => exception ?? (exception = GetThrownException());
+			protected set => exception = value;
+		}
 
+		/// <inheritdoc />
 		public virtual bool Successful => hasRun && !taskFailed;
+		/// <inheritdoc />
 		public bool IsCompleted => hasRun;
-		public Exception Exception => ThrownException ?? GetThrownException();
-
+		/// <inheritdoc />
 		public string Errors { get; protected set; }
+		/// <inheritdoc />
 		public Task Task { get; protected set; }
+		/// <inheritdoc />
 		public WaitHandle AsyncWaitHandle => (Task as IAsyncResult).AsyncWaitHandle;
+		/// <inheritdoc />
 		public object AsyncState => (Task as IAsyncResult).AsyncState;
+		/// <inheritdoc />
 		public bool CompletedSynchronously => (Task as IAsyncResult).CompletedSynchronously;
+		/// <inheritdoc />
 		public string Name { get; set; }
+		/// <inheritdoc />
 		public virtual TaskAffinity Affinity { get; set; }
-		protected ILogging Logger { get { return logger = logger ?? LogHelper.GetLogger(GetType()); } }
+		/// <inheritdoc />
 		public TaskBase DependsOn { get; private set; }
+		/// <inheritdoc />
 		public CancellationToken Token { get; }
+		/// <inheritdoc />
 		public ITaskManager TaskManager { get; }
+		/// <inheritdoc />
 		public virtual string Message { get; set; }
+
+		/// <inheritdoc />
+		protected ILogging Logger { get { return logger = logger ?? LogHelper.GetLogger(GetType()); } }
 	}
 
+    /// <summary>
+    /// A task returning a value.
+    /// </summary>
 	public class TaskBase<TResult> : TaskBase, ITask<TResult>
 	{
+		/// <summary>
+		/// A default empty completed task.
+		/// </summary>
 		public new static ITask<TResult> Default = new TaskBase<TResult> { Name = "Global", Task = TaskHelpers.GetCompletedTask(default(TResult)) };
-		private TResult result;
-		public new event Action<ITask<TResult>, TResult, bool, Exception> OnEnd;
 
+		private TResult result;
+
+		/// <inheritdoc />
 		public new event Action<ITask<TResult>> OnStart;
+
+		/// <inheritdoc />
+		public new event Action<ITask<TResult>, TResult, bool, Exception> OnEnd;
 
 		private event Action<bool, TResult> finallyHandler;
 
+        /// <summary>
+		/// Creates a TaskBase instance.
+		/// </summary>
 		protected TaskBase() {}
-		protected TaskBase(ITaskManager taskManager) : this(taskManager, taskManager?.Token ?? default) {}
 
+        /// <summary>
+        /// Creates a TaskBase instance, using the cancellation token set in the task manager.
+        /// </summary>
+        protected TaskBase(ITaskManager taskManager) : this(taskManager.EnsureNotNull(nameof(taskManager)), taskManager.Token) {}
+
+        /// <summary>
+        /// Creates a TaskBase instance.
+        /// </summary>
 		protected TaskBase(ITaskManager taskManager, CancellationToken token)
 			: base(taskManager, token)
 		{
 			Task = new Task<TResult>(RunSynchronously, Token, TaskCreationOptions.None);
 		}
 
+        /// <inheritdoc />
 		public override T Then<T>(T continuation, TaskRunOptions runOptions = TaskRunOptions.OnSuccess, bool taskIsTopOfChain = false)
 		{
 			var nextTask = base.Then<T>(continuation, runOptions, taskIsTopOfChain);
@@ -722,7 +959,7 @@ namespace Unity.Editor.Tasks
 		/// <summary>
 		/// Run a callback at the end of the task execution, on a separate thread, regardless of execution state
 		/// </summary>
-		public ITask<TResult> Finally(Func<bool, Exception, TResult, TResult> continuation, string name = null, TaskAffinity affinity = TaskAffinity.ThreadPool)
+		public ITask<TResult> Finally(Func<bool, Exception, TResult, TResult> continuation, string name = null, TaskAffinity affinity = TaskAffinity.None)
 		{
 			Guard.EnsureNotNull(continuation, "continuation");
 
@@ -732,7 +969,7 @@ namespace Unity.Editor.Tasks
 		/// <summary>
 		/// Run a callback at the end of the task execution, on a separate thread, regardless of execution state
 		/// </summary>
-		public ITask Finally(Action<bool, Exception, TResult> continuation, string name = null, TaskAffinity affinity = TaskAffinity.ThreadPool)
+		public ITask Finally(Action<bool, Exception, TResult> continuation, string name = null, TaskAffinity affinity = TaskAffinity.None)
 		{
 			Guard.EnsureNotNull(continuation, "continuation");
 
@@ -746,6 +983,7 @@ namespace Unity.Editor.Tasks
 				.CatchInternal(_ => true);
 		}
 
+		/// <inheritdoc />
 		public new ITask<TResult> Start()
 		{
 			base.Start();
@@ -761,6 +999,7 @@ namespace Unity.Editor.Tasks
 			return this;
 		}
 
+		/// <inheritdoc />
 		public new virtual TResult RunSynchronously()
 		{
 			RaiseOnStart();
@@ -778,12 +1017,45 @@ namespace Unity.Editor.Tasks
 			return ret;
 		}
 
+		/// <summary>
+		/// Empty implementation of the base <see cref="TaskBase.Run" /> method that
+		/// returns the correct result type, so that implementations of this can follow
+		/// the correct pattern:
+		///
+		/// <![CDATA[
+		/// protected override TResult RunWithReturn(bool success)
+		/// {
+		///	    var result = base.RunWithReturn(success);
+		///     try
+		///     {
+		///         if (Callback != null)
+		///         {
+		///             result = Callback(success);
+		///         }
+		///         else if (CallbackWithException != null)
+		///         {
+		///             var thrown = GetThrownException();
+		///             result = CallbackWithException(success, thrown);
+		///         }
+		///     }
+		///     catch (Exception ex)
+		///     {
+		///         if (!RaiseFaultHandlers(ex))
+		///             ThrownException.Rethrow();
+		///     }
+		///     return result;
+		/// }
+		/// ]]>
+		/// </summary>
+		/// <param name="success"></param>
+		/// <returns></returns>
 		protected virtual TResult RunWithReturn(bool success)
 		{
 			base.Run(success);
 			return result;
 		}
 
+		/// <inheritdoc />
 		protected override void RaiseOnStart()
 		{
 			UpdateProgress(0, 100);
@@ -791,41 +1063,64 @@ namespace Unity.Editor.Tasks
 			RaiseOnStartInternal();
 		}
 
+		/// <summary>
+		/// Raises the OnEnd event, setting the progress reporting object to 100 and setting up continuations.
+		/// </summary>
 		protected virtual void RaiseOnEnd(TResult data)
 		{
 			result = data;
 			hasRun = true;
-			OnEnd?.Invoke(this, result, !taskFailed, ThrownException);
+			OnEnd?.Invoke(this, result, !taskFailed, Exception);
 			RaiseOnEndInternal();
 			SetupContinuations();
 			UpdateProgress(100, 100);
 		}
 
+		/// <inheritdoc />
 		protected override void CallFinallyHandler()
 		{
 			finallyHandler?.Invoke(!taskFailed, result);
 			base.CallFinallyHandler();
 		}
 
+		/// <inheritdoc />
 		public new Task<TResult> Task
 		{
 			get => base.Task as Task<TResult>;
 			set => base.Task = value;
 		}
 
+		/// <inheritdoc />
 		public TResult Result => result;
 	}
 
+	/// <summary>
+	/// A task that wraps an <see cref="Func&lt;T, TResult&gt;" />-like method.
+	/// The <typeparamref name="T"/> argument can be either the value of the previous task that this task depends on,
+	/// or passed in via <see cref="getPreviousResult" />,
+	/// or passed in via <see cref="PreviousResult" />
+	/// </summary>
+	/// <typeparam name="T">The type of the argument that the action is expecting</typeparam>
+	/// <typeparam name="TResult">The type of the result the action returns.</typeparam>
 	public abstract class TaskBase<T, TResult> : TaskBase<TResult>
 	{
 		private readonly Func<T> getPreviousResult;
 
-		protected TaskBase() {}
-
+		/// <summary>
+		/// Creates an instance of TaskBase, using the cancellation token set in the task manager.
+		/// </summary>
+		/// <param name="taskManager"></param>
+		/// <param name="getPreviousResult">Method to call that returns the value that this task is going to work with. You can also use the PreviousResult property to set this value</param>
 		protected TaskBase(ITaskManager taskManager, Func<T> getPreviousResult = null)
-			: this(taskManager, taskManager?.Token ?? default, getPreviousResult)
+			: this(taskManager.EnsureNotNull(nameof(taskManager)), taskManager.Token, getPreviousResult)
 		{}
 
+		/// <summary>
+		/// Creates an instance of TaskBase.
+		/// </summary>
+		/// <param name="taskManager"></param>
+		/// <param name="token"></param>
+		/// <param name="getPreviousResult">Method to call that returns the value that this task is going to work with. You can also use the PreviousResult property to set this value</param>
 		protected TaskBase(ITaskManager taskManager, CancellationToken token, Func<T> getPreviousResult = null)
 			: base(taskManager, token)
 		{
@@ -833,6 +1128,7 @@ namespace Unity.Editor.Tasks
 			this.getPreviousResult = getPreviousResult;
 		}
 
+		/// <inheritdoc />
 		public override TResult RunSynchronously()
 		{
 			RaiseOnStart();
@@ -860,39 +1156,192 @@ namespace Unity.Editor.Tasks
 			return ret;
 		}
 
+		/// <summary>
+		/// Empty implementation of the base <see cref="TaskBase.Run" /> method that
+		/// returns the correct result type, so that implementations of this can follow
+		/// the correct pattern:
+		///
+		/// <![CDATA[
+		/// protected override TResult RunWithData(bool success, T previousResult)
+		/// {
+		///	    var result = base.RunWithData(success, previousResult);
+		///     try
+		///     {
+		///         if (Callback != null)
+		///         {
+		///             result = Callback(success, previousResult);
+		///         }
+		///         else if (CallbackWithException != null)
+		///         {
+		///             var thrown = GetThrownException();
+		///             result = CallbackWithException(success, thrown, previousResult);
+		///         }
+		///     }
+		///     catch (Exception ex)
+		///     {
+		///         if (!RaiseFaultHandlers(ex))
+		///             ThrownException.Rethrow();
+		///     }
+		///     return result;
+		/// }
+		/// ]]>
+		/// </summary>
+		/// <param name="success"></param>
+		/// <param name="previousResult"></param>
+		/// <returns></returns>
 		protected virtual TResult RunWithData(bool success, T previousResult)
 		{
 			base.Run(success);
 			return default;
 		}
 
+		/// <inheritdoc />
 		public T PreviousResult { get; set; } = default(T);
 	}
 
+    /// <summary>
+	/// A Task that raises events when it produces data, and that returns data.
+	/// </summary>
+	/// <typeparam name="TData"></typeparam>
+	/// <typeparam name="TResult"></typeparam>
 	public abstract class DataTaskBase<TData, TResult> : TaskBase<TResult>, ITask<TData, TResult>
 	{
+		/// <inheritdoc />
 		public event Action<TData> OnData;
-		protected DataTaskBase() {}
 
+        /// <summary>
+		/// 
+		/// </summary>
+		/// <param name="taskManager"></param>
 		protected DataTaskBase(ITaskManager taskManager) : base(taskManager) {}
+        /// <summary>
+		/// 
+		/// </summary>
+		/// <param name="taskManager"></param>
+		/// <param name="token"></param>
 		protected DataTaskBase(ITaskManager taskManager, CancellationToken token) : base(taskManager, token) {}
 
+        /// <summary>
+		/// Raises the OnData event.
+		/// </summary>
+		/// <param name="data"></param>
 		protected void RaiseOnData(TData data)
 		{
 			OnData?.Invoke(data);
 		}
 	}
 
+    /// <summary>
+	/// A task that receives data, produces data, and returns data.
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <typeparam name="TData"></typeparam>
+	/// <typeparam name="TResult"></typeparam>
 	public abstract class DataTaskBase<T, TData, TResult> : TaskBase<T, TResult>, ITask<TData, TResult>
 	{
+		/// <inheritdoc />
 		public event Action<TData> OnData;
-		protected DataTaskBase() {}
+
+        /// <summary>
+		/// 
+		/// </summary>
+		/// <param name="taskManager"></param>
 		protected DataTaskBase(ITaskManager taskManager) : base(taskManager) {}
+        /// <summary>
+		/// 
+		/// </summary>
+		/// <param name="taskManager"></param>
+		/// <param name="token"></param>
 		protected DataTaskBase(ITaskManager taskManager, CancellationToken token) : base(taskManager, token) {}
 
+        /// <summary>
+        /// Raises the OnData event.
+        /// </summary>
+        /// <param name="data"></param>
 		protected void RaiseOnData(TData data)
 		{
 			OnData?.Invoke(data);
 		}
 	}
+
+
+	class TaskData : ITask
+	{
+		public Progress progress;
+
+		event Action<ITask, bool, Exception> ITask.OnEnd
+		{
+			add => throw new NotImplementedException();
+			remove => throw new NotImplementedException();
+		}
+
+		event Action<ITask> ITask.OnStart
+		{
+			add => throw new NotImplementedException();
+			remove => throw new NotImplementedException();
+		}
+
+		public TaskData(string name, long total)
+		{
+			Message = name;
+			Name = name;
+			progress = new Progress(this);
+			progress.Total = total;
+		}
+
+		public void UpdateProgress(long value, long total, string message = null)
+		{
+			progress.UpdateProgress(value, total, Name);
+		}
+
+		ITask ITask.Catch(Action<Exception> handler) => throw new NotImplementedException();
+
+		ITask ITask.Catch(Func<Exception, bool> handler) => throw new NotImplementedException();
+
+		ITask ITask.FinallyInline(Action<bool> handler) => throw new NotImplementedException();
+
+		ITask ITask.Finally(Action<bool, Exception> actionToContinueWith, string name, TaskAffinity affinity) => throw new NotImplementedException();
+
+		T ITask.Finally<T>(T taskToContinueWith) => throw new NotImplementedException();
+
+		ITask ITask.GetEndOfChain() => throw new NotImplementedException();
+
+		ITask ITask.GetTopOfChain(bool onlyCreated) => throw new NotImplementedException();
+
+		ITask ITask.Progress(Action<IProgress> progressHandler) => throw new NotImplementedException();
+
+		void ITask.RunSynchronously() => throw new NotImplementedException();
+
+		ITask ITask.Start() => throw new NotImplementedException();
+
+		T ITask.Then<T>(T continuation, TaskRunOptions runOptions, bool taskIsTopOfChain) => throw new NotImplementedException();
+
+		public string Message { get; set; }
+		public string Name { get; set; }
+
+		bool ITask.Successful => throw new NotImplementedException();
+
+		string ITask.Errors => throw new NotImplementedException();
+
+		Task ITask.Task => throw new NotImplementedException();
+
+		TaskAffinity ITask.Affinity { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+		CancellationToken ITask.Token => throw new NotImplementedException();
+
+		ITaskManager ITask.TaskManager => throw new NotImplementedException();
+
+		TaskBase ITask.DependsOn => throw new NotImplementedException();
+
+		Exception ITask.Exception => throw new NotImplementedException();
+
+		object IAsyncResult.AsyncState => throw new NotImplementedException();
+
+		WaitHandle IAsyncResult.AsyncWaitHandle => throw new NotImplementedException();
+
+		bool IAsyncResult.CompletedSynchronously => throw new NotImplementedException();
+
+		bool IAsyncResult.IsCompleted => throw new NotImplementedException();
+	}
+
 }

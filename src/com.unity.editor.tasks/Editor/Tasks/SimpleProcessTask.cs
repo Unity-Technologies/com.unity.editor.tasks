@@ -16,7 +16,7 @@ namespace Unity.Editor.Tasks
 			processManager.Configure(this, workingDirectory);
 		}
 
-		public override TaskAffinity Affinity { get; set; } = TaskAffinity.ThreadPool;
+		public override TaskAffinity Affinity { get; set; } = TaskAffinity.None;
 	}
 
 	public class SimpleProcessTask<T> : ProcessTask<T>
@@ -54,7 +54,7 @@ namespace Unity.Editor.Tasks
 			processManager.Configure(this, workingDirectory);
 		}
 
-		public override TaskAffinity Affinity { get; set; } = TaskAffinity.ThreadPool;
+		public override TaskAffinity Affinity { get; set; } = TaskAffinity.None;
 	}
 
 	public class SimpleListProcessTask : ProcessTaskWithListOutput<string>
@@ -72,7 +72,7 @@ namespace Unity.Editor.Tasks
 			processManager.Configure(this, workingDirectory);
 		}
 
-		public override TaskAffinity Affinity { get; set; } = TaskAffinity.ThreadPool;
+		public override TaskAffinity Affinity { get; set; } = TaskAffinity.None;
 	}
 
 }

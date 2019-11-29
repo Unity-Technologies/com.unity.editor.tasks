@@ -12,15 +12,23 @@ namespace Unity.Editor.Tasks
 {
 	using Internal.IO;
 
+	/// <summary>
+	/// A process manager that configures processes for running and keeps track of running processes.
+	/// </summary>
 	public class ProcessManager : IProcessManager
 	{
 		private readonly HashSet<IProcess> processes = new HashSet<IProcess>();
 
+		/// <summary>
+		/// Creates an instance of the process manager and the <see cref="DefaultProcessEnvironment"/>.
+		/// </summary>
+		/// <param name="environment"></param>
 		public ProcessManager(IEnvironment environment)
 		{
 			DefaultProcessEnvironment = new ProcessEnvironment(environment);
 		}
 
+		/// <inheritdoc />
 		public T Configure<T>(T processTask, string workingDirectory = null)
 				where T : IProcessTask
 		{
@@ -34,7 +42,7 @@ namespace Unity.Editor.Tasks
 				StandardErrorEncoding = Encoding.UTF8
 			};
 
-			startInfo.Configure(processTask.ProcessEnvironment, workingDirectory);
+			processTask.ProcessEnvironment.Configure(startInfo, workingDirectory);
 
 			startInfo.FileName = processTask.ProcessName.ToSPath().ToString();
 			startInfo.Arguments = processTask.ProcessArguments;
@@ -47,12 +55,14 @@ namespace Unity.Editor.Tasks
 			return processTask;
 		}
 
+		/// <inheritdoc />
 		public void Stop()
 		{
 			foreach (var p in processes.ToArray())
 				p.Stop();
 		}
 
+		/// <inheritdoc />
 		public IProcessEnvironment DefaultProcessEnvironment { get; }
 	}
 }
