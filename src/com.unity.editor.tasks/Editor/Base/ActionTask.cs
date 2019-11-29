@@ -46,11 +46,13 @@ namespace Unity.Editor.Tasks
 		/// <returns></returns>
 		public ITask Queue(ITask task)
 		{
+			task.EnsureNotNull(nameof(task));
+
 			// if this task fails, both OnEnd and Catch will be called
 			// if a task before this one on the chain fails, only Catch will be called
 			// so avoid calling TaskFinished twice by ignoring failed OnEnd calls
 			task.OnEnd += InvokeFinishOnlyOnSuccess;
-			task.Catch(e => TaskFinished(false, e));
+			task.Catch(e => TaskFinished());
 			queuedTasks.Add(task);
 			return this;
 		}
@@ -88,10 +90,10 @@ namespace Unity.Editor.Tasks
 		private void InvokeFinishOnlyOnSuccess(ITask task, bool success, Exception ex)
 		{
 			if (success)
-				TaskFinished(true, null);
+				TaskFinished();
 		}
 
-		private void TaskFinished(bool success, Exception ex)
+		private void TaskFinished()
 		{
 			var count = Interlocked.Increment(ref finishedTaskCount);
 			if (count == queuedTasks.Count)
@@ -184,7 +186,7 @@ namespace Unity.Editor.Tasks
 			// so avoid calling TaskFinished twice by ignoring failed OnEnd calls
 			task.Progress(progressReporter.UpdateProgress);
 			task.OnEnd += InvokeFinishOnlyOnSuccess;
-			task.Catch(e => TaskFinished(default, false, e));
+			task.Catch(e => TaskFinished());
 			queuedTasks.Add(task);
 			return task;
 		}
@@ -222,10 +224,10 @@ namespace Unity.Editor.Tasks
 		private void InvokeFinishOnlyOnSuccess(ITask<TTaskResult> task, TTaskResult result, bool success, Exception ex)
 		{
 			if (success)
-				TaskFinished(result, true, null);
+				TaskFinished();
 		}
 
-		private void TaskFinished(TTaskResult result, bool success, Exception ex)
+		private void TaskFinished()
 		{
 			var count = Interlocked.Increment(ref finishedTaskCount);
 			if (count == queuedTasks.Count)
@@ -272,7 +274,7 @@ namespace Unity.Editor.Tasks
 		public ActionTask(ITaskManager taskManager, CancellationToken token, Action action)
 			: base(taskManager, token)
 		{
-			Guard.ArgumentNotNull(action, "action");
+			Guard.EnsureNotNull(action, "action");
 			Callback = _ => action();
 			Name = "ActionTask";
 		}
@@ -295,7 +297,7 @@ namespace Unity.Editor.Tasks
 		public ActionTask(ITaskManager taskManager, CancellationToken token, Action<bool> action)
 			: base(taskManager, token)
 		{
-			Guard.ArgumentNotNull(action, "action");
+			Guard.EnsureNotNull(action, "action");
 			Callback = action;
 			Name = "ActionTask";
 		}
@@ -318,7 +320,7 @@ namespace Unity.Editor.Tasks
 		public ActionTask(ITaskManager taskManager, CancellationToken token, Action<bool, Exception> action)
 			: base(taskManager, token)
 		{
-			Guard.ArgumentNotNull(action, "action");
+			Guard.EnsureNotNull(action, "action");
 			CallbackWithException = action;
 			Name = "ActionTask<Exception>";
 		}
@@ -370,7 +372,7 @@ namespace Unity.Editor.Tasks
 		public ActionTask(ITaskManager taskManager, CancellationToken token, Action<bool, T> action, Func<T> getPreviousResult = null)
 			: base(taskManager, token)
 		{
-			Guard.ArgumentNotNull(action, "action");
+			Guard.EnsureNotNull(action, "action");
 
 			this.getPreviousResult = getPreviousResult;
 			Callback = action;
@@ -396,7 +398,7 @@ namespace Unity.Editor.Tasks
 		public ActionTask(ITaskManager taskManager, CancellationToken token, Action<bool, Exception, T> action, Func<T> getPreviousResult = null)
 			: base(taskManager, token)
 		{
-			Guard.ArgumentNotNull(action, "action");
+			Guard.EnsureNotNull(action, "action");
 
 			this.getPreviousResult = getPreviousResult;
 			CallbackWithException = action;
@@ -465,7 +467,7 @@ namespace Unity.Editor.Tasks
 		public FuncTask(ITaskManager taskManager, CancellationToken token, Func<T> action)
 			: base(taskManager, token)
 		{
-			Guard.ArgumentNotNull(action, "action");
+			Guard.EnsureNotNull(action, "action");
 			Callback = _ => action();
 			Name = $"FuncTask<{typeof(T)}>";
 		}
@@ -477,7 +479,7 @@ namespace Unity.Editor.Tasks
 		public FuncTask(ITaskManager taskManager, CancellationToken token, Func<bool, T> action)
 			: base(taskManager, token)
 		{
-			Guard.ArgumentNotNull(action, "action");
+			Guard.EnsureNotNull(action, "action");
 			Callback = action;
 			Name = $"FuncTask<{typeof(T)}>";
 		}
@@ -489,7 +491,7 @@ namespace Unity.Editor.Tasks
 		public FuncTask(ITaskManager taskManager, CancellationToken token, Func<bool, Exception, T> action)
 			: base(taskManager, token)
 		{
-			Guard.ArgumentNotNull(action, "action");
+			Guard.EnsureNotNull(action, "action");
 			CallbackWithException = action;
 			Name = $"FuncTask<Exception, {typeof(T)}>";
 		}
@@ -532,7 +534,7 @@ namespace Unity.Editor.Tasks
 		public FuncTask(ITaskManager taskManager, CancellationToken token, Func<bool, T, TResult> action, Func<T> getPreviousResult = null)
 			: base(taskManager, token, getPreviousResult)
 		{
-			Guard.ArgumentNotNull(action, "action");
+			Guard.EnsureNotNull(action, "action");
 			Callback = action;
 			Name = $"FuncTask<{typeof(T)}, {typeof(TResult)}>";
 		}
@@ -544,7 +546,7 @@ namespace Unity.Editor.Tasks
 		public FuncTask(ITaskManager taskManager, CancellationToken token, Func<bool, Exception, T, TResult> action, Func<T> getPreviousResult = null)
 			: base(taskManager, token, getPreviousResult)
 		{
-			Guard.ArgumentNotNull(action, "action");
+			Guard.EnsureNotNull(action, "action");
 			CallbackWithException = action;
 			Name = $"FuncTask<{typeof(T)}, Exception, {typeof(TResult)}>";
 		}
@@ -587,7 +589,7 @@ namespace Unity.Editor.Tasks
 		public FuncListTask(ITaskManager taskManager, CancellationToken token, Func<bool, List<T>> action)
 			: base(taskManager, token)
 		{
-			Guard.ArgumentNotNull(action, "action");
+			Guard.EnsureNotNull(action, "action");
 			Callback = action;
 		}
 
@@ -598,7 +600,7 @@ namespace Unity.Editor.Tasks
 		public FuncListTask(ITaskManager taskManager, CancellationToken token, Func<bool, Exception, List<T>> action)
 			: base(taskManager, token)
 		{
-			Guard.ArgumentNotNull(action, "action");
+			Guard.EnsureNotNull(action, "action");
 			CallbackWithException = action;
 		}
 
@@ -609,7 +611,7 @@ namespace Unity.Editor.Tasks
 		public FuncListTask(ITaskManager taskManager, CancellationToken token, Func<bool, FuncListTask<T>, List<T>> action)
 			: base(taskManager, token)
 		{
-			Guard.ArgumentNotNull(action, "action");
+			Guard.EnsureNotNull(action, "action");
 			CallbackWithSelf = action;
 		}
 
@@ -661,7 +663,7 @@ namespace Unity.Editor.Tasks
 		public FuncListTask(ITaskManager taskManager, CancellationToken token, Func<bool, T, List<TResult>> action)
 			: base(taskManager, token)
 		{
-			Guard.ArgumentNotNull(action, "action");
+			Guard.EnsureNotNull(action, "action");
 			Callback = action;
 		}
 
@@ -672,7 +674,7 @@ namespace Unity.Editor.Tasks
 		public FuncListTask(ITaskManager taskManager, CancellationToken token, Func<bool, Exception, T, List<TResult>> action)
 			: base(taskManager, token)
 		{
-			Guard.ArgumentNotNull(action, "action");
+			Guard.EnsureNotNull(action, "action");
 			CallbackWithException = action;
 		}
 

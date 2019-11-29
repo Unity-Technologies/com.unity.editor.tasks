@@ -4,11 +4,42 @@
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
 using System;
-using UnityEngine;
-using UnityEditor;
 
 namespace Unity.Editor.Tasks
 {
+	using Unity.Editor.Tasks.Internal.IO;
+
+#if !UNITY_EDITOR
+
+	public class SerializeFieldAttribute : Attribute
+	{
+
+	}
+
+	public class ScriptableSingleton<T>
+		where T : class, new()
+	{
+		private static T _instance;
+		public static T instance => _instance ?? (_instance = new T());
+
+		protected void Save(bool flush)
+		{}
+	}
+
+	public static class Application
+	{
+		public static string productName { get; } = "DefaultApplication";
+		public static string unityVersion { get; set; } = "2019.2.1f1";
+		public static string projectPath { get; set; }
+	}
+
+	public static class EditorApplication
+	{
+		public static string applicationPath { get; set; }
+		public static string applicationContentsPath { get; set; }
+	}
+#endif
+
 	public sealed class TheEnvironment : ScriptableSingleton<TheEnvironment>
 	{
 		[NonSerialized] private IEnvironment environment;
@@ -36,7 +67,11 @@ namespace Unity.Editor.Tasks
 					environment = new UnityEnvironment(ApplicationName ?? Application.productName);
 					if (projectPath == null)
 					{
-						projectPath = System.IO.Path.GetFullPath(".");
+#if UNITY_EDITOR
+						projectPath = ".".ToSPath().Resolve().ToString(SlashMode.Forward);
+#else
+						projectPath = Application.projectPath;
+#endif
 						unityVersion = Application.unityVersion;
 						unityApplication = EditorApplication.applicationPath;
 						unityApplicationContents = EditorApplication.applicationContentsPath;

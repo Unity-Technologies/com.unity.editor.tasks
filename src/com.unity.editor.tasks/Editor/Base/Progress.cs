@@ -10,6 +10,8 @@ using System.Linq;
 
 namespace Unity.Editor.Tasks
 {
+	using Helpers;
+
 	public interface IProgress
 	{
 		event Action<IProgress> OnProgress;
@@ -41,6 +43,8 @@ namespace Unity.Editor.Tasks
 
 		public void UpdateProgress(IProgress prog)
 		{
+			if (prog == null) return;
+
 			long total = 0;
 			long value = 0;
 			IProgress data;
@@ -111,12 +115,15 @@ namespace Unity.Editor.Tasks
 
 		public Progress(ITask task)
 		{
+			task.EnsureNotNull(nameof(task));
+
 			Task = task;
 			Message = task.Message;
 		}
 
 		public void UpdateProgress(IProgress progress)
 		{
+			if (progress == null) return;
 			UpdateProgress(progress.Value, progress.Total, progress.Message, progress.InnerProgress);
 		}
 

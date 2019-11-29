@@ -24,10 +24,7 @@ namespace Unity.Editor.Tasks
 		/// <returns></returns>
 		public static bool IsCriticalException(this Exception exception)
 		{
-			if (exception == null)
-			{
-				throw new ArgumentNullException("exception");
-			}
+			if (exception == null) throw new ArgumentNullException(nameof(exception));
 
 			return exception.IsFatalException()
 				|| exception is AppDomainUnloadedException
@@ -46,10 +43,7 @@ namespace Unity.Editor.Tasks
 		/// <returns></returns>
 		public static bool IsFatalException(this Exception exception)
 		{
-			if (exception == null)
-			{
-				throw new ArgumentNullException("exception");
-			}
+			if (exception == null) throw new ArgumentNullException(nameof(exception));
 
 			return exception is StackOverflowException
 				|| exception is OutOfMemoryException

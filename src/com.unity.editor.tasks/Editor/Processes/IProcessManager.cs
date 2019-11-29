@@ -23,13 +23,8 @@ namespace Unity.Editor.Tasks
 
 	public interface IProcessManager
 	{
-		T Configure<T>(T processTask,
-			string workingDirectory = null,
-			bool withInput = false)
-			where T : IProcessTask;
-
+		T Configure<T>(T processTask, string workingDirectory = null) where T : IProcessTask;
 		void Stop();
-		CancellationToken CancellationToken { get; }
 		IProcessEnvironment DefaultProcessEnvironment { get; }
 	}
 }

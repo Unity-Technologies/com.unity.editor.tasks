@@ -7,35 +7,25 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using System.Threading;
 
 namespace Unity.Editor.Tasks
 {
-	using Logging;
+	using Internal.IO;
 
 	public class ProcessManager : IProcessManager
 	{
-		private static readonly ILogging logger = LogHelper.GetLogger<ProcessManager>();
-
-		private readonly IEnvironment environment;
 		private readonly HashSet<IProcess> processes = new HashSet<IProcess>();
 
-		public ProcessManager(IEnvironment environment,
-			CancellationToken cancellationToken)
+		public ProcessManager(IEnvironment environment)
 		{
-			Instance = this;
-			this.environment = environment;
 			DefaultProcessEnvironment = new ProcessEnvironment(environment);
-			CancellationToken = cancellationToken;
 		}
 
-		public T Configure<T>(T processTask,
-			string workingDirectory = null,
-			bool withInput = false)
+		public T Configure<T>(T processTask, string workingDirectory = null)
 				where T : IProcessTask
 		{
 			var startInfo = new ProcessStartInfo {
-				RedirectStandardInput = withInput,
+				RedirectStandardInput = true,
 				RedirectStandardOutput = true,
 				RedirectStandardError = true,
 				UseShellExecute = false,
@@ -46,7 +36,7 @@ namespace Unity.Editor.Tasks
 
 			startInfo.Configure(processTask.ProcessEnvironment, workingDirectory);
 
-			startInfo.FileName = processTask.ProcessName;
+			startInfo.FileName = processTask.ProcessName.ToSPath().ToString();
 			startInfo.Arguments = processTask.ProcessArguments;
 			processTask.Configure(startInfo);
 			processTask.OnStartProcess += p => processes.Add(p);
@@ -62,10 +52,6 @@ namespace Unity.Editor.Tasks
 			foreach (var p in processes.ToArray())
 				p.Stop();
 		}
-
-		public static IProcessManager Instance { get; private set; }
-
-		public CancellationToken CancellationToken { get; }
 
 		public IProcessEnvironment DefaultProcessEnvironment { get; }
 	}

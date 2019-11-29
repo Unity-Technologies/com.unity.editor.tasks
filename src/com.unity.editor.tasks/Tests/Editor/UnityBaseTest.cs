@@ -53,11 +53,50 @@ namespace BaseTests
 			watch.Start();
 		}
 
-		protected void StopTest(Stopwatch watch, ILogging logger, ITaskManager taskManager)
+		protected void StartTest(out System.Diagnostics.Stopwatch watch, out ILogging logger, out ITaskManager taskManager,
+			out string testPath, out IEnvironment environment, out IProcessManager processManager,
+			[CallerMemberName] string testName = "test")
+		{
+			logger = new LogFacade(testName, new UnityLogAdapter(), true);
+			watch = new System.Diagnostics.Stopwatch();
+
+			taskManager = TaskManager;
+
+			testPath = SPath.CreateTempDirectory(testName);
+
+			environment = new UnityEnvironment(testName);
+			((UnityEnvironment)environment).SetWorkingDirectory(testPath);
+			environment.Initialize(testPath, testPath, "2018.4", testPath, testPath.Combine("Assets"));
+
+			processManager = new ProcessManager(environment, taskManager.Token);
+
+			logger.Trace("START");
+			watch.Start();
+		}
+
+        protected void StopTest(Stopwatch watch, ILogging logger, ITaskManager taskManager)
 		{
 			watch.Stop();
 			logger.Trace($"END:{watch.ElapsedMilliseconds}ms");
 			taskManager.Dispose();
 		}
-	}
+
+		protected SPath? testApp;
+
+		protected SPath TestApp
+		{
+			get
+			{
+				if (!testApp.HasValue)
+				{
+					testApp = System.IO.Path.GetFullPath("Packages/com.unity.editor.tasks/Tests/Helpers~/Helper.CommandLine.exe");
+					if (!testApp.Value.FileExists())
+					{
+						UnityEngine.Debug.LogException(new InvalidOperationException("Test helper binaries are missing. Build the UnityTools.sln solution once with `dotnet build` in order to set up the tests."));
+					}
+				}
+				return testApp.Value;
+			}
+		}
+    }
 }

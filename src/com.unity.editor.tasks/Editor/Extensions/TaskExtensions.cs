@@ -16,7 +16,7 @@ namespace Unity.Editor.Tasks
 		{
 			try
 			{
-				await source.StartAsAsync();
+				await source.StartAsAsync().ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
@@ -30,7 +30,7 @@ namespace Unity.Editor.Tasks
 		{
 			try
 			{
-				return await source.StartAsAsync();
+				return await source.StartAsAsync().ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
@@ -45,36 +45,42 @@ namespace Unity.Editor.Tasks
 
 		public static ITask Then(this ITask task, Action continuation, string name = "Then", TaskAffinity affinity = TaskAffinity.Concurrent, TaskRunOptions runOptions = TaskRunOptions.OnSuccess)
 		{
-			Guard.ArgumentNotNull(continuation, "continuation");
+			task.EnsureNotNull(nameof(task));
+			continuation.EnsureNotNull(nameof(continuation));
 			return task.Then(new ActionTask(task.TaskManager, task.Token, _ => continuation()) { Affinity = affinity, Name = name }, runOptions);
 		}
 
 		public static ITask Then(this ITask task, Action<bool> continuation, string name = "Then<bool>", TaskAffinity affinity = TaskAffinity.Concurrent, TaskRunOptions runOptions = TaskRunOptions.OnSuccess)
 		{
-			Guard.ArgumentNotNull(continuation, "continuation");
+			task.EnsureNotNull(nameof(task));
+			continuation.EnsureNotNull(nameof(continuation));
 			return task.Then(new ActionTask(task.TaskManager, task.Token, continuation) { Affinity = affinity, Name = name }, runOptions);
 		}
 
 		public static ITask Then<T>(this ITask<T> task, Action<bool, T> continuation, string name = null, TaskAffinity affinity = TaskAffinity.Concurrent, TaskRunOptions runOptions = TaskRunOptions.OnSuccess)
 		{
-			Guard.ArgumentNotNull(continuation, "continuation");
+			task.EnsureNotNull(nameof(task));
+			continuation.EnsureNotNull(nameof(continuation));
 			return task.Then(new ActionTask<T>(task.TaskManager, task.Token, continuation) { Affinity = affinity, Name = name ?? $"Then<{typeof(T)}>" }, runOptions);
 		}
 
 		public static ITask<T> Then<T>(this ITask task, Func<bool, T> continuation, string name = null, TaskAffinity affinity = TaskAffinity.Concurrent, TaskRunOptions runOptions = TaskRunOptions.OnSuccess)
 		{
-			Guard.ArgumentNotNull(continuation, "continuation");
+			task.EnsureNotNull(nameof(task));
+			continuation.EnsureNotNull(nameof(continuation));
 			return task.Then(new FuncTask<T>(task.TaskManager, task.Token, continuation) { Affinity = affinity, Name = name ?? $"ThenFunc<{typeof(T)}>" }, runOptions);
 		}
 
 		public static ITask<TRet> Then<T, TRet>(this ITask<T> task, Func<bool, T, TRet> continuation, string name = null, TaskAffinity affinity = TaskAffinity.Concurrent, TaskRunOptions runOptions = TaskRunOptions.OnSuccess)
 		{
-			Guard.ArgumentNotNull(continuation, "continuation");
+			task.EnsureNotNull(nameof(task));
+			continuation.EnsureNotNull(nameof(continuation));
 			return task.Then(new FuncTask<T, TRet>(task.TaskManager, task.Token, continuation) { Affinity = affinity, Name = name ?? $"ThenFunc<{typeof(T)}, {typeof(TRet)}>" }, runOptions);
 		}
 
 		public static ITask<T> Then<T>(this ITask task, Func<Task<T>> continuation, string name = null, TaskAffinity affinity = TaskAffinity.Concurrent, TaskRunOptions runOptions = TaskRunOptions.OnSuccess)
 		{
+			task.EnsureNotNull(nameof(task));
 			var cont = new TPLTask<T>(task.TaskManager, continuation) { Affinity = affinity, Name = name ?? $"ThenAsync<{typeof(T)}>" };
 			return task.Then(cont, runOptions);
 		}
@@ -102,16 +108,24 @@ namespace Unity.Editor.Tasks
 		public static ITask FinallyInUI<T>(this T task, Action<bool, Exception> continuation, string name = null)
 			where T : ITask
 		{
+			task.EnsureNotNull(nameof(task));
+			continuation.EnsureNotNull(nameof(continuation));
+
 			return task.Finally(continuation, name, TaskAffinity.UI);
 		}
 
 		public static ITask FinallyInUI<T>(this ITask<T> task, Action<bool, Exception, T> continuation, string name = null)
 		{
+			task.EnsureNotNull(nameof(task));
+			continuation.EnsureNotNull(nameof(continuation));
+
 			return task.Finally(continuation, name, TaskAffinity.UI);
 		}
 
 		public static Task<T> StartAsAsync<T>(this ITask<T> task)
 		{
+			task.EnsureNotNull(nameof(task));
+
 			var tcs = new TaskCompletionSource<T>();
 			task.FinallyInline((success, r) =>
 			{
@@ -127,6 +141,8 @@ namespace Unity.Editor.Tasks
 
 		public static Task<bool> StartAsAsync(this ITask task)
 		{
+			task.EnsureNotNull(nameof(task));
+
 			var tcs = new TaskCompletionSource<bool>();
 			task.FinallyInline(success =>
 			{

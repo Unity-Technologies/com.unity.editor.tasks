@@ -11,7 +11,7 @@ namespace Unity.Editor.Tasks.Logging
 
 	    public MultipleLogAdapter(params LogAdapterBase[] logAdapters)
         {
-            this.logAdapters = logAdapters ?? new LogAdapterBase[0];
+            this.logAdapters = logAdapters ?? System.Array.Empty<LogAdapterBase>();
         }
 
 	    public override void Info(string context, string message)

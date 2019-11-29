@@ -18,6 +18,7 @@ namespace Unity.Editor.Tasks
 
 		string Path { get; set; }
 		string NewLine { get; }
+		string ExecutableExtension { get; }
 		bool IsWindows { get; }
 		bool IsLinux { get; }
 		bool IsMac { get; }
@@ -80,7 +81,6 @@ namespace Unity.Editor.Tasks
 		public string UnityApplication { get; set; }
 		public string UnityApplicationContents { get; set; }
 		public string UnityProjectPath { get; set; }
-		public string WorkingDirectory { get; private set; }
 
 		public string Path { get; set; } = Environment.GetEnvironmentVariable(GetEnvironmentVariableKeyInternal("PATH"));
 

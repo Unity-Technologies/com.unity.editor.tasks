@@ -7,8 +7,8 @@ using System.Diagnostics;
 
 namespace Unity.Editor.Tasks
 {
-	using Logging;
-	using Unity.Editor.Tasks.Helpers;
+	using Internal.IO;
+	using Helpers;
 
 	public interface IProcessEnvironment
 	{
@@ -16,23 +16,24 @@ namespace Unity.Editor.Tasks
 		IEnvironment Environment { get; }
 	}
 
-	public class ProcessEnvironment : IProcessEnvironment
+	class ProcessEnvironment : IProcessEnvironment
 	{
 		public ProcessEnvironment(IEnvironment environment)
 		{
-			Logger = LogHelper.GetLogger(GetType());
 			Environment = environment;
 		}
 
-		public virtual void Configure(ProcessStartInfo psi, string workingDirectory = null)
+		public void Configure(ProcessStartInfo psi, string workingDirectory = null)
 		{
-			Guard.ArgumentNotNull(psi, "psi");
+			Guard.EnsureNotNull(psi, nameof(psi));
 			workingDirectory = workingDirectory ?? Environment.UnityProjectPath;
 
-			psi.WorkingDirectory = workingDirectory;
+			string normalizedWorkingDirectory = workingDirectory.ToSPath().ToString();
+
+			psi.WorkingDirectory = normalizedWorkingDirectory;
 
 			var path = Environment.Path;
-			psi.EnvironmentVariables["PROCESS_WORKINGDIR"] = workingDirectory;
+			psi.EnvironmentVariables["PROCESS_WORKINGDIR"] = normalizedWorkingDirectory;
 
 			var pathEnvVarKey = Environment.GetEnvironmentVariableKey("PATH");
 			psi.EnvironmentVariables["PROCESS_FULLPATH"] = path;
@@ -40,6 +41,5 @@ namespace Unity.Editor.Tasks
 		}
 
 		public IEnvironment Environment { get; private set; }
-		protected ILogging Logger { get; private set; }
 	}
 }

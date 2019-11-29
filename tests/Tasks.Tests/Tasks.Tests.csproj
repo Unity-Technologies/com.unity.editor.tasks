@@ -2,10 +2,23 @@
   <PropertyGroup>
     <TargetFramework>net471</TargetFramework>
     <RootDir>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\'))</RootDir>
+    <PackageName>com.unity.editor.tasks</PackageName>
+
+    <PublishTo>$(RootDir)build\packages\</PublishTo>
+    <PackageSource>src\</PackageSource>
+    <PackageSubFolder>\Helpers~\</PackageSubFolder>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
   </PropertyGroup>
+
   <ItemGroup>
-    <Compile Include="..\..\src\com.unity.editor.tasks\Tests\**\*.cs" Exclude="..\..\src\com.unity.editor.tasks\Tests\**\UnityBaseTest.cs" />
+    <Compile Include="..\..\src\$(PackageName)\Tests\Editor\**\*.cs" Exclude="..\..\src\com.unity.editor.tasks\Tests\**\UnityBaseTest.cs" />
     <None Include="..\..\src\com.unity.editor.tasks\Tests\**\UnityBaseTest.cs" Link="UnityOnly\UnityBaseTest.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="TestResults\**" />
+    <EmbeddedResource Remove="TestResults\**" />
+    <None Remove="TestResults\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -22,6 +35,9 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\com.unity.editor.tasks\Editor\Unity.Editor.Tasks.csproj" />
+    <ProjectReference Include="..\Helpers\Helper.CommandLine\Helper.CommandLine.csproj" />
     <ProjectReference Include="..\Helpers\TestBase\TestBase.csproj" />
   </ItemGroup>
+
+  <Import Project="copyhelperbinaries.targets" />
 </Project>

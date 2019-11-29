@@ -11,6 +11,8 @@ using NUnit.Framework;
 
 namespace BaseTests
 {
+	using Unity.Editor.Tasks.Internal.IO;
+
 	public partial class BaseTest
 	{
 		protected const int Timeout = 30000;
@@ -69,7 +71,7 @@ namespace BaseTests
 	}
 
 
-	public static class TestExtensions
+	internal static class TestExtensions
 	{
 		public static void Matches(this IEnumerable actual, IEnumerable expected)
 		{
@@ -80,6 +82,20 @@ namespace BaseTests
 		{
 			CollectionAssert.AreEqual(expected.ToArray(), actual.ToArray(), $"{Environment.NewLine}expected:{expected.Join()}{Environment.NewLine}actual  :{actual.Join()}{Environment.NewLine}");
 		}
+
+		public static void MatchesUnsorted(this IEnumerable actual, IEnumerable expected)
+		{
+			CollectionAssert.AreEquivalent(expected, actual, $"{Environment.NewLine}expected:{expected.Join()}{Environment.NewLine}actual  :{actual.Join()}{Environment.NewLine}");
+		}
+
+		public static void MatchesUnsorted<T>(this IEnumerable<T> actual, IEnumerable<T> expected)
+		{
+			CollectionAssert.AreEquivalent(expected.ToArray(), actual.ToArray(), $"{Environment.NewLine}expected:{expected.Join()}{Environment.NewLine}actual  :{actual.Join()}{Environment.NewLine}");
+		}
+
+		public static void Matches(this string actual, string expected) => Assert.AreEqual(expected, actual);
+		public static void Matches(this int actual, int expected) => Assert.AreEqual(expected, actual);
+		public static void Matches(this SPath actual, SPath expected) => Assert.AreEqual(expected, actual);
 	}
 
 	static class KeyValuePair

@@ -6,12 +6,13 @@
     <FullBuild Condition="'$(SolutionName)' == 'Unity.Editor.Tasks'">true</FullBuild>
     <IsPackable Condition="'$(FullBuild)' != 'true'">false</IsPackable>
     <Description>A friendly threaded task system for the Unity Editor.</Description>
+    <CodeAnalysisRuleSet>$(RootDir)src\rules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="lib\**;**\*.meta;*.DotSettings;*.ncrunch*;**\*.asmdef;bin\**;obj\**;LICENSE.md;version.json;package.json" />
-    <None Include="$(RootDir)icon.png" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="icon.png" Condition="Exists('$(RootDir)icon.png')"/>
-    <None Include="$(RootDir)LICENSE.md" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="LICENSE.md" Condition="Exists('$(RootDir)LICENSE.md')"/>
+    <None Include="$(RootDir)icon.png" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="icon.png" Condition="Exists('$(RootDir)icon.png')" />
+    <None Include="$(RootDir)LICENSE.md" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="LICENSE.md" Condition="Exists('$(RootDir)LICENSE.md')" />
   </ItemGroup>
 
   <Import Project="$(RootDir)common\unityreferences.targets" />

@@ -3,6 +3,7 @@
 	using System.Collections.Generic;
 	using System.Threading;
 	using System.Threading.Tasks;
+	using Helpers;
 
 	public class TaskSchedulerExcludingThread : TaskScheduler
 	{
@@ -18,6 +19,8 @@
 
 		protected override void QueueTask(Task task)
 		{
+			task.EnsureNotNull(nameof(task));
+
 			if ((task.CreationOptions & TaskCreationOptions.LongRunning) != TaskCreationOptions.None)
 				new Thread(LongRunningThreadWork) {
 					IsBackground = true

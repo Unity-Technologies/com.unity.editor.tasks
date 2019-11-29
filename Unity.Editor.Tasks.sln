@@ -13,6 +13,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "helpers", "helpers", "{93CD
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestBase", "tests\Helpers\TestBase\TestBase.csproj", "{93F4BC16-1A50-4DB1-8FA3-78FCDB54B365}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Helper.CommandLine", "tests\Helpers\Helper.CommandLine\Helper.CommandLine.csproj", "{9A8F0974-A7AE-433B-8C49-5DBD30B0E479}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -31,6 +33,10 @@ Global
 		{93F4BC16-1A50-4DB1-8FA3-78FCDB54B365}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{93F4BC16-1A50-4DB1-8FA3-78FCDB54B365}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{93F4BC16-1A50-4DB1-8FA3-78FCDB54B365}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9A8F0974-A7AE-433B-8C49-5DBD30B0E479}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A8F0974-A7AE-433B-8C49-5DBD30B0E479}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A8F0974-A7AE-433B-8C49-5DBD30B0E479}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A8F0974-A7AE-433B-8C49-5DBD30B0E479}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -38,6 +44,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{452FEC2C-09AD-4FB5-965C-29D1FB872A4E} = {13E9D517-C9FB-4DBE-B4B2-10748698E27E}
 		{93F4BC16-1A50-4DB1-8FA3-78FCDB54B365} = {93CD1CE7-1B0E-47A0-ADC3-F30702D65605}
+		{9A8F0974-A7AE-433B-8C49-5DBD30B0E479} = {93CD1CE7-1B0E-47A0-ADC3-F30702D65605}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {11F9BFE4-27A0-4CCF-A3C1-3683D75126A6}

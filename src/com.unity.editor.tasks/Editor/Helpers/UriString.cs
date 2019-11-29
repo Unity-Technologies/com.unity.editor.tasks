@@ -135,6 +135,7 @@ namespace Unity.Editor.Tasks.Helpers
 			}.Uri.ToString());
 		}
 
+
 		[SuppressMessage("Microsoft.Usage", "CA2234:PassSystemUriObjectsInsteadOfStrings", Justification = "No.")]
 		public override UriString Combine(string addition)
 		{

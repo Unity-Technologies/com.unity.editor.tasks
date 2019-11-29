@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace Unity.Editor.Tasks.Extensions
 {
-	public static class ExceptionExtensions
+	public static class LoggingExceptionExtensions
 	{
 		public static string GetExceptionMessage(this Exception ex)
 		{
@@ -24,6 +24,7 @@ namespace Unity.Editor.Tasks.Extensions
 
 		public static string GetExceptionMessageShort(this Exception ex)
 		{
+			if (ex == null) return String.Empty;
 			var message = ex.ToString();
 			var inner = ex.InnerException;
 			while (inner != null)

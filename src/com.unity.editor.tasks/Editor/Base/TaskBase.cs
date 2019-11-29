@@ -34,7 +34,7 @@ namespace Unity.Editor.Tasks
 		/// <summary>
 		/// Run a callback at the end of the task execution, on a separate thread, regardless of execution state
 		/// </summary>
-		ITask Finally(Action<bool, Exception> actionToContinueWith, string name = null, TaskAffinity affinity = TaskAffinity.Concurrent);
+		ITask Finally(Action<bool, Exception> actionToContinueWith, string name = null, TaskAffinity affinity = TaskAffinity.ThreadPool);
 
 		/// <summary>
 		/// Run another task at the end of the task execution, on a separate thread, regardless of execution state
@@ -82,12 +82,12 @@ namespace Unity.Editor.Tasks
 		/// <summary>
 		/// Run a callback at the end of the task execution, on a separate thread, regardless of execution state
 		/// </summary>
-		ITask<TResult> Finally(Func<bool, Exception, TResult, TResult> continuation, string name = null, TaskAffinity affinity = TaskAffinity.Concurrent);
+		ITask<TResult> Finally(Func<bool, Exception, TResult, TResult> continuation, string name = null, TaskAffinity affinity = TaskAffinity.ThreadPool);
 
 		/// <summary>
 		/// Run a callback at the end of the task execution, on a separate thread, regardless of execution state
 		/// </summary>
-		ITask Finally(Action<bool, Exception, TResult> continuation, string name = null, TaskAffinity affinity = TaskAffinity.Concurrent);
+		ITask Finally(Action<bool, Exception, TResult> continuation, string name = null, TaskAffinity affinity = TaskAffinity.ThreadPool);
 
 		new ITask<TResult> Start();
 		new TResult RunSynchronously();
@@ -217,7 +217,7 @@ namespace Unity.Editor.Tasks
 
 		protected TaskBase(ITaskManager taskManager, CancellationToken token)
 		{
-			Guard.ArgumentNotNull(taskManager, nameof(taskManager));
+			taskManager.EnsureNotNull(nameof(taskManager));
 
 			TaskManager = taskManager;
 			Token = token;
@@ -228,7 +228,7 @@ namespace Unity.Editor.Tasks
 		public virtual T Then<T>(T nextTask, TaskRunOptions runOptions = TaskRunOptions.OnSuccess, bool taskIsTopOfChain = false)
 			where T : ITask
 		{
-			Guard.ArgumentNotNull(nextTask, nameof(nextTask));
+			Guard.EnsureNotNull(nextTask, nameof(nextTask));
 			var nextTaskBase = ((TaskBase)(object)nextTask);
 
 			// find the task at the top of the chain
@@ -284,7 +284,7 @@ namespace Unity.Editor.Tasks
 		/// </summary>
 		public ITask Catch(Action<Exception> handler)
 		{
-			Guard.ArgumentNotNull(handler, "handler");
+			Guard.EnsureNotNull(handler, "handler");
 			catchHandler += e => { handler(e); return false; };
 			DependsOn?.Catch(handler);
 			return this;
@@ -296,7 +296,7 @@ namespace Unity.Editor.Tasks
 		/// </summary>
 		public ITask Catch(Func<Exception, bool> handler)
 		{
-			Guard.ArgumentNotNull(handler, "handler");
+			Guard.EnsureNotNull(handler, "handler");
 			CatchInternal(handler);
 			DependsOn?.Catch(handler);
 			return this;
@@ -308,7 +308,7 @@ namespace Unity.Editor.Tasks
 		/// </summary>
 		public ITask FinallyInline(Action<bool> handler)
 		{
-			Guard.ArgumentNotNull(handler, "handler");
+			Guard.EnsureNotNull(handler, "handler");
 			finallyHandler += handler;
 			DependsOn?.FinallyInline(handler);
 			return this;
@@ -317,9 +317,9 @@ namespace Unity.Editor.Tasks
 		/// <summary>
 		/// Run a callback at the end of the task execution, on a separate thread, regardless of execution state
 		/// </summary>
-		public ITask Finally(Action<bool, Exception> actionToContinueWith, string name = null, TaskAffinity affinity = TaskAffinity.Concurrent)
+		public ITask Finally(Action<bool, Exception> actionToContinueWith, string name = null, TaskAffinity affinity = TaskAffinity.ThreadPool)
 		{
-			Guard.ArgumentNotNull(actionToContinueWith, nameof(actionToContinueWith));
+			Guard.EnsureNotNull(actionToContinueWith, nameof(actionToContinueWith));
 
 			var finallyTask = new ActionTask(TaskManager, Token, (s, ex) => {
 				actionToContinueWith(s, ex);
@@ -345,7 +345,7 @@ namespace Unity.Editor.Tasks
 		/// </summary>
 		public ITask Progress(Action<IProgress> handler)
 		{
-			Guard.ArgumentNotNull(handler, nameof(handler));
+			Guard.EnsureNotNull(handler, nameof(handler));
 			progress.OnProgress += handler;
 			return this;
 		}
@@ -599,7 +599,7 @@ namespace Unity.Editor.Tasks
 
 		internal ITask CatchInternal(Func<Exception, bool> handler)
 		{
-			Guard.ArgumentNotNull(handler, "handler");
+			Guard.EnsureNotNull(handler, "handler");
 			catchHandler += handler;
 			return this;
 		}
@@ -688,7 +688,7 @@ namespace Unity.Editor.Tasks
 		/// </summary>
 		public new ITask<TResult> Catch(Action<Exception> handler)
 		{
-			Guard.ArgumentNotNull(handler, "handler");
+			Guard.EnsureNotNull(handler, "handler");
 			catchHandler += e => { handler(e); return false; };
 			DependsOn?.Catch(handler);
 			return this;
@@ -701,7 +701,7 @@ namespace Unity.Editor.Tasks
 		/// </summary>
 		public new ITask<TResult> Catch(Func<Exception, bool> handler)
 		{
-			Guard.ArgumentNotNull(handler, "handler");
+			Guard.EnsureNotNull(handler, "handler");
 			CatchInternal(handler);
 			DependsOn?.Catch(handler);
 			return this;
@@ -713,7 +713,7 @@ namespace Unity.Editor.Tasks
 		/// </summary>
 		public ITask<TResult> FinallyInline(Action<bool, TResult> handler)
 		{
-			Guard.ArgumentNotNull(handler, "handler");
+			Guard.EnsureNotNull(handler, "handler");
 			finallyHandler += handler;
 			DependsOn?.FinallyInline(success => handler(success, default(TResult)));
 			return this;
@@ -722,9 +722,9 @@ namespace Unity.Editor.Tasks
 		/// <summary>
 		/// Run a callback at the end of the task execution, on a separate thread, regardless of execution state
 		/// </summary>
-		public ITask<TResult> Finally(Func<bool, Exception, TResult, TResult> continuation, string name = null, TaskAffinity affinity = TaskAffinity.Concurrent)
+		public ITask<TResult> Finally(Func<bool, Exception, TResult, TResult> continuation, string name = null, TaskAffinity affinity = TaskAffinity.ThreadPool)
 		{
-			Guard.ArgumentNotNull(continuation, "continuation");
+			Guard.EnsureNotNull(continuation, "continuation");
 
 			return Then(new FuncTask<TResult, TResult>(TaskManager, Token, continuation) { Affinity = affinity, Name = name ?? "Finally" }, TaskRunOptions.OnAlways);
 		}
@@ -732,9 +732,9 @@ namespace Unity.Editor.Tasks
 		/// <summary>
 		/// Run a callback at the end of the task execution, on a separate thread, regardless of execution state
 		/// </summary>
-		public ITask Finally(Action<bool, Exception, TResult> continuation, string name = null, TaskAffinity affinity = TaskAffinity.Concurrent)
+		public ITask Finally(Action<bool, Exception, TResult> continuation, string name = null, TaskAffinity affinity = TaskAffinity.ThreadPool)
 		{
-			Guard.ArgumentNotNull(continuation, "continuation");
+			Guard.EnsureNotNull(continuation, "continuation");
 
 			var finallyTask = new ActionTask<TResult>(TaskManager, Token, (s, ex, res) => {
 				continuation(s, ex, res);
