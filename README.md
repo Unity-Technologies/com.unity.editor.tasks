@@ -1,3 +1,5 @@
+![](https://github.com/unity-technologies/com.unity.editor.tasks/workflows/Build,%20Test,%20Pack/badge.svg)
+
 # About the Tasks package
 
 Unity.Editor.Tasks is a TPL-based (Task Parallel Library, or System.Threading.Tasks) task management library.

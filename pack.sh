@@ -45,7 +45,6 @@ while (( "$#" )); do
 done
 
 if [[ x"${YAMATO_JOB_ID:-}" != x"" ]]; then
-  echo 1
   YAMATO=1
   export GITLAB_CI=1
   export CI_COMMIT_TAG="${GIT_TAG:-}"
@@ -80,8 +79,6 @@ EOL
   pushd $srcdir >/dev/null 2>&1
   count=0
   for j in `ls -d *`; do
-    echo "Packing $j"
-
     pushd $j >/dev/null 2>&1
     tgz="$(npm pack -q)"
     mv -f $tgz $targetdir/$tgz
@@ -97,6 +94,8 @@ EOL
 EOL
 
     count=1
+
+    echo "Created package $targetdir/$tgz"
   done
   popd >/dev/null 2>&1
 
