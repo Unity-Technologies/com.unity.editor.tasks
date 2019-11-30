@@ -14,7 +14,7 @@ if ($Trace) {
 $srcDir = Join-Path $rootDirectory 'build\packages'
 $targetDir = Join-Path $rootDirectory 'upm-ci~\packages'
 
-Remove-Item "$targetDir\*"
+Remove-Item "$targetDir\*" -Force -ErrorAction SilentlyContinue
 New-Item -itemtype Directory -Path $targetDir -Force -ErrorAction SilentlyContinue
 
 Get-ChildItem -Directory $srcDir | % {

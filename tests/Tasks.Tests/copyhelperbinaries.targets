@@ -9,25 +9,25 @@
       DependsOnTargets="AfterBuild;EnumerateHelperBinaries"
       AfterTargets="AfterBuild"
       Inputs="@(BinariesToCopy)"
-      Outputs="@(BinariesToCopy->'$(PublishTo)$(PackageName)$(PackageSubFolder)%(RecursiveDir)%(Filename)%(Extension)');@(BinariesToCopy->'$(RootDir)$(PackageSource)$(PackageName)$(PackageSubFolder)%(RecursiveDir)%(Filename)%(Extension)')"
+      Outputs="@(BinariesToCopy->'$(RootDir)$(PackageSource)$(PackageName)\Tests\$(PackageSubFolder)%(RecursiveDir)%(Filename)%(Extension)');@(BinariesToCopy->'$(PublishTo)$(PackageTestName)$(PackageSubFolder)%(RecursiveDir)%(Filename)%(Extension)')"
       >
 
-    <MakeDir Directories="$(PublishTo)$(PackageTestName)$(PackageSubFolder);$(RootDir)$(PackageSource)$(PackageName)$(PackageSubFolder)" />
+    <Copy
+      SourceFiles="@(BinariesToCopy)"
+      DestinationFiles="@(BinariesToCopy->'$(PublishTo)$(PackageTestName)$(PackageSubFolder)%(RecursiveDir)%(Filename)%(Extension)')"
+      SkipUnchangedFiles="true"
+      />
 
     <Copy
       SourceFiles="@(BinariesToCopy)"
-      DestinationFiles="@(BinariesToCopy->'$(PublishTo)$(PackageName).tests$(PackageSubFolder)%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
-
-    <Copy
-      SourceFiles="@(BinariesToCopy)"
-      DestinationFiles="@(BinariesToCopy->'$(RootDir)$(PackageSource)$(PackageName)$(PackageSubFolder)%(RecursiveDir)%(Filename)%(Extension)')"
+      DestinationFiles="@(BinariesToCopy->'$(RootDir)$(PackageSource)$(PackageName)\Tests\$(PackageSubFolder)%(RecursiveDir)%(Filename)%(Extension)')"
       SkipUnchangedFiles="true"
       />
 
   </Target>
 
   <Target Name="CleanHelperArtifacts" AfterTargets="AfterClean">
-    <RemoveDir Directories="$(PublishTo)$(PackageName).tests$(PackageSubFolder);$(RootDir)$(PackageSource)$(PackageName)$(PackageSubFolder)" />
+    <RemoveDir Directories="$(PublishTo)$(PackageTestName)$(PackageSubFolder);$(RootDir)$(PackageSource)$(PackageName)$(PackageSubFolder)" />
   </Target>
 
   <Target Name="EnumerateHelperBinaries" Returns="@(BinariesToCopy)">

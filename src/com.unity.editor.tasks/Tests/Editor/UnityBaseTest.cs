@@ -45,7 +45,7 @@ namespace BaseTests
 		{
 			taskManager = new TaskManager().Initialize();
 
-			logger = new LogFacade(testName, new UnityLogAdapter(), true);
+			logger = new LogFacade(testName, new UnityLogAdapter(), false);
 			watch = new Stopwatch();
 		}
 

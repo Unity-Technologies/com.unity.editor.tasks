@@ -65,7 +65,7 @@ fi
 dotnet pack --no-build --no-restore -c $CONFIGURATION $PUBLIC
 
 if [[ x"$UPM" == x"1" ]]; then
-  powershell scripts/Pack-Npm.ps1
+  powershell scripts/Pack-Upm.ps1
 else
   srcdir="$DIR/build/packages"
   targetdir="$DIR/upm-ci~/packages"
