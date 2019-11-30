@@ -13,11 +13,11 @@ if ($Trace) {
 
 . $PSScriptRoot\helpers.ps1 | out-null
 
-$upmDir = Join-Path $rootDirectory 'build\upm'
+$srcdir = Join-Path $rootDirectory 'src'
 
-Get-ChildItem -Directory $upmDir | % {
+Get-ChildItem -Directory $srcdir | % {
     Write-Output "Testing $($_.Name)"
 
-    $packageDir = Join-Path $upmDir $_.Name
+    $packageDir = Join-Path $srcdir $_.Name
     Invoke-Command -Fatal { & upm-ci package test --package-path $packageDir -u $UnityVersion }
 }

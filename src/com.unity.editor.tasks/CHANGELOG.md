@@ -1,5 +1,9 @@
 # Changelog
 
+<!-- Do not change the line immediately below this comment, the build system will replace it with the actual version and date. -->
+
+## [VERSION] - DATE
+
 ## [1.1.10] - 2019-11-30
 
 - Add symbols for nuget packages

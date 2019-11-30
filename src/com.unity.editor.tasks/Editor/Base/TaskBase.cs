@@ -195,7 +195,7 @@ namespace Unity.Editor.Tasks
         /// <summary>
         /// Handler called when a task fails.
         /// </summary>
-        
+
 		new ITask<TResult> Catch(Action<Exception> handler);
 
         /// <summary>
@@ -1020,9 +1020,9 @@ namespace Unity.Editor.Tasks
 		/// <summary>
 		/// Empty implementation of the base <see cref="TaskBase.Run" /> method that
 		/// returns the correct result type, so that implementations of this can follow
-		/// the correct pattern:
-		///
-		/// <![CDATA[
+		/// the correct pattern (see example)
+		/// </summary>
+		/// <example><code lang="cs"><![CDATA[
 		/// protected override TResult RunWithReturn(bool success)
 		/// {
 		///	    var result = base.RunWithReturn(success);
@@ -1045,8 +1045,7 @@ namespace Unity.Editor.Tasks
 		///     }
 		///     return result;
 		/// }
-		/// ]]>
-		/// </summary>
+		/// ]]></code></example>
 		/// <param name="success"></param>
 		/// <returns></returns>
 		protected virtual TResult RunWithReturn(bool success)
@@ -1159,9 +1158,9 @@ namespace Unity.Editor.Tasks
 		/// <summary>
 		/// Empty implementation of the base <see cref="TaskBase.Run" /> method that
 		/// returns the correct result type, so that implementations of this can follow
-		/// the correct pattern:
-		///
-		/// <![CDATA[
+		/// the correct pattern (see example)
+		/// </summary>
+		/// <example><code lang="cs"><![CDATA[
 		/// protected override TResult RunWithData(bool success, T previousResult)
 		/// {
 		///	    var result = base.RunWithData(success, previousResult);
@@ -1184,8 +1183,7 @@ namespace Unity.Editor.Tasks
 		///     }
 		///     return result;
 		/// }
-		/// ]]>
-		/// </summary>
+		/// ]]></code></example>
 		/// <param name="success"></param>
 		/// <param name="previousResult"></param>
 		/// <returns></returns>
@@ -1210,12 +1208,12 @@ namespace Unity.Editor.Tasks
 		public event Action<TData> OnData;
 
         /// <summary>
-		/// 
+		///
 		/// </summary>
 		/// <param name="taskManager"></param>
 		protected DataTaskBase(ITaskManager taskManager) : base(taskManager) {}
         /// <summary>
-		/// 
+		///
 		/// </summary>
 		/// <param name="taskManager"></param>
 		/// <param name="token"></param>
@@ -1243,12 +1241,12 @@ namespace Unity.Editor.Tasks
 		public event Action<TData> OnData;
 
         /// <summary>
-		/// 
+		///
 		/// </summary>
 		/// <param name="taskManager"></param>
 		protected DataTaskBase(ITaskManager taskManager) : base(taskManager) {}
         /// <summary>
-		/// 
+		///
 		/// </summary>
 		/// <param name="taskManager"></param>
 		/// <param name="token"></param>
