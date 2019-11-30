@@ -6,6 +6,6 @@
       "enabled": true
     }
   },
-  "pathFilters": ["./", ":/extras/com.unity.editor.tasks", "/icon.png"],
+  "pathFilters": [":/src/com.unity.editor.tasks", "../Directory.Build.props", "/Directory.Build.props", "/icon.png", ":/extras/com.unity.editor.tasks", ":/common"],
   "inherit": true
 }

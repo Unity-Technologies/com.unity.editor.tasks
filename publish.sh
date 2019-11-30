@@ -14,7 +14,6 @@ BUILD=0
 UPM=0
 UNITYVERSION=2019.2
 YAMATO=0
-GITHUB=0
 
 while (( "$#" )); do
   case "$1" in
@@ -55,22 +54,18 @@ if [[ x"${YAMATO_JOB_ID:-}" != x"" ]]; then
   export CI_COMMIT_REF_NAME="${GIT_BRANCH:-}"
 fi
 
-if [[ x"${GITHUB_ACTIONS:-}" == x"true" ]]; then
-  GITHUB=1
+if [[ x"${PUBLISH_KEY:-}" == x"" ]]; then
+  echo "Can't publish without a PUBLISH_KEY environment variable in the user:token format" >&2
+  popd >/dev/null 2>&1
+  exit 1
 fi
 
-if [[ x"$GITHUB" == x"1" ]]; then
-
-  if [[ x"${GITHUB_TOKEN:-}" == x"" ]]; then
-    echo "Can't publish to GitHub without a GITHUB_TOKEN environment variable" >&2
-    popd >/dev/null 2>&1
-    exit 1
-  fi
-
-  nuget sources Add -Name "GPR" -Source "https://nuget.pkg.github.com/unity-technologies/index.json" -UserName "unity-technologies" -Password ${GITHUB_TOKEN:-} -NonInteractive >/dev/null 2>&1 || true
-  for p in "$DIR/build/nuget/**/*.nupkg"; do
-    echo "nuget push $p -Source \"GPR\""
-    nuget push $p -Source "GPR"
-  done
-
+if [[ x"${PUBLISH_URL:-}" == x"" ]]; then
+  echo "Can't publish without a PUBLISH_URL environment variable" >&2
+  popd >/dev/null 2>&1
+  exit 1
 fi
+
+for p in "$DIR/build/nuget/**/*.nupkg"; do
+  dotnet nuget push $p -k "${PUBLISH_KEY}" -s "${PUBLISH_URL}"
+done
