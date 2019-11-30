@@ -12,7 +12,8 @@
     "repository" : {
       "type" : "git",
       "url": "ssh://git@github.com/Unity-Technologies/com.unity.editor.tasks.git",
-      "directory": ""
+      "directory": "",
+      "revision": ""
     },
     "dependencies": {
         "com.unity.editor.tasks": "0.0.0-placeholder"

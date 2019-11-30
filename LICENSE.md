@@ -1,7 +1,7 @@
 MIT License
 
 Copyright (c) 2019 Unity Technologies
-Copyright (c) 2019 Andreia Gaita
+Copyright (c) 2016-2019 Andreia Gaita
 Copyright (c) 2016-2018 GitHub
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
