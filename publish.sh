@@ -1,6 +1,6 @@
 #!/bin/bash -eu
 { set +x; } 2>/dev/null
-SOURCE=$0
+SOURCE="${BASH_SOURCE[0]}"
 DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 
 OS="Mac"
@@ -14,6 +14,7 @@ BUILD=0
 UPM=0
 UNITYVERSION=2019.2
 YAMATO=0
+GITHUB=0
 
 while (( "$#" )); do
   case "$1" in
@@ -36,6 +37,9 @@ while (( "$#" )); do
       shift
       CONFIGURATION=$1
     ;;
+    -g|--github)
+      GITHUB=1
+    ;;
     -*|--*=) # unsupported flags
       echo "Error: Unsupported flag $1" >&2
       exit 1
@@ -51,11 +55,22 @@ if [[ x"${YAMATO_JOB_ID:-}" != x"" ]]; then
   export CI_COMMIT_REF_NAME="${GIT_BRANCH:-}"
 fi
 
-pushd $DIR >/dev/null 2>&1
-
-if [[ x"${APPVEYOR:-}" == x"" ]]; then
-  dotnet restore
+if [[ x"${GITHUB_ACTIONS:-}" == x"true" ]]; then
+  GITHUB=1
 fi
-dotnet build --no-restore -c $CONFIGURATION $PUBLIC
 
-popd >/dev/null 2>&1
+if [[ x"$GITHUB" == x"1" ]]; then
+
+  if [[ x"${GITHUB_TOKEN:-}" == x"" ]]; then
+    echo "Can't publish to GitHub without a GITHUB_TOKEN environment variable" >&2
+    popd >/dev/null 2>&1
+    exit 1
+  fi
+
+  nuget sources Add -Name "GPR" -Source "https://nuget.pkg.github.com/unity-technologies/index.json" -UserName "unity-technologies" -Password ${GITHUB_TOKEN:-} -NonInteractive >/dev/null 2>&1 || true
+  for p in "$DIR/build/nuget/**/*.nupkg"; do
+    echo "nuget push $p -Source \"GPR\""
+    nuget push $p -Source "GPR"
+  done
+
+fi

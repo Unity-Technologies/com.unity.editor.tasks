@@ -18,7 +18,6 @@ Remove-Item "$targetDir\*"
 New-Item -itemtype Directory -Path $targetDir -Force -ErrorAction SilentlyContinue
 
 Get-ChildItem -Directory $srcDir | % {
-    Write-Output "Packing $($_.Name)"
 
     try {
         Push-Location (Join-Path $srcDir $_.Name)
@@ -27,6 +26,8 @@ Get-ChildItem -Directory $srcDir | % {
         $tgt = Join-Path $targetDir $package
         Move-Item $package $tgt -Force 
         Copy-Item "package.json" (Join-Path $targetDir "$package.json") -Force
+
+        Write-Output "Created package $tgt\$package"
     } finally {
         Pop-Location
     }
