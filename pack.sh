@@ -17,41 +17,37 @@ while (( "$#" )); do
   case "$1" in
     -d|--debug)
       CONFIGURATION="Debug"
-      shift
     ;;
     -r|--release)
       CONFIGURATION="Release"
-      shift
     ;;
     -p|--public)
-      PUBLIC="/p:PublicRelease=true"
-      shift
+      PUBLIC="-p:PublicRelease=true"
     ;;
     -b|--build)
       BUILD=1
-      shift
     ;;
     -u|--upm)
       UPM=1
+    ;;
+    -c)
       shift
+      CONFIGURATION=$1
     ;;
     -*|--*=) # unsupported flags
       echo "Error: Unsupported flag $1" >&2
       exit 1
       ;;
-    *)
-      shift
     ;;
   esac
+  shift
 done
-
-if [[ x"$OS" == x"Windows" && x"$PUBLIC" != x"" ]]; then
-  PUBLIC="/$PUBLIC"
-fi
 
 pushd $DIR >/dev/null 2>&1
 if [[ x"$BUILD" == x"1" ]]; then
-  dotnet restore
+  if [[ x"$APPVEYOR" == x"" ]]; then
+    dotnet restore
+  fi
   dotnet build --no-restore -c $CONFIGURATION $PUBLIC
 fi
 dotnet pack --no-build --no-restore -c $CONFIGURATION $PUBLIC

@@ -15,8 +15,6 @@ namespace ProcessManagerTests
 		}
 
 		[Test]
-		// not sure why this is flip flopping in appveyor
-		[Category("DoNotRunOnAppVeyor")]
 		public async Task MultipleFinallyOrder_()
 		{
 			await RunTest(MultipleFinallyOrder);
