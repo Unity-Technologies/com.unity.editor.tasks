@@ -25,7 +25,7 @@
   <Target Name="EnumeratePackageFiles" Returns="@(SourcesToCopy)">
     <CreateItem
       Include="$(PackageSourceRootFull)**\*.*;$(RootDir)\extras\$(PackageName)\**\*.*"
-      Exclude="$(PackageSourceRootFull)**\*.csproj*;$(PackageSourceRootFull)**\*.ncrunch*;$(PackageSourceRootFull)**\obj\**;$(PackageSourceRootFull)version.json*;$(PackageSourceRootFull)Tests\**;$(RootDir)\extras\$(PackageName)\Tests\**">
+      Exclude="$(PackageSourceRootFull)**\*.csproj*;$(PackageSourceRootFull)**\*.ncrunch*;$(PackageSourceRootFull)**\obj\**;$(PackageSourceRootFull)version.json*;$(PackageSourceRootFull)Tests\**;$(RootDir)\extras\$(PackageName)\Tests\**;$(PackageSourceRootFull)Tests.meta">
       <Output TaskParameter="Include" ItemName="SourcesToCopy" />
     </CreateItem>
   </Target>
