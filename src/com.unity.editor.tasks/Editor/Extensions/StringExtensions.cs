@@ -89,7 +89,7 @@ namespace Unity.Editor.Tasks.Extensions
 
 		public static string[] SplitLast(this string s, char separator)
 		{
-			if (s == null) return new string[0];
+			if (s == null) return Array.Empty<string>();
 			int lastIndex = s.LastIndexOf(separator);
 			if (lastIndex < 0 || lastIndex == s.Length - 1) return new string[] { s };
 			return new string[] { s.Substring(0, lastIndex), s.Substring(lastIndex + 1) };

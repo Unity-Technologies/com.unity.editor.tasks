@@ -53,7 +53,7 @@ namespace Unity.Editor.Tasks
 			Token.ThrowIfCancellationRequested();
 			try
 			{
-				var scheduler = TaskManager.GetScheduler(TaskAffinity.ThreadPool);
+				var scheduler = TaskManager.GetScheduler(TaskAffinity.None);
 				if (taskGetter != null)
 				{
 					var innerTask = Task.Factory.StartNew(taskGetter, CancellationToken.None, TaskCreationOptions.None, scheduler);
@@ -73,7 +73,7 @@ namespace Unity.Editor.Tasks
 			catch (Exception ex)
 			{
 				if (!RaiseFaultHandlers(ex))
-					ThrownException.Rethrow();
+					Exception.Rethrow();
 				Token.ThrowIfCancellationRequested();
 			}
 		}
@@ -126,7 +126,7 @@ namespace Unity.Editor.Tasks
 			Token.ThrowIfCancellationRequested();
 			try
 			{
-				var scheduler = TaskManager.GetScheduler(TaskAffinity.ThreadPool);
+				var scheduler = TaskManager.GetScheduler(TaskAffinity.None);
 				if (taskGetter != null)
 				{
 					var innerTask = Task<Task<T>>.Factory.StartNew(taskGetter, CancellationToken.None, TaskCreationOptions.None, scheduler);
@@ -145,7 +145,7 @@ namespace Unity.Editor.Tasks
 			catch (Exception ex)
 			{
 				if (!RaiseFaultHandlers(ex))
-					ThrownException.Rethrow();
+					Exception.Rethrow();
 				Token.ThrowIfCancellationRequested();
 			}
 			return ret;

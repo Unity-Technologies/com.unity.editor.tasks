@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+  <PropertyGroup>
+    <TargetFramework>net471</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="files\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\com.spoiledcat.logging\Editor\SpoiledCat.Unity.Logging.csproj" />
+    <ProjectReference Include="..\..\..\src\com.spoiledcat.simplejson\Editor\SpoiledCat.Unity.SimpleJson.csproj" />
+  </ItemGroup>
+</Project>

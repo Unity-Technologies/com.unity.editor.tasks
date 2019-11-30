@@ -57,6 +57,41 @@ fi
 dotnet pack --no-build --no-restore -c $CONFIGURATION $PUBLIC
 
 if [[ x"$UPM" == x"1" ]]; then
-  powershell scripts/Pack-Upm.ps1
+  powershell scripts/Pack-Npm.ps1
+else
+  srcdir="$DIR/build/packages"
+  targetdir="$DIR/upm-ci~/packages"
+  mkdir -p $targetdir
+  rm -f $targetdir/*
+
+  cat >$targetdir/packages.json <<EOL
+{
+EOL
+
+  pushd $srcdir
+  count=0
+  for j in `ls -d *`; do
+    echo $j
+    pushd $j
+    tgz="$(npm pack -q)"
+    mv -f $tgz $targetdir/$tgz
+    cp package.json $targetdir/$tgz.json
+    popd
+
+    comma=""
+    if [[ x"$count" == x"1" ]]; then comma=","; fi
+    json="$(cat $targetdir/$tgz.json)"
+    cat >>$targetdir/packages.json <<EOL
+    ${comma}
+    "${tgz}": ${json}
+EOL
+
+    count=1
+  done
+  popd
+
+  cat >>$targetdir/packages.json <<EOL
+}
+EOL
 fi
 popd >/dev/null 2>&1

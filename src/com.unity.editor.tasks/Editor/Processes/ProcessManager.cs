@@ -7,35 +7,33 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using System.Threading;
 
 namespace Unity.Editor.Tasks
 {
-	using Logging;
+	using Internal.IO;
 
+	/// <summary>
+	/// A process manager that configures processes for running and keeps track of running processes.
+	/// </summary>
 	public class ProcessManager : IProcessManager
 	{
-		private static readonly ILogging logger = LogHelper.GetLogger<ProcessManager>();
-
-		private readonly IEnvironment environment;
 		private readonly HashSet<IProcess> processes = new HashSet<IProcess>();
 
-		public ProcessManager(IEnvironment environment,
-			CancellationToken cancellationToken)
+		/// <summary>
+		/// Creates an instance of the process manager and the <see cref="DefaultProcessEnvironment"/>.
+		/// </summary>
+		/// <param name="environment"></param>
+		public ProcessManager(IEnvironment environment)
 		{
-			Instance = this;
-			this.environment = environment;
 			DefaultProcessEnvironment = new ProcessEnvironment(environment);
-			CancellationToken = cancellationToken;
 		}
 
-		public T Configure<T>(T processTask,
-			string workingDirectory = null,
-			bool withInput = false)
+		/// <inheritdoc />
+		public T Configure<T>(T processTask, string workingDirectory = null)
 				where T : IProcessTask
 		{
 			var startInfo = new ProcessStartInfo {
-				RedirectStandardInput = withInput,
+				RedirectStandardInput = true,
 				RedirectStandardOutput = true,
 				RedirectStandardError = true,
 				UseShellExecute = false,
@@ -44,9 +42,9 @@ namespace Unity.Editor.Tasks
 				StandardErrorEncoding = Encoding.UTF8
 			};
 
-			startInfo.Configure(processTask.ProcessEnvironment, workingDirectory);
+			processTask.ProcessEnvironment.Configure(startInfo, workingDirectory);
 
-			startInfo.FileName = processTask.ProcessName;
+			startInfo.FileName = processTask.ProcessName.ToSPath().ToString();
 			startInfo.Arguments = processTask.ProcessArguments;
 			processTask.Configure(startInfo);
 			processTask.OnStartProcess += p => processes.Add(p);
@@ -57,16 +55,14 @@ namespace Unity.Editor.Tasks
 			return processTask;
 		}
 
+		/// <inheritdoc />
 		public void Stop()
 		{
 			foreach (var p in processes.ToArray())
 				p.Stop();
 		}
 
-		public static IProcessManager Instance { get; private set; }
-
-		public CancellationToken CancellationToken { get; }
-
+		/// <inheritdoc />
 		public IProcessEnvironment DefaultProcessEnvironment { get; }
 	}
 }

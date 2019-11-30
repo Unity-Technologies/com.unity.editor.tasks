@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Helper.CommandLine": {
+      "commandName": "Project",
+      "commandLineArgs": "-p 53451 -w"
+    }
+  }
+}

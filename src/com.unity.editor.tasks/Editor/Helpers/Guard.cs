@@ -11,6 +11,8 @@ using System.Runtime.Serialization;
 
 namespace Unity.Editor.Tasks.Helpers
 {
+	using System.Runtime.CompilerServices;
+
 	[Serializable]
 	internal class InstanceNotInitializedException : InvalidOperationException
 	{
@@ -24,39 +26,41 @@ namespace Unity.Editor.Tasks.Helpers
 
 	internal static class Guard
 	{
-		public static void NotNull(object the, object value, string propertyName)
+		public static T EnsureNotNull<T>(this T the, object value, string propertyName)
 		{
-			if (value != null) return;
+			if (value != null) return the;
 			throw new InstanceNotInitializedException(the, propertyName);
 		}
 
-		public static void ArgumentNotNull(object value, string name)
+		public static T EnsureNotNull<T>(this T value, string name, [CallerMemberName] string caller = "")
 		{
-			if (value != null) return;
-			string message = String.Format(CultureInfo.InvariantCulture, "Failed Null Check on '{0}'", name);
+			if (value != null) return value;
+			string message = String.Format(CultureInfo.InvariantCulture, "In {0}, '{1}' must not be null", caller, name);
 			throw new ArgumentNullException(name, message);
 		}
 
-		public static void ArgumentNotNullOrEmpty<T>(IList<T> value, string name)
+		public static T EnsureNotNullOrEmpty<T>(this T value, string name, [CallerMemberName] string caller = "")
+			where T : IList<T>
 		{
 			if (value == null)
 			{
-				string message = String.Format(CultureInfo.InvariantCulture, "Failed Null Check on '{0}'", name);
+				string message = String.Format(CultureInfo.InvariantCulture, "In {0}, '{1}' must not be null", caller, name);
 				throw new ArgumentNullException(name, message);
 			}
 
 			if (!value.Any())
 			{
-				string message = String.Format(CultureInfo.InvariantCulture, "Failed Empty Check on '{0}'", name);
+				string message = String.Format(CultureInfo.InvariantCulture, "In {0}, '{1}' must not be empty", caller, name);
 				throw new ArgumentNullException(name, message);
 			}
+			return value;
 		}
 
-		public static void ArgumentNonNegative(int value, string name)
+		public static int EnsureNonNegative(this int value, string name, [CallerMemberName] string caller = "")
 		{
-			if (value > -1) return;
+			if (value > -1) return value;
 
-			var message = String.Format(CultureInfo.InvariantCulture, "The value for '{0}' must be non-negative", name);
+			string message = String.Format(CultureInfo.InvariantCulture, "In {0}, '{1}' must be positive", caller, name);
 			throw new ArgumentException(message, name);
 		}
 
@@ -65,34 +69,30 @@ namespace Unity.Editor.Tasks.Helpers
 		/// </summary>
 		/// <param name = "value">The argument value to check.</param>
 		/// <param name = "name">The name of the argument.</param>
-		public static void ArgumentNotNullOrWhiteSpace(string value, string name)
+		/// <param name="caller"></param>
+		public static string EnsureNotNullOrWhiteSpace(this string value, string name, [CallerMemberName] string caller = "")
 		{
 			if (value != null && value.Trim().Length > 0)
-				return;
-			string message = String.Format(CultureInfo.InvariantCulture, "The value for '{0}' must not be empty", name);
+				return value;
+			string message = String.Format(CultureInfo.InvariantCulture, "In {0}, '{1}' must not be empty", caller, name);
 			throw new ArgumentException(message, name);
 		}
 
-		public static void ArgumentInRange(int value, int minValue, string name)
+		public static int EnsureInRange(this int value, int minValue, string name, [CallerMemberName] string caller = "")
 		{
-			if (value >= minValue) return;
+			if (value >= minValue) return value;
 			string message = String.Format(CultureInfo.InvariantCulture,
-				"The value '{0}' for '{1}' must be greater than or equal to '{2}'",
-				value,
-				name,
-				minValue);
+				"In {3}, The value '{0}' for '{1}' must be greater than or equal to '{2}'",
+				value, name, minValue, caller);
 			throw new ArgumentOutOfRangeException(name, message);
 		}
 
-		public static void ArgumentInRange(int value, int minValue, int maxValue, string name)
+		public static int EnsureInRange(this int value, int minValue, int maxValue, string name, [CallerMemberName] string caller = "")
 		{
-			if (value >= minValue && value <= maxValue) return;
+			if (value >= minValue && value <= maxValue) return value;
 			string message = String.Format(CultureInfo.InvariantCulture,
-				"The value '{0}' for '{1}' must be greater than or equal to '{2}' and less than or equal to '{3}'",
-				value,
-				name,
-				minValue,
-				maxValue);
+				"In {4}, The value '{0}' for '{1}' must be greater than or equal to '{2}' and less than or equal to '{3}'",
+				value, name, minValue, maxValue, caller);
 			throw new ArgumentOutOfRangeException(name, message);
 		}
 

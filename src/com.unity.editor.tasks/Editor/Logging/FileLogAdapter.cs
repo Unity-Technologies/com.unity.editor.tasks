@@ -44,7 +44,7 @@ namespace Unity.Editor.Tasks.Logging
 			WriteLine("ERROR", context, message);
 		}
 
-		private string GetMessage(string level, string context, string message)
+		private static string GetMessage(string level, string context, string message)
 		{
 			var time = DateTime.Now.ToString("yyMMdd-HH:mm:ss.fff");
 			var threadId = Thread.CurrentThread.ManagedThreadId;

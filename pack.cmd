@@ -55,4 +55,6 @@ dotnet pack --no-restore --no-build -c %CONFIGURATION% %PUBLIC%
 
 if "x%UPM%"=="x1" (
   call powershell scripts/Pack-Upm.ps1
+) else (
+  call powershell scripts/Pack-Npm.ps1
 )

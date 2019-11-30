@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace Unity.Editor.Tasks
 {
+	using Extensions;
 	using Logging;
 
 	public interface ITaskManager : IDisposable
@@ -71,7 +72,7 @@ namespace Unity.Editor.Tasks
 		{
 			SetUIThread();
 			if (UIScheduler == null)
-				UIScheduler = ThreadingHelper.GetUIScheduler(SynchronizationContext.Current);
+				UIScheduler = SynchronizationContext.Current.FromSynchronizationContext();
 			return this;
 		}
 
@@ -83,7 +84,7 @@ namespace Unity.Editor.Tasks
 		/// <returns></returns>
 		public ITaskManager Initialize(SynchronizationContext synchronizationContext)
 		{
-			UIScheduler = ThreadingHelper.GetUIScheduler(synchronizationContext);
+			UIScheduler = synchronizationContext.FromSynchronizationContext();
 			synchronizationContext.Send(_ => SetUIThread(), null);
 			return this;
 		}
@@ -103,7 +104,7 @@ namespace Unity.Editor.Tasks
 					return UIScheduler;
 				case TaskAffinity.LongRunning:
 					return LongRunningScheduler;
-				case TaskAffinity.ThreadPool:
+				case TaskAffinity.None:
 					return TaskScheduler.Default;
 				case TaskAffinity.Concurrent:
 				default:
@@ -158,26 +159,27 @@ namespace Unity.Editor.Tasks
 			manager.Complete();
 			// tell all tasks to exit
 			cts.Cancel();
-			cts = null;
 			// wait for everything to shut down within 500ms
-			await Task.WhenAny(manager.Completion, Task.Delay(500));
+			await Task.WhenAny(manager.Completion, Task.Delay(500)).ConfigureAwait(false);
 		}
 
 		private bool disposed = false;
 
-		private void Dispose(bool disposing)
+		protected virtual void Dispose(bool disposing)
 		{
 			if (disposed) return;
 			disposed = true;
 			if (disposing)
 			{
-				Stop().FireAndForget();
+				Stop().Wait(500);
+				cts.Dispose();
 			}
 		}
 
 		public void Dispose()
 		{
 			Dispose(true);
+			GC.SuppressFinalize(this);
 		}
 
 		public TaskScheduler UIScheduler { get; set; }

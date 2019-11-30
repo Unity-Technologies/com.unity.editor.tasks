@@ -57,7 +57,7 @@ namespace Unity.Editor.Tasks
 			catch (Exception ex)
 			{
 				if (!RaiseFaultHandlers(ex))
-					ThrownException.Rethrow();
+					Exception.Rethrow();
 			}
 			return result;
 		}
@@ -128,7 +128,7 @@ namespace Unity.Editor.Tasks
 		protected int RetryCount { get; }
 	}
 
-	class DownloadException : Exception
+	public class DownloadException : Exception
 	{
 		public DownloadException(string message) : base(message)
 		{ }
@@ -181,7 +181,7 @@ namespace Unity.Editor.Tasks
 		}
 
 		public Downloader(ITaskManager taskManager, CancellationToken token)
-			 : base(taskManager, t => {
+			 : base(taskManager, token, t => {
 				 var dt = t as DownloadTask;
 				 var destinationFile = Path.Combine(dt.TargetDirectory, dt.Url.Filename);
 				 return new DownloadData(dt.Url, destinationFile);
@@ -194,8 +194,11 @@ namespace Unity.Editor.Tasks
 		public static bool Download(ILogging logger,
 			UriString url,
 			Stream destinationStream,
-			Func<long, long, bool> onProgress)
+			Func<long, long, bool> onProgress = null)
 		{
+			url.EnsureNotNull(nameof(url));
+			destinationStream.EnsureNotNull(nameof(destinationStream));
+
 			long bytes = destinationStream.Length;
 
 			var expectingResume = bytes > 0;
@@ -203,7 +206,7 @@ namespace Unity.Editor.Tasks
 #if !NET_35
 			ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 #endif
-			var webRequest = (HttpWebRequest)WebRequest.Create(url);
+			var webRequest = (HttpWebRequest)WebRequest.Create(url.ToUri());
 
 			if (expectingResume)
 			{
@@ -223,22 +226,25 @@ namespace Unity.Editor.Tasks
 			webRequest.AutomaticDecompression = DecompressionMethods.Deflate | DecompressionMethods.GZip;
 			webRequest.AllowAutoRedirect = true;
 
-			if (expectingResume)
-				logger.Trace($"Resuming download of {url}");
-			else
-				logger.Trace($"Downloading {url}");
+			if (logger != null)
+			{
+				if (expectingResume)
+					logger.Trace($"Resuming download of {url}");
+				else
+					logger.Trace($"Downloading {url}");
+			}
 
-			if (!onProgress(bytes, bytes * 2))
+			if (!(onProgress?.Invoke(bytes, bytes * 2) ?? true))
 				return false;
 
 			using (var webResponse = (HttpWebResponse)webRequest.GetResponseWithoutException())
 			{
 				var httpStatusCode = webResponse.StatusCode;
-				logger.Trace($"Downloading {url} StatusCode:{(int)webResponse.StatusCode}");
+				logger?.Trace($"Downloading {url} StatusCode:{(int)webResponse.StatusCode}");
 
 				if (expectingResume && httpStatusCode == HttpStatusCode.RequestedRangeNotSatisfiable)
 				{
-					return !onProgress(bytes, bytes);
+					return !onProgress?.Invoke(bytes, bytes) ?? false;
 				}
 
 				if (!(httpStatusCode == HttpStatusCode.OK || httpStatusCode == HttpStatusCode.PartialContent))
@@ -256,7 +262,7 @@ namespace Unity.Editor.Tasks
 				responseLength = responseLength > 0 ? webResponse.ContentLength : 0;
 				if (expectingResume)
 				{
-					if (!onProgress(bytes, bytes + responseLength))
+					if (!onProgress?.Invoke(bytes, bytes + responseLength) ?? true)
 						return false;
 				}
 
@@ -264,7 +270,7 @@ namespace Unity.Editor.Tasks
 				{
 					return Utils.Copy(responseStream, destinationStream, responseLength,
 						 progress: (totalRead, timeToFinish) => {
-							 return onProgress(totalRead, responseLength);
+							 return onProgress?.Invoke(totalRead, responseLength) ?? true;
 						 });
 				}
 			}

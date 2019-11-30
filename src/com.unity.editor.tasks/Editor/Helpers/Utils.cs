@@ -91,7 +91,7 @@ namespace Unity.Editor.Tasks.Helpers
 		{
 			if (file == null || !Path.IsPathRooted(file) || !File.Exists(file))
 				return false;
-			string actual = null;
+			string actual;
 			if (hash.Length == 32)
 				actual = file.ToMD5();
 			else

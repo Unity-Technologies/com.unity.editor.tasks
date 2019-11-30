@@ -10,20 +10,12 @@ namespace Unity.Editor.Tasks
 {
 	using System;
 	using System.Runtime.CompilerServices;
+	using Extensions;
 	using Helpers;
 
 	public static class ThreadingHelper
 	{
-		public static TaskScheduler GetUIScheduler(SynchronizationContext synchronizationContext)
-		{
-			// quickly swap out the sync context so we can leverage FromCurrentSynchronizationContext for our ui scheduler
-			var currentSyncContext = SynchronizationContext.Current;
-			SynchronizationContext.SetSynchronizationContext(synchronizationContext);
-			var ret = TaskScheduler.FromCurrentSynchronizationContext();
-			if (currentSyncContext != null)
-				SynchronizationContext.SetSynchronizationContext(currentSyncContext);
-			return ret;
-		}
+		public static TaskScheduler GetUIScheduler(SynchronizationContext synchronizationContext) => synchronizationContext.FromSynchronizationContext();
 
 		internal class AwaitableWrapper : IAwaitable
 		{
@@ -84,7 +76,7 @@ namespace Unity.Editor.Tasks
 			/// <param name="taskScheduler">The task scheduler used to execute continuations.</param>
 			public TaskSchedulerAwaitable(TaskScheduler taskScheduler)
 			{
-				Guard.ArgumentNotNull(taskScheduler, nameof(taskScheduler));
+				Guard.EnsureNotNull(taskScheduler, nameof(taskScheduler));
 
 				this.taskScheduler = taskScheduler;
 			}
@@ -100,7 +92,7 @@ namespace Unity.Editor.Tasks
 		}
 
 		/// <summary>
-		/// An awaiter returned from <see cref="GetAwaiter(TaskScheduler)"/>.
+		/// An awaiter returned from GetAwaiter(TaskScheduler />.
 		/// </summary>
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1815:OverrideEqualsAndOperatorEqualsOnValueTypes")]
 		internal readonly struct TaskSchedulerAwaiter : ICriticalNotifyCompletion, IAwaiter
@@ -110,13 +102,10 @@ namespace Unity.Editor.Tasks
 			/// </summary>
 			private readonly TaskScheduler scheduler;
 
-
 			/// <summary>
 			/// Initializes a new instance of the <see cref="TaskSchedulerAwaiter"/> struct.
 			/// </summary>
 			/// <param name="scheduler">The scheduler for continuations.</param>
-			/// <param name="alwaysYield">A value indicating whether the caller should yield even if
-			/// already executing on the desired task scheduler.</param>
 			public TaskSchedulerAwaiter(TaskScheduler scheduler)
 			{
 				this.scheduler = scheduler;
@@ -202,7 +191,7 @@ namespace Unity.Editor.Tasks
 			/// <param name="antecedent">The task whose completion will execute the continuation.</param>
 			public ExecuteContinuationSynchronouslyAwaitable(Task antecedent)
 			{
-				Guard.ArgumentNotNull(antecedent, nameof(antecedent));
+				Guard.EnsureNotNull(antecedent, nameof(antecedent));
 				this.antecedent = antecedent;
 			}
 
@@ -231,7 +220,7 @@ namespace Unity.Editor.Tasks
 			/// <param name="antecedent">The task whose completion will execute the continuation.</param>
 			public ExecuteContinuationSynchronouslyAwaiter(Task antecedent)
 			{
-				Guard.ArgumentNotNull(antecedent, nameof(antecedent));
+				Guard.EnsureNotNull(antecedent, nameof(antecedent));
 				this.antecedent = antecedent;
 			}
 
@@ -251,7 +240,7 @@ namespace Unity.Editor.Tasks
 			/// <param name="continuation">The callback to invoke.</param>
 			public void OnCompleted(Action continuation)
 			{
-				Guard.ArgumentNotNull(continuation, nameof(continuation));
+				Guard.EnsureNotNull(continuation, nameof(continuation));
 
 				antecedent.ContinueWith(
 					(_, s) => ((Action)s)(),
@@ -280,7 +269,7 @@ namespace Unity.Editor.Tasks
 			/// <param name="antecedent">The task whose completion will execute the continuation.</param>
 			public ExecuteContinuationSynchronouslyAwaitable(Task<T> antecedent)
 			{
-				Guard.ArgumentNotNull(antecedent, nameof(antecedent));
+				Guard.EnsureNotNull(antecedent, nameof(antecedent));
 				this.antecedent = antecedent;
 			}
 
@@ -310,7 +299,7 @@ namespace Unity.Editor.Tasks
 			/// <param name="antecedent">The task whose completion will execute the continuation.</param>
 			public ExecuteContinuationSynchronouslyAwaiter(Task<T> antecedent)
 			{
-				Guard.ArgumentNotNull(antecedent, nameof(antecedent));
+				Guard.EnsureNotNull(antecedent, nameof(antecedent));
 				this.antecedent = antecedent;
 			}
 
@@ -333,7 +322,7 @@ namespace Unity.Editor.Tasks
 			/// <param name="continuation">The callback to invoke.</param>
 			public void OnCompleted(Action continuation)
 			{
-				Guard.ArgumentNotNull(continuation, nameof(continuation));
+				Guard.EnsureNotNull(continuation, nameof(continuation));
 
 				antecedent.ContinueWith(
 					(_, s) => ((Action)s)(),
