@@ -70,7 +70,7 @@ if [[ x"$GITHUB" == x"1" ]]; then
   nuget sources Add -Name "GPR" -Source "https://nuget.pkg.github.com/unity-technologies/index.json" -UserName "unity-technologies" -Password ${GITHUB_TOKEN:-} -NonInteractive >/dev/null 2>&1 || true
   for p in "$DIR/build/nuget/**/*.nupkg"; do
     echo "nuget push $p -Source \"GPR\""
-    #nuget push $p -Source "GPR"
+    nuget push $p -Source "GPR"
   done
 
 fi
