@@ -66,6 +66,6 @@ if [[ x"${PUBLISH_URL:-}" == x"" ]]; then
   exit 1
 fi
 
-for p in "$DIR/build/nuget/**/*.nupkg"; do
-  dotnet nuget push $p -k "${PUBLISH_KEY}" -s "${PUBLISH_URL}"
+for p in "$DIR/build/nuget/**/*nupkg"; do
+  dotnet nuget push $p -ApiKey "${PUBLISH_KEY}" -Source "${PUBLISH_URL}"
 done
