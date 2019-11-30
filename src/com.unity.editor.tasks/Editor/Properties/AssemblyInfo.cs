@@ -9,3 +9,4 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("Tasks.Tests")]
+[assembly: InternalsVisibleTo("com.unity.editor.tasks.tests")]

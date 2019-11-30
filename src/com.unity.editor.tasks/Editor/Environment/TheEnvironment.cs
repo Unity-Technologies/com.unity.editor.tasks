@@ -5,10 +5,14 @@
 
 using System;
 
+#if UNITY_EDITOR
+using UnityEngine;
+using UnityEditor;
+#endif
+
 namespace Unity.Editor.Tasks
 {
-	using Unity.Editor.Tasks.Internal.IO;
-
+    using Internal.IO;
 #if !UNITY_EDITOR
 
 	public class SerializeFieldAttribute : Attribute

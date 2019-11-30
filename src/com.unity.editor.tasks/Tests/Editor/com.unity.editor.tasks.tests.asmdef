@@ -1,5 +1,5 @@
 {
-    "name": "unity.editor.tasks.tests",
+    "name": "com.unity.editor.tasks.tests",
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",

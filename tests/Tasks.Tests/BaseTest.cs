@@ -67,8 +67,8 @@ namespace BaseTests
 			watch.Stop();
 			logger.Trace($"STOP {testName} :{watch.ElapsedMilliseconds}ms");
 			taskManager.Dispose();
-            if (SynchronizationContext.Current is IMainThreadSynchronizationContext ourContext)
-                ourContext.Dispose();
+			if (SynchronizationContext.Current is IMainThreadSynchronizationContext ourContext)
+				ourContext.Dispose();
 		}
 
 		protected void StopTest(Stopwatch watch,
@@ -80,8 +80,8 @@ namespace BaseTests
 			[CallerMemberName] string testName = "test")
 		{
 			StopTest(watch, logger, taskManager);
-            testPath.DeleteIfExists();
-            logger.Trace($"STOP {testName}");
+			testPath.DeleteIfExists();
+			logger.Trace($"STOP {testName}");
 		}
 
 		protected async Task RunTest(Func<IEnumerator> testMethodToRun)

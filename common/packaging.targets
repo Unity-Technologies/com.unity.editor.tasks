@@ -180,6 +180,11 @@
       ReplacementText="&quot;revision&quot;: &quot;$(GitCommitId)&quot;"
       Encoding="utf-8-without-bom" />
 
+    <FileUpdate
+      Files="$(PublishTo)$(PackageName)\package.json"
+      Regex="&quot;testPackages&quot;"
+      ReplacementText="&quot;relatedPackages&quot;" />
+
   </Target>
 
 </Project>

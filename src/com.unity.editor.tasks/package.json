@@ -14,7 +14,7 @@
       "directory": "",
       "revision": ""
     },
-    "relatedPackages": {
+    "testPackages": {
       "com.unity.editor.tasks.tests": "0.0.0-placeholder"
     }
 }

@@ -8,6 +8,7 @@ using Debug = UnityEngine.Debug;
 namespace BaseTests
 {
 	using System;
+	using Unity.Editor.Tasks.Internal.IO;
 
 	// Unity does not support async/await tests, but it does
 	// have a special type of test with a [CustomUnityTest] attribute
@@ -40,35 +41,36 @@ namespace BaseTests
 			LogHelper.TracingEnabled = existingTracing;
 		}
 
-		protected void StartTest(out Stopwatch watch, out ILogging logger, out ITaskManager taskManager, [CallerMemberName] string testName = "test")
+		private static void SetupTest(out Stopwatch watch, out ILogging logger, out ITaskManager taskManager, String testName)
 		{
 			taskManager = new TaskManager().Initialize();
 
-			Debug.Log($"Starting test fixture. Main thread is {taskManager.UIThread}");
-
 			logger = new LogFacade(testName, new UnityLogAdapter(), true);
 			watch = new Stopwatch();
+		}
+
+		protected void StartTest(out Stopwatch watch, out ILogging logger, out ITaskManager taskManager, [CallerMemberName] string testName = "test")
+		{
+			SetupTest(out watch, out logger, out taskManager, testName);
 
 			logger.Trace("START");
 			watch.Start();
 		}
 
-		protected void StartTest(out System.Diagnostics.Stopwatch watch, out ILogging logger, out ITaskManager taskManager,
-			out string testPath, out IEnvironment environment, out IProcessManager processManager,
+		internal void StartTest(out Stopwatch watch, out ILogging logger, out ITaskManager taskManager,
+			out SPath testPath, out IEnvironment environment, out IProcessManager processManager,
 			[CallerMemberName] string testName = "test")
 		{
-			logger = new LogFacade(testName, new UnityLogAdapter(), true);
-			watch = new System.Diagnostics.Stopwatch();
-
-			taskManager = TaskManager;
+			SetupTest(out watch, out logger, out taskManager, testName);
 
 			testPath = SPath.CreateTempDirectory(testName);
 
 			environment = new UnityEnvironment(testName);
-			((UnityEnvironment)environment).SetWorkingDirectory(testPath);
-			environment.Initialize(testPath, testPath, "2018.4", testPath, testPath.Combine("Assets"));
-
-			processManager = new ProcessManager(environment, taskManager.Token);
+			environment.Initialize(testPath.ToString(SlashMode.Forward),
+				TheEnvironment.instance.Environment.UnityVersion,
+				TheEnvironment.instance.Environment.UnityApplication,
+				TheEnvironment.instance.Environment.UnityApplicationContents);
+			processManager = new ProcessManager(environment);
 
 			logger.Trace("START");
 			watch.Start();
@@ -81,18 +83,37 @@ namespace BaseTests
 			taskManager.Dispose();
 		}
 
-		protected SPath? testApp;
+        internal void StopTest(Stopwatch watch,
+	        ILogging logger,
+	        ITaskManager taskManager,
+	        SPath testPath,
+	        IEnvironment environment,
+	        IProcessManager processManager,
+	        [CallerMemberName] string testName = "test")
+        {
+	        StopTest(watch, logger, taskManager);
+	        testPath.DeleteIfExists();
+	        logger.Trace($"STOP {testName}");
+        }
 
-		protected SPath TestApp
+		internal SPath? testApp;
+
+		internal SPath TestApp
 		{
 			get
 			{
 				if (!testApp.HasValue)
 				{
-					testApp = System.IO.Path.GetFullPath("Packages/com.unity.editor.tasks/Tests/Helpers~/Helper.CommandLine.exe");
+					testApp = "Packages/com.unity.editor.tasks/Tests/Helpers~/Helper.CommandLine.exe".ToSPath().Resolve();
 					if (!testApp.Value.FileExists())
 					{
-						UnityEngine.Debug.LogException(new InvalidOperationException("Test helper binaries are missing. Build the UnityTools.sln solution once with `dotnet build` in order to set up the tests."));
+						testApp = "Packages/com.unity.editor.tasks.tests/Helpers~/Helper.CommandLine.exe".ToSPath().Resolve();
+						if (!testApp.Value.FileExists())
+						{
+							Debug.LogException(new InvalidOperationException(
+								"Test helper binaries are missing. Build the UnityTools.sln solution once with `dotnet build` in order to set up the tests."));
+							testApp = SPath.Default;
+						}
 					}
 				}
 				return testApp.Value;

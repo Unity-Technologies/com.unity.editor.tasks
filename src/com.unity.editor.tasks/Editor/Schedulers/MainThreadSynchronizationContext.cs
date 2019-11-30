@@ -7,7 +7,7 @@ namespace Unity.Editor.Tasks
 
 #if UNITY_EDITOR
 
-	using Helpers;
+	using UnityEditor;
 
 	public class MainThreadSynchronizationContext: SynchronizationContext, IMainThreadSynchronizationContext
 	{
@@ -15,7 +15,7 @@ namespace Unity.Editor.Tasks
 
 		public void Schedule(Action action)
 		{
-			Guard.ArgumentNotNull(action, "action");
+			action.EnsureNotNull(nameof(action));
 			Post(act => ((Action)act)(), action);
 		}
 
@@ -37,7 +37,7 @@ namespace Unity.Editor.Tasks
 
 		public void Schedule(Action action)
 		{
-			Guard.EnsureNotNull(action, "action");
+			action.EnsureNotNull(nameof(action));
 			Post(act => ((Action)act)(), action);
 		}
 	}
