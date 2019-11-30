@@ -62,7 +62,8 @@ if [[ x"$BUILD" == x"1" ]]; then
   dotnet build --no-restore -c $CONFIGURATION $PUBLIC
 fi
 
-dotnet test --no-build --no-restore -c $CONFIGURATION $PUBLIC --logger "trx;LogFileName=dotnet-test-result.trx" --logger "html;LogFileName=dotnet-test-result.html"
+dotnet test --no-build --no-restore -c $CONFIGURATION $PUBLIC --logger "trx;LogFileName=dotnet-test-result.trx"
+#dotnet test --no-build --no-restore -c $CONFIGURATION $PUBLIC --logger "trx;LogFileName=dotnet-test-result.trx" --logger "html;LogFileName=dotnet-test-result.html"
 
 if [[ x"$UPM" == x"1" ]]; then
   powershell scripts/Test-Upm.ps1 -UnityVersion $UNITYVERSION
