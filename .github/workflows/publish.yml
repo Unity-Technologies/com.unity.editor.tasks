@@ -35,5 +35,5 @@ jobs:
       env:
         DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
         DOTNET_CLI_TELEMETRY_OPTOUT: 1
-        TOKEN: {{ secrets.GITHUB_TOKEN }}
-      run: publish.sh -r -g
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: ./publish.sh -r -g
