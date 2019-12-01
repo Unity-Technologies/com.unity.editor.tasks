@@ -4,6 +4,8 @@
 
 ## [VERSION] - DATE
 
+- Fix tests under Unity
+
 ## [1.1.10] - 2019-11-30
 
 - Add symbols for nuget packages
