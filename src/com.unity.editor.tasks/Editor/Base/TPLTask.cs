@@ -1,10 +1,8 @@
 namespace Unity.Editor.Tasks
 {
 	using System;
-	using System.Linq;
 	using System.Threading;
 	using System.Threading.Tasks;
-	using Extensions;
 
 	public class TPLTask : TaskBase
 	{

@@ -27,12 +27,34 @@ namespace Unity.Editor.Tasks
 			Func<string, T> processor,
 			string workingDirectory = null
 		)
-			: base(taskManager, taskManager?.Token ?? default,
+			: base(taskManager,
 				processManager.EnsureNotNull(nameof(processManager)).DefaultProcessEnvironment,
 				executable, arguments,
 				new BaseOutputProcessor<T>((string line, out T result) => {
 					result = default(T);
 					if (line == null) return false;
+					result = processor(line);
+					return true;
+				})
+			)
+		{
+			processManager.Configure(this, workingDirectory);
+		}
+
+		public SimpleProcessTask(
+			ITaskManager taskManager, IProcessManager processManager,
+			IProcessEnvironment processEnvironment,
+			string executable, string arguments,
+			Func<string, bool> isMatch,
+			Func<string, T> processor,
+			string workingDirectory = null
+		)
+			: base(taskManager,
+				processEnvironment,
+				executable, arguments,
+				new BaseOutputProcessor<T>((string line, out T result) => {
+					result = default(T);
+					if (!isMatch(line)) return false;
 					result = processor(line);
 					return true;
 				})

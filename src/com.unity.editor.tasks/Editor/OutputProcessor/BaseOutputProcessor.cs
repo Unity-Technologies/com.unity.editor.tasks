@@ -104,8 +104,6 @@ namespace Unity.Editor.Tasks
 	{
 		public override void LineReceived(string line)
 		{
-			if (line == null)
-				return;
 			RaiseOnEntry(line);
 		}
 

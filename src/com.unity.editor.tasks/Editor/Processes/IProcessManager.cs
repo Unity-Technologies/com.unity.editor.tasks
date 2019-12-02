@@ -1,10 +1,11 @@
-﻿namespace Unity.Editor.Tasks
-{
+﻿using System;
 
+namespace Unity.Editor.Tasks
+{
 	/// <summary>
 	/// A process manager that configures processes for running and keeps track of running processes.
 	/// </summary>
-	public interface IProcessManager
+	public interface IProcessManager : IDisposable
 	{
 		/// <summary>
 		/// Helper that configures all the necessary parts in order to run a process. This must be called before running
@@ -18,7 +19,7 @@
 		void Stop();
 
 		/// <summary>
-		/// The default process environment, with default working directory.
+		/// Default process environment.
 		/// </summary>
 		IProcessEnvironment DefaultProcessEnvironment { get; }
 	}

@@ -7,9 +7,43 @@ namespace Unity.Editor.Tasks
 	using System.IO;
 	using System.Text;
 	using System.Threading;
+	using Extensions;
+	using Helpers;
 	using Logging;
 
-	class ProcessWrapper : IDisposable
+	public abstract class BaseProcessWrapper : IDisposable
+	{
+		public Process Process { get; }
+		public StreamWriter Input { get; protected set; }
+		public int ProcessId { get; protected set; }
+		public int ExitCode { get; protected set; }
+
+		protected BaseProcessWrapper(Process process)
+		{
+			process.EnsureNotNull(nameof(process));
+			this.Process = process;
+		}
+
+		public virtual void Detach() {}
+
+		public abstract void Run();
+		public abstract void Stop(bool dontWait = false);
+
+		#region IDisposable Support
+
+		protected virtual void Dispose(bool disposing)
+		{}
+
+		public void Dispose()
+		{
+			Dispose(true);
+			// TODO: uncomment the following line if the finalizer is overridden above.
+			// GC.SuppressFinalize(this);
+		}
+		#endregion
+	}
+
+	class ProcessWrapper : BaseProcessWrapper, IDisposable
 	{
 		private readonly List<string> errors = new List<string>();
 		private readonly bool longRunning;
@@ -23,12 +57,14 @@ namespace Unity.Editor.Tasks
 		private readonly CancellationToken token;
 
 		private ILogging logger;
+		private bool released;
 
 		public ProcessWrapper(string taskName, Process process,
 			IOutputProcessor outputProcessor,
 			bool longRunning,
 			Action onStart, Action onEnd, Action<Exception, string> onError,
 			CancellationToken token)
+			: base(process)
 		{
 			this.taskName = taskName;
 			this.outputProcessor = outputProcessor;
@@ -36,14 +72,19 @@ namespace Unity.Editor.Tasks
 			this.onEnd = onEnd;
 			this.onError = onError;
 			this.token = token;
-			this.Process = process;
 			this.longRunning = longRunning;
 
 			if (this.longRunning)
 				longRunningOutputProcessor = new RaiseAndDiscardOutputProcessor();
 		}
 
-		public void Run()
+		public override void Detach()
+		{
+			released = true;
+			stopEvent.Set();
+		}
+
+		public override void Run()
 		{
 			DateTimeOffset lastOutput = DateTimeOffset.UtcNow;
 			Exception thrownException = null;
@@ -64,7 +105,6 @@ namespace Unity.Editor.Tasks
 					{
 						var line = Encoding.UTF8.GetString(Encoding.UTF8.GetBytes(e.Data));
 						errors.Add(line.TrimEnd('\r', '\n'));
-						Logger.Trace(line);
 					}
 				};
 			}
@@ -88,7 +128,7 @@ namespace Unity.Editor.Tasks
 					}
 					catch (Exception ex)
 					{
-						Logger.Error(ex);
+						errors.Add(ex.GetExceptionMessageShort());
 					}
 				};
 			}
@@ -99,7 +139,7 @@ namespace Unity.Editor.Tasks
 
 				token.ThrowIfCancellationRequested();
 
-				if (startInfo.CreateNoWindow && longRunning)
+				if (startInfo.CreateNoWindow)
 				{
 					Process.Exited += (obj, args) => {
 						while (!token.IsCancellationRequested && gotOutput.WaitOne(100))
@@ -123,37 +163,28 @@ namespace Unity.Editor.Tasks
 
 				if (startInfo.CreateNoWindow)
 				{
-					if (longRunning)
+					stopEvent.Wait(token);
+					if (!released)
 					{
-						stopEvent.Wait(token);
-					}
-					else
-					{
-						bool done = false;
-						while (!done)
+						var exited = WaitForExit(500);
+						if (exited)
 						{
-							var exited = WaitForExit(500);
-							if (exited)
-							{
-								// process is done and we haven't seen output, we're done
-								done = !gotOutput.WaitOne(100);
-							}
-							else if (token.IsCancellationRequested
-									/* || (taskName.Contains("git lfs") && lastOutput.AddMilliseconds(ApplicationConfiguration.DefaultGitTimeout) < DateTimeOffset.UtcNow) */
-								)
-								// if we're exiting or we haven't had output for a while
-							{
-								Stop(true);
-								ExitCode = Process.ExitCode;
-								token.ThrowIfCancellationRequested();
-								throw new ProcessException(-2, "Process timed out");
-							}
+							// process is done and we haven't seen output, we're done
+							while (gotOutput.WaitOne(100)) {}
 						}
-					}
+						else if (token.IsCancellationRequested)
+							// if we're exiting
+						{
+							Stop(true);
+							ExitCode = Process.ExitCode;
+							token.ThrowIfCancellationRequested();
+							throw new ProcessException(-2, "Process timed out");
+						}
 
-					if (Process.ExitCode != 0 && errors.Count > 0)
-					{
-						thrownException = new ProcessException(Process.ExitCode, string.Join(Environment.NewLine, errors.ToArray()));
+						if (Process.ExitCode != 0 && errors.Count > 0)
+						{
+							thrownException = new ProcessException(Process.ExitCode, string.Join(Environment.NewLine, errors.ToArray()));
+						}
 					}
 				}
 			}
@@ -192,11 +223,16 @@ namespace Unity.Editor.Tasks
 				thrownException = new ProcessException(errorCode, sb.ToString(), ex);
 			}
 
-			try
+			if (!released)
 			{
-				ExitCode = Process.ExitCode;
-				Process.Close();
-			} catch {}
+				try
+				{
+					ExitCode = Process.ExitCode;
+					Process.Close();
+				}
+				catch
+				{}
+			}
 
 			if (thrownException != null || errors.Count > 0)
 				onError?.Invoke(thrownException, string.Join(Environment.NewLine, errors.ToArray()));
@@ -216,7 +252,7 @@ namespace Unity.Editor.Tasks
 			longRunningOutputProcessor.OnEntry -= outputProcessor.Process;
 		}
 
-		public void Stop(bool dontWait = false)
+		public override void Stop(bool dontWait = false)
 		{
 			try
 			{
@@ -269,7 +305,7 @@ namespace Unity.Editor.Tasks
 
 		private bool disposed;
 
-		protected virtual void Dispose(bool disposing)
+		protected override void Dispose(bool disposing)
 		{
 			if (disposed) return;
 			if (disposing)
@@ -281,16 +317,6 @@ namespace Unity.Editor.Tasks
 			}
 		}
 
-		public void Dispose()
-		{
-			Dispose(true);
-			GC.SuppressFinalize(this);
-		}
-
-		public Process Process { get; }
-		public StreamWriter Input { get; private set; }
-		public int ProcessId { get; private set; }
-		public int ExitCode { get; private set; }
 		protected ILogging Logger { get { return logger = logger ?? LogHelper.GetLogger(GetType()); } }
 	}
 }

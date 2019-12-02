@@ -10,6 +10,7 @@ using System.Text;
 
 namespace Unity.Editor.Tasks
 {
+	using System;
 	using Internal.IO;
 
 	/// <summary>
@@ -59,7 +60,29 @@ namespace Unity.Editor.Tasks
 		public void Stop()
 		{
 			foreach (var p in processes.ToArray())
+			{
 				p.Stop();
+			}
+		}
+
+		private bool disposed;
+		/// <summary>
+		/// Stop and clean up managed processes
+		/// </summary>
+		/// <param name="disposing"></param>
+		protected virtual void Dispose(bool disposing)
+		{
+			if (disposed) return;
+			if (disposing)
+			{
+				Stop();
+				disposed = true;
+			}
+		}
+
+		public void Dispose()
+		{
+			Dispose(true);
 		}
 
 		/// <inheritdoc />

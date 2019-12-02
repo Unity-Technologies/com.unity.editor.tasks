@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Unity.Editor.Tasks
 {
-	using Logging;
+	using System.Threading;
 	using Helpers;
 	public static class TaskExtensions
 	{
@@ -38,6 +38,19 @@ namespace Unity.Editor.Tasks
 					throw;
 				return handler(ex);
 			}
+		}
+
+		/// <summary>
+		/// Starts a task, blocks until it's done or the token is cancelled, and returns the result;
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="source"></param>
+		/// <param name="token"></param>
+		/// <returns></returns>
+		public static T StartSync<T>(this ITask<T> source, CancellationToken token)
+		{
+			StartAwait(source).Wait(token);
+			return source.Result;
 		}
 
 		public static void FireAndForget(this Task _)
