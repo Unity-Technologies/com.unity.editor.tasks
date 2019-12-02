@@ -4,6 +4,10 @@
 
 ## [VERSION] - DATE
 
+- Fixes for running processes, catching exceptions and producing output
+
+## [1.1.16] - 2019-12-01
+
 - Fix tests under Unity
 
 ## [1.1.10] - 2019-11-30
