@@ -13,18 +13,19 @@ namespace Unity.Editor.Tasks
 
 	public abstract class BaseProcessWrapper : IDisposable
 	{
-		public Process Process { get; }
+		public ProcessStartInfo StartInfo { get; }
 		public StreamWriter Input { get; protected set; }
 		public int ProcessId { get; protected set; }
 		public int ExitCode { get; protected set; }
+		public bool HasExited { get; protected set; }
 
-		protected BaseProcessWrapper(Process process)
+		protected BaseProcessWrapper(ProcessStartInfo startInfo)
 		{
-			process.EnsureNotNull(nameof(process));
-			this.Process = process;
+			startInfo.EnsureNotNull(nameof(startInfo));
+			this.StartInfo = startInfo;
 		}
 
-		public virtual void Detach() {}
+		public virtual void Detach() { }
 
 		public abstract void Run();
 		public abstract void Stop(bool dontWait = false);
@@ -32,7 +33,7 @@ namespace Unity.Editor.Tasks
 		#region IDisposable Support
 
 		protected virtual void Dispose(bool disposing)
-		{}
+		{ }
 
 		public void Dispose()
 		{
@@ -43,11 +44,9 @@ namespace Unity.Editor.Tasks
 		#endregion
 	}
 
-	class ProcessWrapper : BaseProcessWrapper, IDisposable
+	public class ProcessWrapper : BaseProcessWrapper, IDisposable
 	{
 		private readonly List<string> errors = new List<string>();
-		private readonly bool longRunning;
-		private readonly RaiseAndDiscardOutputProcessor longRunningOutputProcessor;
 		private readonly Action onEnd;
 		private readonly Action<Exception, string> onError;
 		private readonly Action onStart;
@@ -57,14 +56,13 @@ namespace Unity.Editor.Tasks
 		private readonly CancellationToken token;
 
 		private ILogging logger;
-		private bool released;
+		private bool detached;
 
-		public ProcessWrapper(string taskName, Process process,
+		public ProcessWrapper(string taskName, ProcessStartInfo startInfo,
 			IOutputProcessor outputProcessor,
-			bool longRunning,
 			Action onStart, Action onEnd, Action<Exception, string> onError,
 			CancellationToken token)
-			: base(process)
+			: base(startInfo)
 		{
 			this.taskName = taskName;
 			this.outputProcessor = outputProcessor;
@@ -72,15 +70,12 @@ namespace Unity.Editor.Tasks
 			this.onEnd = onEnd;
 			this.onError = onError;
 			this.token = token;
-			this.longRunning = longRunning;
-
-			if (this.longRunning)
-				longRunningOutputProcessor = new RaiseAndDiscardOutputProcessor();
+			Process = new Process { StartInfo = startInfo, EnableRaisingEvents = true };
 		}
 
 		public override void Detach()
 		{
-			released = true;
+			detached = true;
 			stopEvent.Set();
 		}
 
@@ -89,9 +84,8 @@ namespace Unity.Editor.Tasks
 			DateTimeOffset lastOutput = DateTimeOffset.UtcNow;
 			Exception thrownException = null;
 			var gotOutput = new AutoResetEvent(false);
-			var startInfo = Process.StartInfo;
 
-			if (startInfo.RedirectStandardError)
+			if (StartInfo.RedirectStandardError)
 			{
 				Process.ErrorDataReceived += (s, e) => {
 					//if (e.Data != null)
@@ -109,7 +103,7 @@ namespace Unity.Editor.Tasks
 				};
 			}
 
-			if (startInfo.RedirectStandardOutput)
+			if (StartInfo.RedirectStandardOutput)
 			{
 				Process.OutputDataReceived += (s, e) => {
 					try
@@ -135,15 +129,16 @@ namespace Unity.Editor.Tasks
 
 			try
 			{
-				Logger.Trace($"Running '{startInfo.FileName} {startInfo.Arguments}' in '{startInfo.WorkingDirectory}'");
+				Logger.Trace($"Running '{StartInfo.FileName} {StartInfo.Arguments}' in '{StartInfo.WorkingDirectory}'");
 
 				token.ThrowIfCancellationRequested();
 
-				if (startInfo.CreateNoWindow)
+				if (StartInfo.CreateNoWindow)
 				{
 					Process.Exited += (obj, args) => {
 						while (!token.IsCancellationRequested && gotOutput.WaitOne(100))
-						{}
+						{ }
+						HasExited = true;
 						stopEvent.Set();
 					};
 				}
@@ -152,28 +147,28 @@ namespace Unity.Editor.Tasks
 
 				ProcessId = Process.Id;
 
-				if (startInfo.RedirectStandardInput)
+				if (StartInfo.RedirectStandardInput)
 					Input = new StreamWriter(Process.StandardInput.BaseStream, new UTF8Encoding(false));
-				if (startInfo.RedirectStandardError)
+				if (StartInfo.RedirectStandardError)
 					Process.BeginErrorReadLine();
-				if (startInfo.RedirectStandardOutput)
+				if (StartInfo.RedirectStandardOutput)
 					Process.BeginOutputReadLine();
 
 				onStart?.Invoke();
 
-				if (startInfo.CreateNoWindow)
+				if (StartInfo.CreateNoWindow)
 				{
 					stopEvent.Wait(token);
-					if (!released)
+					if (!detached)
 					{
 						var exited = WaitForExit(500);
 						if (exited)
 						{
 							// process is done and we haven't seen output, we're done
-							while (gotOutput.WaitOne(100)) {}
+							while (gotOutput.WaitOne(100)) { }
 						}
 						else if (token.IsCancellationRequested)
-							// if we're exiting
+						// if we're exiting
 						{
 							Stop(true);
 							ExitCode = Process.ExitCode;
@@ -190,13 +185,14 @@ namespace Unity.Editor.Tasks
 			}
 			catch (Exception ex)
 			{
-				bool hasExited = true;
+				HasExited = true;
 				try
 				{
-					hasExited = Process.HasExited;
-				} catch {}
+					HasExited = Process.HasExited;
+				}
+				catch { }
 
-				if (!hasExited)
+				if (!HasExited)
 				{
 					Stop(true);
 				}
@@ -208,30 +204,33 @@ namespace Unity.Editor.Tasks
 				StringBuilder sb = new StringBuilder();
 				sb.AppendLine($"Error code {errorCode}");
 				sb.AppendLine(ex.Message);
-				if (startInfo.Arguments.Contains("-credential"))
-					sb.AppendLine($"'{startInfo.FileName} {taskName}'");
+				if (StartInfo.Arguments.Contains("-credential"))
+					sb.AppendLine($"'{StartInfo.FileName} {taskName}'");
 				else
-					sb.AppendLine($"'{startInfo.FileName} {startInfo.Arguments}'");
+					sb.AppendLine($"'{StartInfo.FileName} {StartInfo.Arguments}'");
 				if (errorCode == 2)
 					sb.AppendLine("The system cannot find the file specified.");
-				sb.AppendLine($"Working directory: {startInfo.WorkingDirectory}");
-				foreach (string env in startInfo.EnvironmentVariables.Keys)
+				sb.AppendLine($"Working directory: {StartInfo.WorkingDirectory}");
+				foreach (string env in StartInfo.EnvironmentVariables.Keys)
 				{
-					sb.AppendFormat("{0}:{1}", env, startInfo.EnvironmentVariables[env]);
+					sb.AppendFormat("{0}:{1}", env, StartInfo.EnvironmentVariables[env]);
 					sb.AppendLine();
 				}
 				thrownException = new ProcessException(errorCode, sb.ToString(), ex);
 			}
 
-			if (!released)
+			if (!detached)
 			{
 				try
 				{
-					ExitCode = Process.ExitCode;
-					Process.Close();
+					if (HasExited)
+					{
+						ExitCode = Process.ExitCode;
+						Process.Close();
+					}
 				}
 				catch
-				{}
+				{ }
 			}
 
 			if (thrownException != null || errors.Count > 0)
@@ -240,27 +239,15 @@ namespace Unity.Editor.Tasks
 			onEnd?.Invoke();
 		}
 
-		public void StartCommandToLongRunningProcess(IEnumerable<string> input, IOutputProcessor outputProcessor)
-		{
-			longRunningOutputProcessor.OnEntry += outputProcessor.Process;
-			foreach (var line in input)
-				Process.StandardInput.WriteLine(line);
-		}
-
-		public void FinishCommandToLongRunningProcess(IOutputProcessor outputProcessor)
-		{
-			longRunningOutputProcessor.OnEntry -= outputProcessor.Process;
-		}
-
 		public override void Stop(bool dontWait = false)
 		{
 			try
 			{
-				if (Process.StartInfo.RedirectStandardError)
+				if (StartInfo.RedirectStandardError)
 					Process.CancelErrorRead();
-				if (Process.StartInfo.RedirectStandardOutput)
+				if (StartInfo.RedirectStandardOutput)
 					Process.CancelOutputRead();
-				if (!Process.HasExited && Process.StartInfo.RedirectStandardInput)
+				if (!Process.HasExited && StartInfo.RedirectStandardInput)
 					Input.WriteLine("\x3");
 				if (Process.HasExited)
 					return;
@@ -310,7 +297,15 @@ namespace Unity.Editor.Tasks
 			if (disposed) return;
 			if (disposing)
 			{
-				Process?.Dispose();
+					try
+					{
+						if (StartInfo.RedirectStandardError)
+							Process.CancelErrorRead();
+						if (StartInfo.RedirectStandardOutput)
+							Process.CancelOutputRead();
+					}
+					catch {}
+					Process.Dispose();
 				Input?.Dispose();
 				stopEvent.Dispose();
 				disposed = true;
@@ -318,5 +313,6 @@ namespace Unity.Editor.Tasks
 		}
 
 		protected ILogging Logger { get { return logger = logger ?? LogHelper.GetLogger(GetType()); } }
-	}
+		public Process Process { get; }
+}
 }

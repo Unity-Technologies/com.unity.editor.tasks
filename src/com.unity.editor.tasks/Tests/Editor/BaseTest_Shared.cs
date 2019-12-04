@@ -11,12 +11,63 @@ using NUnit.Framework;
 
 namespace BaseTests
 {
+	using System.Threading;
 	using Unity.Editor.Tasks.Internal.IO;
+
+	internal class TestData : IDisposable
+	{
+		public readonly Stopwatch Watch;
+		public readonly ILogging Logger;
+		public readonly SPath TestPath;
+		public readonly string TestName;
+		public readonly ITaskManager TaskManager;
+		public readonly IEnvironment Environment;
+		public readonly IProcessManager ProcessManager;
+
+		public TestData(string testName, ILogging logger)
+		{
+			TestName = testName;
+			Logger = logger;
+			Watch = new Stopwatch();
+
+			TestPath = SPath.CreateTempDirectory(testName);
+
+			TaskManager = new TaskManager();
+			try
+			{
+				TaskManager.Initialize();
+			}
+			catch
+			{
+				// we're on the nunit sync context, which can't be used to create a task scheduler
+				// so use a different context as the main thread. The test won't run on the main nunit thread
+				TaskManager.Initialize(new MainThreadSynchronizationContext(TaskManager.Token));
+			}
+
+			Environment = new UnityEnvironment(testName).Initialize(TestPath.ToString(SlashMode.Forward),
+				TestPath.ToString(SlashMode.Forward), TestPath.ToString(SlashMode.Forward));
+			ProcessManager = new ProcessManager(Environment);
+
+			Logger.Trace($"START {testName}");
+			Watch.Start();
+		}
+
+		public void Dispose()
+		{
+			Watch.Stop();
+			TaskManager.Dispose();
+			if (SynchronizationContext.Current is IMainThreadSynchronizationContext ourContext)
+				ourContext.Dispose();
+			Logger.Trace($"STOP {TestName} :{Watch.ElapsedMilliseconds}ms");
+		}
+	}
 
 	public partial class BaseTest
 	{
 		protected const int Timeout = 30000;
 		protected const int RandomSeed = 120938;
+
+
 
 		protected void StartTrackTime(Stopwatch watch, ILogging logger, string message = "")
 		{

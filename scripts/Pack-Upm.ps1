@@ -19,24 +19,26 @@ New-Item -itemtype Directory -Path $upmDir -Force -ErrorAction SilentlyContinue
 
 # the loops I have to go throught to get upm to do the right thing...
 Get-ChildItem -Directory $srcDir | % {
-    Write-Output "Packing $($_.Name)"
+    if (Test-Path "$srcDir\$($_)\package.json") {
+        Write-Output "Packing $($_.Name)"
 
-    $pkgdir = Join-Path $upmDir $_.Name
+        $pkgdir = Join-Path $upmDir $_.Name
 
-    $src = Join-Path $packagesDir $_.Name
-    $target = $upmDir
-    Copy-Item $src $target -Recurse -Force -ErrorAction SilentlyContinue
+        $src = Join-Path $packagesDir $_.Name
+        $target = $upmDir
+        Copy-Item $src $target -Recurse -Force -ErrorAction SilentlyContinue
 
-    $src = "$srcDir\$($_.Name)\Tests.meta"
-    $target = $pkgdir
-    Copy-Item $src $target -Force -ErrorAction SilentlyContinue
+        $src = "$srcDir\$($_.Name)\Tests.meta"
+        $target = $pkgdir
+        Copy-Item $src $target -Force -ErrorAction SilentlyContinue
 
-    $testsdir = Join-Path $pkgdir "Tests"
-    New-Item -itemtype Directory -Path $testsdir -Force -ErrorAction SilentlyContinue
+        $testsdir = Join-Path $pkgdir "Tests"
+        New-Item -itemtype Directory -Path $testsdir -Force -ErrorAction SilentlyContinue
 
-    $src = "$packagesDir\$($_.Name).tests\*"
-    $target = "$testsdir\"
-    Copy-Item $src $target -Recurse -Force -ErrorAction SilentlyContinue
+        $src = "$packagesDir\$($_.Name).tests\*"
+        $target = "$testsdir\"
+        Copy-Item $src $target -Recurse -Force -ErrorAction SilentlyContinue
 
-    Invoke-Command -Fatal { & upm-ci package pack --package-path $pkgdir }
+        Invoke-Command -Fatal { & upm-ci package pack --package-path $pkgdir }
+    }
 }

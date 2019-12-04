@@ -1071,8 +1071,8 @@ namespace Unity.Editor.Tasks
 			hasRun = true;
 			OnEnd?.Invoke(this, result, !taskFailed, Exception);
 			RaiseOnEndInternal();
-			SetupContinuations();
 			UpdateProgress(100, 100);
+			SetupContinuations();
 		}
 
 		/// <inheritdoc />

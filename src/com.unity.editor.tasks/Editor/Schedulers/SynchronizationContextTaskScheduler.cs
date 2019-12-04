@@ -15,10 +15,10 @@ using System.Threading.Tasks;
 namespace Unity.Editor.Tasks
 {
 	/// <summary>Provides a task scheduler that targets a specific SynchronizationContext.</summary>
-	public sealed class SynchronizationContextTaskScheduler : TaskScheduler
+	public sealed class SynchronizationContextTaskScheduler : TaskScheduler, IDisposable
 	{
 		/// <summary>The target context under which to execute the queued tasks.</summary>
-		private readonly SynchronizationContext context;
+		public SynchronizationContext Context { get; }
 		private readonly ConcurrentDictionary<Task, byte> tasks = new ConcurrentDictionary<Task, byte>();
 
 		/// <summary>Initializes an instance of the SynchronizationContextTaskScheduler class.</summary>
@@ -32,15 +32,17 @@ namespace Unity.Editor.Tasks
 		public SynchronizationContextTaskScheduler(SynchronizationContext context)
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));
-			this.context = context;
+			this.Context = context;
 		}
 
 		/// <summary>Queues a task to the scheduler for execution.</summary>
 		/// <param name="task">The Task to queue.</param>
 		protected override void QueueTask(Task task)
 		{
+			if (disposed) return;
+
 			tasks.TryAdd(task, 0);
-			context.Post(delegate(object state) {
+			Context.Post(delegate(object state) {
 				var t = (Task)state;
 				tasks.TryRemove(t, out var _);
 				TryExecuteTask(t);
@@ -51,11 +53,21 @@ namespace Unity.Editor.Tasks
 		/// <param name="task">The task to be executed.</param>
 		/// <param name="taskWasPreviouslyQueued">Ignored.</param>
 		/// <returns>Whether the task could be executed.</returns>
-		protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued) => context == SynchronizationContext.Current && TryExecuteTask(task);
+		protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
+		{
+			if (disposed) return false;
+			return Context == SynchronizationContext.Current && TryExecuteTask(task);
+		} 
 
 		protected override IEnumerable<Task> GetScheduledTasks() => tasks.Keys;
 
 		/// <summary>Gets the maximum concurrency level supported by this scheduler.</summary>
-		public override int MaximumConcurrencyLevel { get { return 1; } }
+		public override int MaximumConcurrencyLevel { get; } = 1;
+
+		private bool disposed;
+		public void Dispose()
+		{
+			disposed = true;
+		}
 	}
 }

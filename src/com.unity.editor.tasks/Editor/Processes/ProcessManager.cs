@@ -11,6 +11,7 @@ using System.Text;
 namespace Unity.Editor.Tasks
 {
 	using System;
+	using System.Threading;
 	using Internal.IO;
 
 	/// <summary>
@@ -30,6 +31,22 @@ namespace Unity.Editor.Tasks
 		}
 
 		/// <inheritdoc />
+		public virtual T Configure<T>(T processTask, ProcessStartInfo startInfo, string workingDirectory = null)
+			where T : IProcessTask
+		{
+			processTask.ProcessEnvironment.Configure(startInfo, workingDirectory);
+
+			processTask.Configure(this, startInfo);
+
+			processTask.OnStartProcess += p => processes.Add(p);
+			processTask.OnEndProcess += p => {
+				if (processes.Contains(p))
+					processes.Remove(p);
+			};
+			return processTask;
+		}
+
+		/// <inheritdoc />
 		public T Configure<T>(T processTask, string workingDirectory = null)
 				where T : IProcessTask
 		{
@@ -43,18 +60,24 @@ namespace Unity.Editor.Tasks
 				StandardErrorEncoding = Encoding.UTF8
 			};
 
-			processTask.ProcessEnvironment.Configure(startInfo, workingDirectory);
 
 			startInfo.FileName = processTask.ProcessName.ToSPath().ToString();
 			startInfo.Arguments = processTask.ProcessArguments;
-			processTask.Configure(startInfo);
-			processTask.OnStartProcess += p => processes.Add(p);
-			processTask.OnEndProcess += p => {
-				if (processes.Contains(p))
-					processes.Remove(p);
-			};
-			return processTask;
+			return Configure(processTask, startInfo, workingDirectory);
 		}
+
+		public virtual BaseProcessWrapper WrapProcess(string taskName,
+			ProcessStartInfo startInfo,
+			IOutputProcessor outputProcessor,
+			Action onStart,
+			Action onEnd,
+			Action<Exception, string> onError,
+			CancellationToken token)
+		{
+			return new ProcessWrapper(taskName, startInfo, outputProcessor,
+				onStart, onEnd, onError, token);
+		}
+
 
 		/// <inheritdoc />
 		public void Stop()

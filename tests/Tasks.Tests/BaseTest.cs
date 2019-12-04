@@ -20,6 +20,9 @@ namespace BaseTests
 			LogHelper.TracingEnabled = TracingEnabled;
 		}
 
+		internal TestData StartTest([CallerMemberName] string testName = "test") => new TestData(testName, new LogFacade(testName, new NUnitLogAdapter(), TracingEnabled));
+
+
 		protected void StartTest(out Stopwatch watch, out ILogging logger, out ITaskManager taskManager, [CallerMemberName] string testName = "test")
 		{
 			SetupTest(out watch, out logger, out taskManager, testName);

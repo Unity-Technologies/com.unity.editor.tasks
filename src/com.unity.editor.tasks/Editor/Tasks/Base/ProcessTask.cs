@@ -32,10 +32,12 @@ namespace Unity.Editor.Tasks
 		/// Event raised when the process is started.
 		/// </summary>
 		event Action<IProcess> OnStartProcess;
+
 		/// <summary>
 		/// Stops the process.
 		/// </summary>
 		void Stop();
+
 		/// <summary>
 		/// The StandardInput of the process is redirected to this stream writer.
 		/// </summary>
@@ -55,7 +57,7 @@ namespace Unity.Editor.Tasks
 		/// <summary>
 		/// The underlying process object.
 		/// </summary>
-		Process Process { get; set; }
+		BaseProcessWrapper Wrapper { get; }
 	}
 
 	/// <summary>
@@ -70,12 +72,9 @@ namespace Unity.Editor.Tasks
 		IProcessEnvironment ProcessEnvironment { get; }
 
 		/// <summary>
-		/// Helper that configures the underlying process object with the passed in <paramref name="psi"/> object,
-		/// and optionally sets an output processor, if one wasn't set in the constructor, or if a subclass wants
-		/// to handle it here instead.
+		/// Configures the underlying process object.
 		/// </summary>
-		/// <param name="psi">The StartInfo object for the process.</param>
-		void Configure(ProcessStartInfo psi);
+		void Configure(IProcessManager processManager, ProcessStartInfo startInfo);
 
 		/// <summary>
 		/// An overloaded <see cref="ITask.Start" /> method that returns IProcessTask, to make it easier to chain.
@@ -90,6 +89,7 @@ namespace Unity.Editor.Tasks
 		/// need to run a background process that won't be stopped if the domain goes down, call this.
 		/// </summary>
 		void Detach();
+
 		bool LongRunning { get; }
 	}
 
@@ -100,13 +100,14 @@ namespace Unity.Editor.Tasks
 	public interface IProcessTask<T> : ITask<T>, IProcessTask
 	{
 		/// <summary>
-		/// Helper that configures the underlying process object with the passed in <paramref name="psi"/> object,
-		/// and optionally sets an output processor, if one wasn't set in the constructor, or if a subclass wants
-		/// to handle it here instead.
+		/// Set the underlying process object,
+		/// and optionally sets an output processor, if one wasn't set in the constructor or set in some
+		/// other way. The process manager is responsible for creating and configuring the process object.
 		/// </summary>
-		/// <param name="psi">The StartInfo object for the process.</param>
+		/// <param name="processManager"></param>
+		/// <param name="startInfo"></param>
 		/// <param name="processor">The output processor to use to process the process output.</param>
-		void Configure(ProcessStartInfo psi, IOutputProcessor<T> processor = null);
+		void Configure(IProcessManager processManager, ProcessStartInfo startInfo, IOutputProcessor<T> processor = null);
 
 		/// <summary>
 		/// An overloaded <see cref="ITask.Start" /> method that returns IProcessTask, to make it easier to chain.
@@ -131,13 +132,14 @@ namespace Unity.Editor.Tasks
 	public interface IProcessTask<TData, T> : ITask<TData, T>, IProcessTask
 	{
 		/// <summary>
-		/// Helper that configures the underlying process object with the passed in <paramref name="psi"/> object,
-		/// and optionally sets an output processor, if one wasn't set in the constructor, or if a subclass wants
-		/// to handle it here instead.
+		/// Set the underlying process object,
+		/// and optionally sets an output processor, if one wasn't set in the constructor or set in some
+		/// other way. The process manager is responsible for creating and configuring the process object.
 		/// </summary>
-		/// <param name="psi">The StartInfo object for the process.</param>
+		/// <param name="processManager"></param>
+		/// <param name="startInfo"></param>
 		/// <param name="processor">The output processor to use to process the process output.</param>
-		void Configure(ProcessStartInfo psi, IOutputProcessor<TData, T> processor = null);
+		void Configure(IProcessManager processManager, ProcessStartInfo startInfo, IOutputProcessor<TData, T> processor = null);
 
 		/// <summary>
 		/// An overloaded <see cref="ITask.Start" /> method that returns IProcessTask, to make it easier to chain.
@@ -154,7 +156,7 @@ namespace Unity.Editor.Tasks
 	public class ProcessTask<T> : TaskBase<T>, IProcessTask<T>, IDisposable
 	{
 		private Exception thrownException = null;
-		private BaseProcessWrapper wrapper;
+		private T result;
 
 		/// <inheritdoc />
 		public event Action<IProcess> OnEndProcess;
@@ -178,8 +180,8 @@ namespace Unity.Editor.Tasks
 			string executable = null,
 			string arguments = null,
 			IOutputProcessor<T> outputProcessor = null
-			)
-			 : this(taskManager, taskManager?.Token ?? default, processEnvironment, executable, arguments, outputProcessor)
+		)
+			: this(taskManager, taskManager?.Token ?? default, processEnvironment, executable, arguments, outputProcessor)
 		{}
 
 		/// <summary>
@@ -197,8 +199,8 @@ namespace Unity.Editor.Tasks
 			string executable = null,
 			string arguments = null,
 			IOutputProcessor<T> outputProcessor = null
-			)
-			 : base(taskManager, token)
+		)
+			: base(taskManager, token)
 		{
 			OutputProcessor = outputProcessor;
 			ProcessEnvironment = processEnvironment;
@@ -206,22 +208,33 @@ namespace Unity.Editor.Tasks
 			ProcessName = executable;
 		}
 
-		/// <inheritdoc />
-		public virtual void Configure(ProcessStartInfo psi, IOutputProcessor<T> processor = null)
+		/// <summary>
+		/// Set the underlying process object,
+		/// and optionally sets an output processor, if one wasn't set in the constructor or set in some
+		/// other way. The process manager is responsible for creating and configuring the process object via
+		/// a call to <see cref="IProcessManager.WrapProcess" />.
+		/// </summary>
+		public virtual void Configure(IProcessManager processManager, ProcessStartInfo startInfo, IOutputProcessor<T> processor = null)
 		{
 			OutputProcessor = processor ?? OutputProcessor;
 			ConfigureOutputProcessor();
 
 			this.EnsureNotNull(OutputProcessor, nameof(OutputProcessor));
 
-			Process = new Process { StartInfo = psi, EnableRaisingEvents = true };
-			ProcessName = psi.FileName;
-			Name = ProcessArguments;
+			Wrapper = processManager.WrapProcess(Name, startInfo, OutputProcessor,
+				RaiseOnStartProcess,
+				HandleOnEndProcess,
+				(ex, error) => {
+					thrownException = ex;
+					Errors = error;
+				},
+				Token);
+
 			OutputProcessor.OnEntry += s => OnOutput?.Invoke(s);
 		}
 
 		/// <inheritdoc />
-		void IProcessTask.Configure(ProcessStartInfo psi) => Configure(psi, null);
+		void IProcessTask.Configure(IProcessManager processManager, ProcessStartInfo process) => Configure(processManager, process, null);
 
 		/// <inheritdoc />
 		public new IProcessTask<T> Start()
@@ -239,12 +252,12 @@ namespace Unity.Editor.Tasks
 		/// <inheritdoc />
 		public void Stop()
 		{
-			wrapper?.Stop();
+			Wrapper?.Stop();
 		}
 
 		public virtual void Detach()
 		{
-			wrapper?.Detach();
+			Wrapper?.Detach();
 		}
 
 		/// <inheritdoc />
@@ -253,13 +266,18 @@ namespace Unity.Editor.Tasks
 			return $"{Task?.Id ?? -1} {Name} {GetType()} {ProcessName} {ProcessArguments}";
 		}
 
+		protected override void RaiseOnEnd(T data)
+		{
+			Dispose();
+			base.RaiseOnEnd(data);
+		}
+
 		/// <summary>
 		/// Called when the process has been started.
 		/// </summary>
 		protected virtual void RaiseOnStartProcess()
 		{
 			OnStartProcess?.Invoke(this);
-			OnStartProcess = null;
 		}
 
 		/// <summary>
@@ -268,80 +286,47 @@ namespace Unity.Editor.Tasks
 		protected virtual void RaiseOnEndProcess()
 		{
 			OnEndProcess?.Invoke(this);
-			OnEndProcess = null;
 		}
 
 		/// <inheritdoc />
 		protected virtual void ConfigureOutputProcessor()
 		{}
 
-		protected virtual BaseProcessWrapper GetWrapper(string taskName,
-			Process process,
-			IOutputProcessor outputProcessor,
-			bool longRunning,
-			Action onStart,
-			Action onEnd,
-			Action<Exception, string> onError,
-			CancellationToken token)
-		{
-			return new ProcessWrapper(taskName, process, outputProcessor,
-				longRunning, onStart, onEnd, onError, token);
-		}
-
 		/// <inheritdoc />
 		protected override T RunWithReturn(bool success)
 		{
-			var result = base.RunWithReturn(success);
+			result = base.RunWithReturn(success);
+			Wrapper.Run();
+			return result;
+		}
 
+		private void HandleOnEndProcess()
+		{
 			try
 			{
-				wrapper = GetWrapper(Name, Process, OutputProcessor, LongRunning,
-					RaiseOnStartProcess,
-					() => {
-						try
-						{
-							if (OutputProcessor != null)
-								result = OutputProcessor.Result;
+				if (OutputProcessor != null)
+					result = OutputProcessor.Result;
 
-							if (typeof(T) == typeof(string) && result == null && !Process.StartInfo.CreateNoWindow)
-								result = (T)(object)"Process running";
+				if (typeof(T) == typeof(string) && result == null && !Wrapper.StartInfo.CreateNoWindow)
+					result = (T)(object)"Process running";
 
-							if (!String.IsNullOrEmpty(Errors))
-								RaiseOnErrorData();
-						}
-						catch (Exception ex)
-						{
-							if (thrownException == null)
-								thrownException = new ProcessException(ex.Message, ex);
-							else
-								thrownException = new ProcessException(thrownException.GetExceptionMessage(), ex);
-						}
-
-						if (thrownException != null && !RaiseFaultHandlers(thrownException))
-						{
-							RaiseOnEndProcess();
-							Exception.Rethrow();
-						}
-						RaiseOnEndProcess();
-					},
-					(ex, error) => {
-						thrownException = ex;
-						Errors = error;
-					},
-					Token);
-
+				if (!String.IsNullOrEmpty(Errors))
+					RaiseOnErrorData();
 			}
 			catch (Exception ex)
 			{
-				if (!RaiseFaultHandlers(ex))
-				{
-					Exception.Rethrow();
-				}
+				if (thrownException == null)
+					thrownException = new ProcessException(ex.Message, ex);
+				else
+					thrownException = new ProcessException(thrownException.GetExceptionMessage(), ex);
 			}
 
-			wrapper.Run();
-
-			return result;
+			if (thrownException != null && !RaiseFaultHandlers(thrownException))
+			{
+				RaiseOnEndProcess();
+				Exception.Rethrow();
+			}
+			RaiseOnEndProcess();
 		}
 
 		protected virtual void RaiseOnErrorData()
@@ -350,13 +335,15 @@ namespace Unity.Editor.Tasks
 		}
 
 		private bool disposed;
+
 		/// <inheritdoc />
 		protected virtual void Dispose(bool disposing)
 		{
 			if (disposed) return;
 			if (disposing)
 			{
-				wrapper?.Dispose();
+				Wrapper?.Dispose();
+				OnStartProcess = OnEndProcess = null;
 				disposed = true;
 			}
 		}
@@ -368,16 +355,16 @@ namespace Unity.Editor.Tasks
 			GC.SuppressFinalize(this);
 		}
 
+		public BaseProcessWrapper Wrapper { get; private set; }
 		/// <inheritdoc />
 		public IProcessEnvironment ProcessEnvironment { get; private set; }
 		/// <inheritdoc />
-		public Process Process { get; set; }
 		/// <inheritdoc />
-		public int ProcessId => wrapper.ProcessId;
+		public int ProcessId => Wrapper.ProcessId;
 		/// <inheritdoc />
-		public override bool Successful => base.Successful && wrapper.ExitCode == 0;
+		public override bool Successful => base.Successful && Wrapper.ExitCode == 0;
 		/// <inheritdoc />
-		public StreamWriter StandardInput => wrapper?.Input;
+		public StreamWriter StandardInput => Wrapper?.Input;
 		/// <inheritdoc />
 		public virtual string ProcessName { get; protected set; }
 		/// <inheritdoc />
@@ -397,7 +384,7 @@ namespace Unity.Editor.Tasks
 	public class ProcessTaskWithListOutput<T> : DataTaskBase<T, List<T>>, IProcessTask<T, List<T>>, IDisposable
 	{
 		private Exception thrownException = null;
-		private BaseProcessWrapper wrapper;
+		private List<T> result;
 
 		/// <inheritdoc />
 		public event Action<IProcess> OnEndProcess;
@@ -422,7 +409,7 @@ namespace Unity.Editor.Tasks
 			string executable = null,
 			string arguments = null,
 			IOutputProcessor<T, List<T>> outputProcessor = null)
-			 : this(taskManager, taskManager?.Token ?? default, processEnvironment, executable, arguments, outputProcessor)
+			: this(taskManager, taskManager?.Token ?? default, processEnvironment, executable, arguments, outputProcessor)
 		{}
 
 		/// <summary>
@@ -441,7 +428,7 @@ namespace Unity.Editor.Tasks
 			string executable = null,
 			string arguments = null,
 			IOutputProcessor<T, List<T>> outputProcessor = null)
-			 : base(taskManager, token)
+			: base(taskManager, token)
 		{
 			this.OutputProcessor = outputProcessor;
 			ProcessEnvironment = processEnvironment;
@@ -449,22 +436,33 @@ namespace Unity.Editor.Tasks
 			ProcessName = executable;
 		}
 
-		/// <inheritdoc />
-		public virtual void Configure(ProcessStartInfo psi, IOutputProcessor<T, List<T>> processor = null)
+		/// <summary>
+		/// Set the underlying process object,
+		/// and optionally sets an output processor, if one wasn't set in the constructor or set in some
+		/// other way. The process manager is responsible for creating and configuring the process object via
+		/// a call to <see cref="IProcessManager.WrapProcess" />.
+		/// </summary>
+		public virtual void Configure(IProcessManager processManager, ProcessStartInfo startInfo, IOutputProcessor<T, List<T>> processor = null)
 		{
-			psi.EnsureNotNull(nameof(psi));
-
 			OutputProcessor = processor ?? OutputProcessor;
-
 			ConfigureOutputProcessor();
 
-			Process = new Process { StartInfo = psi, EnableRaisingEvents = true };
-			ProcessName = psi.FileName;
+			this.EnsureNotNull(OutputProcessor, nameof(OutputProcessor));
+
+			Wrapper = processManager.WrapProcess(Name, startInfo, OutputProcessor,
+				RaiseOnStartProcess,
+				HandleOnEndProcess,
+				(ex, error) => {
+					thrownException = ex;
+					Errors = error;
+				},
+				Token);
+
 			OutputProcessor.OnEntry += s => OnOutput?.Invoke(s);
 		}
 
 		/// <inheritdoc />
-		void IProcessTask.Configure(ProcessStartInfo psi) => Configure(psi, null);
+		void IProcessTask.Configure(IProcessManager processManager, ProcessStartInfo process) => Configure(processManager, process, null);
 
 		IProcessTask IProcessTask.Start()
 		{
@@ -482,13 +480,13 @@ namespace Unity.Editor.Tasks
 		/// <inheritdoc />
 		public void Stop()
 		{
-			wrapper?.Stop();
+			Wrapper?.Stop();
 		}
 
 		/// <inheritdoc />
 		public virtual void Detach()
 		{
-			wrapper?.Detach();
+			Wrapper?.Detach();
 		}
 
 		/// <inheritdoc />
@@ -503,7 +501,6 @@ namespace Unity.Editor.Tasks
 		protected virtual void RaiseOnStartProcess()
 		{
 			OnStartProcess?.Invoke(this);
-			OnStartProcess = null;
 		}
 
 		/// <summary>
@@ -512,7 +509,6 @@ namespace Unity.Editor.Tasks
 		protected virtual void RaiseOnEndProcess()
 		{
 			OnEndProcess?.Invoke(this);
-			OnEndProcess = null;
 		}
 
 		/// <inheritdoc />
@@ -526,82 +522,50 @@ namespace Unity.Editor.Tasks
 		}
 
 		/// <inheritdoc />
-		protected virtual BaseProcessWrapper GetWrapper(string taskName,
-			Process process,
-			IOutputProcessor<T, List<T>> outputProcessor,
-			bool longRunning,
-			Action onStart,
-			Action onEnd,
-			Action<Exception, string> onError,
-			CancellationToken token)
-		{
-			return new ProcessWrapper(taskName, process, outputProcessor,
-				longRunning, onStart, onEnd, onError, token);
-		}
-
-		/// <inheritdoc />
 		protected override List<T> RunWithReturn(bool success)
 		{
 			var result = base.RunWithReturn(success);
-
-			try
-			{
-				wrapper = GetWrapper(Name, Process, OutputProcessor, LongRunning,
-					onStart: RaiseOnStartProcess,
-					onEnd: () => {
-						try
-						{
-							if (OutputProcessor != null)
-								result = OutputProcessor.Result;
-							if (result == null)
-								result = new List<T>();
-
-							if (!String.IsNullOrEmpty(Errors))
-								OnErrorData?.Invoke(Errors);
-						}
-						catch (Exception ex)
-						{
-							if (thrownException == null)
-								thrownException = new ProcessException(ex.Message, ex);
-							else
-								thrownException = new ProcessException(thrownException.GetExceptionMessage(), ex);
-						}
-
-						if (thrownException != null && !RaiseFaultHandlers(thrownException))
-						{
-							RaiseOnEndProcess();
-							Exception.Rethrow();
-						}
-						RaiseOnEndProcess();
-					},
-					onError: (ex, error) => {
-						thrownException = ex;
-						Errors = error;
-					},
-					token: Token);
-
-			}
-			catch (Exception ex)
-			{
-				if (!RaiseFaultHandlers(ex))
-				{
-					Exception.Rethrow();
-				}
-			}
-
-			wrapper.Run();
-
+			Wrapper.Run();
 			return result;
 		}
 
+		private void HandleOnEndProcess()
+		{
+			try
+			{
+				if (OutputProcessor != null)
+					result = OutputProcessor.Result;
+				if (result == null)
+					result = new List<T>();
+
+				if (!string.IsNullOrEmpty(Errors))
+					OnErrorData?.Invoke(Errors);
+			}
+			catch (Exception ex)
+			{
+				if (thrownException == null)
+					thrownException = new ProcessException(ex.Message, ex);
+				else
+					thrownException = new ProcessException(thrownException.GetExceptionMessage(), ex);
+			}
+
+			if (thrownException != null && !RaiseFaultHandlers(thrownException))
+			{
+				RaiseOnEndProcess();
+				Exception.Rethrow();
+			}
+			RaiseOnEndProcess();
+		}
+
 		private bool disposed;
+
 		/// <inheritdoc />
 		protected virtual void Dispose(bool disposing)
 		{
 			if (disposed) return;
 			if (disposing)
 			{
-				wrapper?.Dispose();
+				Wrapper?.Dispose();
 				disposed = true;
 			}
 		}
@@ -614,16 +578,16 @@ namespace Unity.Editor.Tasks
 		}
 
 
+		public BaseProcessWrapper Wrapper { get; private set; }
 		/// <inheritdoc />
 		public IProcessEnvironment ProcessEnvironment { get; private set; }
 		/// <inheritdoc />
-		public Process Process { get; set; }
 		/// <inheritdoc />
-		public int ProcessId => wrapper.ProcessId;
+		public int ProcessId => Wrapper.ProcessId;
 		/// <inheritdoc />
-		public override bool Successful => base.Successful && wrapper.ExitCode == 0;
+		public override bool Successful => base.Successful && Wrapper.ExitCode == 0;
 		/// <inheritdoc />
-		public StreamWriter StandardInput => wrapper?.Input;
+		public StreamWriter StandardInput => Wrapper?.Input;
 		/// <inheritdoc />
 		public virtual string ProcessName { get; protected set; }
 		/// <inheritdoc />

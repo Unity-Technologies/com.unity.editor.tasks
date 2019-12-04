@@ -3,10 +3,51 @@ using NUnit.Framework;
 
 namespace ProcessManagerTests
 {
+	using NSubstitute.Extensions;
 	using NUnit.Framework.Internal;
+	using System;
+	using System.Diagnostics;
+	using Unity.Editor.Tasks;
 
 	public partial class ProcessTaskTests
 	{
+		[Test]
+		public async Task CanRunProcess_()
+		{
+			using (var test = StartTest())
+			{
+				var task = new ProcessTask<string>(test.TaskManager,
+						test.ProcessManager.DefaultProcessEnvironment,
+						"where", "git", outputProcessor: new SimpleOutputProcessor())
+					.Configure(test.ProcessManager);
+
+				var ret = await task.StartAwait();
+				Assert.NotNull(ret);
+			}
+		}
+
+		[Test]
+		public async Task CanDetach_()
+		{
+			Process process = default;
+			using (var test = StartTest())
+			{
+				var task = new FirstNonNullLineProcessTask(test.TaskManager, test.ProcessManager,
+					TestApp, @"--sleep 1000 --data ""ok""");
+
+				task.OnStartProcess += p => {
+					process = ((ProcessWrapper)p.Wrapper).Process;
+					task.Detach();
+				};
+				var ret = await task.StartAwait();
+				Assert.Null(ret);
+				Assert.False(task.Wrapper.HasExited);
+			}
+
+			Assert.Throws<InvalidOperationException>(() => {
+				var i = process.HasExited;
+			});
+		}
 
 		[Test]
 		public async Task NestedProcessShouldChainCorrectly_()

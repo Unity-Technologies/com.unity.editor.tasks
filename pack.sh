@@ -66,6 +66,8 @@ dotnet pack --no-build --no-restore -c $CONFIGURATION $PUBLIC
 
 if [[ x"$UPM" == x"1" ]]; then
   powershell scripts/Pack-Upm.ps1
+elif [[ x"$OS" == x"Windows" ]]; then
+  powershell scripts/Pack-Npm.ps1
 else
   srcdir="$DIR/build/packages"
   targetdir="$DIR/upm-ci~/packages"
@@ -78,22 +80,29 @@ EOL
 
   pushd $srcdir >/dev/null 2>&1
   count=0
+  found=0
   for j in `ls -d *`; do
     pushd $j >/dev/null 2>&1
-    tgz="$(npm pack -q)"
-    mv -f $tgz $targetdir/$tgz
-    cp package.json $targetdir/$tgz.json
+    if [[ -e package.json ]]; then
+      tgz="$(npm pack -q)"
+      mv -f $tgz $targetdir/$tgz
+      cp package.json $targetdir/$tgz.json
+      found=1
+    fi
     popd >/dev/null 2>&1
 
     comma=""
     if [[ x"$count" == x"1" ]]; then comma=","; fi
-    json="$(cat $targetdir/$tgz.json)"
-    cat >>$targetdir/packages.json <<EOL
+
+    if [[ x"$found" == x"1" ]];then
+      json="$(cat $targetdir/$tgz.json)"
+      cat >>$targetdir/packages.json <<EOL
     ${comma}
     "${tgz}": ${json}
 EOL
 
-    count=1
+      count=1
+    fi
 
     echo "Created package $targetdir/$tgz"
   done

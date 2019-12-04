@@ -31,7 +31,7 @@
   </Target>
 
   <Target Name="EnumerateHelperBinaries" Returns="@(BinariesToCopy)">
-    <CreateItem Include="$(OutputPath)**\*.*" Exclude="$(OutputPath)$(AssemblyName)*;$(OutputPath)nunit*;$(OutputPath)*Test*;$(OutputPath)Castle*;$(OutputPath)Microsoft*;$(OutputPath)System.*;$(OutputPath)NSubstitute*">
+    <CreateItem Include="$(OutputPath)**\*.*" Exclude="$(OutputPath)$(AssemblyName)*;$(OutputPath)nunit*;$(OutputPath)*Test*;$(OutputPath)Castle*;$(OutputPath)Microsoft*;$(OutputPath)System.*;$(OutputPath)NSubstitute*;$(OutputPath)**\.vs\**">
       <Output TaskParameter="Include" ItemName="BinariesToCopy" />
     </CreateItem>
   </Target>

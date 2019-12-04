@@ -18,18 +18,19 @@ Remove-Item "$targetDir\*" -Force -ErrorAction SilentlyContinue
 New-Item -itemtype Directory -Path $targetDir -Force -ErrorAction SilentlyContinue
 
 Get-ChildItem -Directory $srcDir | % {
+    if (Test-Path "$srcDir\$($_)\package.json") {
+        try {
+            Push-Location (Join-Path $srcDir $_.Name)
+            $package = Invoke-Command -Fatal { & npm pack -q }
+            $package = "$package".Trim()
+            $tgt = Join-Path $targetDir $package
+            Move-Item $package $tgt -Force
+            Copy-Item "package.json" (Join-Path $targetDir "$package.json") -Force
 
-    try {
-        Push-Location (Join-Path $srcDir $_.Name)
-        $package = Invoke-Command -Fatal { & npm pack -qf }
-        $package = "$package".Trim()
-        $tgt = Join-Path $targetDir $package
-        Move-Item $package $tgt -Force 
-        Copy-Item "package.json" (Join-Path $targetDir "$package.json") -Force
-
-        Write-Output "Created package $tgt\$package"
-    } finally {
-        Pop-Location
+            Write-Output "Created package $tgt\$package"
+        } finally {
+            Pop-Location
+        }
     }
 }
 
