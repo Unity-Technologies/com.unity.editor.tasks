@@ -4,6 +4,13 @@
 
 ## [VERSION] - DATE
 
+This release has a number of interface changes and new types.
+
+- Add more extension points into process manager.
+- Fix threading issues.
+
+## [1.1.17] - 2019-12-03
+
 - Fixes for running processes, catching exceptions and producing output
 
 ## [1.1.16] - 2019-12-01
