@@ -4,6 +4,25 @@
 
 ## [VERSION] - DATE
 
+- Refactor task extension methods to be easier to use. Add .net/mono process tasks
+
+`Then` and `ThenInUI` now take delegates that either have just the data, or success+exception+data, so
+it's easier to chain tasks without having to ignore arguments. Since `Then` methods by default only run the
+task if the previous one succeeded, there's no reason to make the `success` argument mandatory (it will mostly
+always be true).
+
+Also add `ThenInExclusive` extension methods, because `Then` methods by default run in the Concurrent scheduler,
+so it makes sense to have a method for the exclusive one, given that there's already one for the UI scheduler.
+
+This also adds `TaskManager.With` extension methods that return `ITask` instances in the same way as `Then` methods.
+This makes it easy to create tasks without invoking the constructors explicitely, with the syntax
+`TaskManager.With(DoSomething).Then(DoSomethingElse)`.
+
+Extension methods that wrap async/await tasks (TPLTask objects) are now called `ThenAsync`, to make sure
+they don't get confused with with overloads that create `Func<T>` tasks.
+
+## [1.2.0] - 2019-12-04
+
 This release has a number of interface changes and new types.
 
 - Add more extension points into process manager.
