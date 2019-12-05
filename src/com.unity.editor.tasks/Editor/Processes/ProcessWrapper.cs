@@ -38,13 +38,12 @@ namespace Unity.Editor.Tasks
 		public void Dispose()
 		{
 			Dispose(true);
-			// TODO: uncomment the following line if the finalizer is overridden above.
-			// GC.SuppressFinalize(this);
+			GC.SuppressFinalize(this);
 		}
 		#endregion
 	}
 
-	public class ProcessWrapper : BaseProcessWrapper, IDisposable
+	public class ProcessWrapper : BaseProcessWrapper
 	{
 		private readonly List<string> errors = new List<string>();
 		private readonly Action onEnd;
@@ -237,6 +236,8 @@ namespace Unity.Editor.Tasks
 				onError?.Invoke(thrownException, string.Join(Environment.NewLine, errors.ToArray()));
 
 			onEnd?.Invoke();
+
+			Dispose();
 		}
 
 		public override void Stop(bool dontWait = false)
@@ -297,15 +298,15 @@ namespace Unity.Editor.Tasks
 			if (disposed) return;
 			if (disposing)
 			{
-					try
-					{
-						if (StartInfo.RedirectStandardError)
-							Process.CancelErrorRead();
-						if (StartInfo.RedirectStandardOutput)
-							Process.CancelOutputRead();
-					}
-					catch {}
-					Process.Dispose();
+				try
+				{
+					if (StartInfo.RedirectStandardError)
+						Process.CancelErrorRead();
+					if (StartInfo.RedirectStandardOutput)
+						Process.CancelOutputRead();
+				}
+				catch { }
+				Process.Dispose();
 				Input?.Dispose();
 				stopEvent.Dispose();
 				disposed = true;

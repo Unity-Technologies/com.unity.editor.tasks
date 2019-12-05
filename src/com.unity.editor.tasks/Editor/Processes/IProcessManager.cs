@@ -15,8 +15,29 @@ namespace Unity.Editor.Tasks
 		/// a ProcessTask.
 		/// </summary>
 		T Configure<T>(T processTask, string workingDirectory = null) where T : IProcessTask;
-		T Configure<T>(T processTask, ProcessStartInfo startInfo, string workingDirectory = null) where T : IProcessTask;
 
+		/// <summary>
+		/// Helper that configures all the necessary parts in order to run a process. This must be called before running
+		/// a ProcessTask.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="processTask"></param>
+		/// <param name="startInfo"></param>
+		/// <returns></returns>
+		T Configure<T>(T processTask, ProcessStartInfo startInfo) where T : IProcessTask;
+
+		/// <summary>
+		/// Helper that creates a process wrapper for the given process information. This is called by
+		/// ProcessTask during the Configure step.
+		/// </summary>
+		/// <param name="taskName"></param>
+		/// <param name="process"></param>
+		/// <param name="outputProcessor"></param>
+		/// <param name="onStart"></param>
+		/// <param name="onEnd"></param>
+		/// <param name="onError"></param>
+		/// <param name="token"></param>
+		/// <returns></returns>
 		BaseProcessWrapper WrapProcess(string taskName,
 			ProcessStartInfo process,
 			IOutputProcessor outputProcessor,

@@ -26,7 +26,9 @@ namespace BaseTests
 		private LogAdapterBase existingLogger;
 		private bool existingTracing;
 
-		public BaseTest()
+        internal TestData StartTest([CallerMemberName] string testName = "test") => new TestData(testName, new LogFacade(testName, new UnityLogAdapter(), false));
+
+        public BaseTest()
 		{
 			// set up the logger so it doesn't write exceptions to the unity log, the test runner doesn't like it
 			existingLogger = LogHelper.LogAdapter;
@@ -40,61 +42,6 @@ namespace BaseTests
 			LogHelper.LogAdapter = existingLogger;
 			LogHelper.TracingEnabled = existingTracing;
 		}
-
-		private static void SetupTest(out Stopwatch watch, out ILogging logger, out ITaskManager taskManager, String testName)
-		{
-			taskManager = new TaskManager().Initialize();
-
-			logger = new LogFacade(testName, new UnityLogAdapter(), false);
-			watch = new Stopwatch();
-		}
-
-		protected void StartTest(out Stopwatch watch, out ILogging logger, out ITaskManager taskManager, [CallerMemberName] string testName = "test")
-		{
-			SetupTest(out watch, out logger, out taskManager, testName);
-
-			logger.Trace("START");
-			watch.Start();
-		}
-
-		internal void StartTest(out Stopwatch watch, out ILogging logger, out ITaskManager taskManager,
-			out SPath testPath, out IEnvironment environment, out IProcessManager processManager,
-			[CallerMemberName] string testName = "test")
-		{
-			SetupTest(out watch, out logger, out taskManager, testName);
-
-			testPath = SPath.CreateTempDirectory(testName);
-
-			environment = new UnityEnvironment(testName);
-			environment.Initialize(testPath.ToString(SlashMode.Forward),
-				TheEnvironment.instance.Environment.UnityVersion,
-				TheEnvironment.instance.Environment.UnityApplication,
-				TheEnvironment.instance.Environment.UnityApplicationContents);
-			processManager = new ProcessManager(environment);
-
-			logger.Trace("START");
-			watch.Start();
-		}
-
-        protected void StopTest(Stopwatch watch, ILogging logger, ITaskManager taskManager)
-		{
-			watch.Stop();
-			logger.Trace($"END:{watch.ElapsedMilliseconds}ms");
-			taskManager.Dispose();
-		}
-
-        internal void StopTest(Stopwatch watch,
-	        ILogging logger,
-	        ITaskManager taskManager,
-	        SPath testPath,
-	        IEnvironment environment,
-	        IProcessManager processManager,
-	        [CallerMemberName] string testName = "test")
-        {
-	        StopTest(watch, logger, taskManager);
-	        testPath.DeleteIfExists();
-	        logger.Trace($"STOP {testName}");
-        }
 
 		internal SPath? testApp;
 

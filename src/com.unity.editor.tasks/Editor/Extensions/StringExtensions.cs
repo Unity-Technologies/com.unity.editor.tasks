@@ -12,7 +12,7 @@ using System.Linq;
 
 namespace Unity.Editor.Tasks.Extensions
 {
-		public static class ArrayExtensions
+	public static class ArrayExtensions
 	{
 		public static string Join<T>(this T[] arr, string separator = ",")
 		{
@@ -146,6 +146,15 @@ namespace Unity.Editor.Tasks.Extensions
 
 			return s.Substring(0, lastIndex);
 		}
-	}
 
+		public static string InQuotes(this string str)
+		{
+			if (str == null) return "\"\"";
+			var needsStartQuote = !str.StartsWith("\"");
+			var needsEndQuote = !str.EndsWith("\"");
+			if (needsStartQuote) str = "\"" + str;
+			if (needsEndQuote) str += "\"";
+			return str;
+		}
+	}
 }

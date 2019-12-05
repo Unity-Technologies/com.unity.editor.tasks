@@ -23,16 +23,17 @@ namespace BaseTests
 		public readonly ITaskManager TaskManager;
 		public readonly IEnvironment Environment;
 		public readonly IProcessManager ProcessManager;
+		private readonly CancellationTokenSource cts = new CancellationTokenSource();
 
 		public TestData(string testName, ILogging logger)
 		{
 			TestName = testName;
 			Logger = logger;
 			Watch = new Stopwatch();
-
 			TestPath = SPath.CreateTempDirectory(testName);
-
 			TaskManager = new TaskManager();
+			TaskManager.Token.Register(cts.Cancel);
+
 			try
 			{
 				TaskManager.Initialize();
@@ -41,25 +42,58 @@ namespace BaseTests
 			{
 				// we're on the nunit sync context, which can't be used to create a task scheduler
 				// so use a different context as the main thread. The test won't run on the main nunit thread
-				TaskManager.Initialize(new MainThreadSynchronizationContext(TaskManager.Token));
+				TaskManager.Initialize(new MainThreadSynchronizationContext(cts.Token));
 			}
 
-			Environment = new UnityEnvironment(testName).Initialize(TestPath.ToString(SlashMode.Forward),
-				TestPath.ToString(SlashMode.Forward), TestPath.ToString(SlashMode.Forward));
+			Environment = new UnityEnvironment(testName);
+			InitializeEnvironment();
 			ProcessManager = new ProcessManager(Environment);
 
 			Logger.Trace($"START {testName}");
 			Watch.Start();
 		}
 
+		private void InitializeEnvironment()
+		{
+			var projectPath = TestPath.Combine("project").EnsureDirectoryExists();
+
+#if UNITY_EDITOR
+			Environment.Initialize(projectPath, TheEnvironment.instance.Environment.UnityVersion, TheEnvironment.instance.Environment.UnityApplication, TheEnvironment.instance.Environment.UnityApplicationContents);
+			return;
+#endif
+
+			SPath unityPath, unityContentsPath;
+			unityPath = CurrentExecutionDirectory;
+
+			while (!unityPath.IsEmpty && !unityPath.DirectoryExists(".Editor"))
+				unityPath = unityPath.Parent;
+
+			if (!unityPath.IsEmpty)
+			{
+				unityPath = unityPath.Combine(".Editor");
+				unityContentsPath = unityPath.Combine("Data");
+			}
+			else
+			{
+				unityPath = unityContentsPath = SPath.Default;
+			}
+
+			Environment.Initialize(projectPath, "2019.2", unityPath, unityContentsPath);
+		}
+
 		public void Dispose()
 		{
 			Watch.Stop();
-			TaskManager.Dispose();
+
+			ProcessManager.Dispose();
 			if (SynchronizationContext.Current is IMainThreadSynchronizationContext ourContext)
 				ourContext.Dispose();
+
+			TaskManager.Dispose();
 			Logger.Trace($"STOP {TestName} :{Watch.ElapsedMilliseconds}ms");
 		}
+
+		internal SPath CurrentExecutionDirectory => System.Reflection.Assembly.GetExecutingAssembly().Location.ToSPath().Parent;
 	}
 
 	public partial class BaseTest

@@ -31,78 +31,83 @@ namespace ThreadingTests
 		[CustomUnityTest]
 		public IEnumerator GetFirstStartableTask_ReturnsNullWhenItsAlreadyStarted()
 		{
-			StartTest(out var watch, out var logger, out var taskManager);
+			using (var test = StartTest())
+			{
 
-			var task = new ActionTask(taskManager, () => { });
 
-			// wait for the tasks to finish
-			foreach (var frame in StartAndWaitForCompletion(task)) yield return frame;
+				var task = new ActionTask(test.TaskManager, () => { });
 
-			var task2 = new TestActionTask(taskManager, _ => { });
-			var task3 = new TestActionTask(taskManager, _ => { });
+				// wait for the tasks to finish
+				foreach (var frame in StartAndWaitForCompletion(task)) yield return frame;
 
-			task.Then(task2).Then(task3);
+				var task2 = new TestActionTask(test.TaskManager, _ => { });
+				var task3 = new TestActionTask(test.TaskManager, _ => { });
 
-			var top = task3.Test_GetFirstStartableTask();
+				task.Then(task2).Then(task3);
 
-			Assert.AreSame(null, top);
+				var top = task3.Test_GetFirstStartableTask();
 
-			StopTest(watch, logger, taskManager);
+				Assert.AreSame(null, top);
+
+			}
 		}
 
 		[Test]
 		public void GetFirstStartableTask_ReturnsTopTaskWhenNotStarted()
 		{
-			StartTest(out var watch, out var logger, out var taskManager);
+			using (var test = StartTest())
+			{
 
-			var task1 = new ActionTask(taskManager, () => { });
-			var task2 = new TestActionTask(taskManager, _ => { });
-			var task3 = new TestActionTask(taskManager, _ => { });
+				var task1 = new ActionTask(test.TaskManager, () => { });
+				var task2 = new TestActionTask(test.TaskManager, _ => { });
+				var task3 = new TestActionTask(test.TaskManager, _ => { });
 
-			task1.Then(task2).Then(task3);
+				task1.Then(task2).Then(task3);
 
-			var top = task3.Test_GetFirstStartableTask();
-			Assert.AreSame(task1, top);
+				var top = task3.Test_GetFirstStartableTask();
+				Assert.AreSame(task1, top);
 
-			StopTest(watch, logger, taskManager);
+			}
 		}
 
 		[CustomUnityTest]
 		public IEnumerator GetTopOfChain_ReturnsTopMostInCreatedState()
 		{
-			StartTest(out var watch, out var logger, out var taskManager);
+			using (var test = StartTest())
+			{
 
-			var task = new ActionTask(taskManager, () => { });
+				var task = new ActionTask(test.TaskManager, () => { });
 
-			// wait for the tasks to finish
-			foreach (var frame in StartAndWaitForCompletion(task)) yield return frame;
+				// wait for the tasks to finish
+				foreach (var frame in StartAndWaitForCompletion(task)) yield return frame;
 
-			var task2 = new TestActionTask(taskManager, _ => { });
-			var task3 = new TestActionTask(taskManager, _ => { });
+				var task2 = new TestActionTask(test.TaskManager, _ => { });
+				var task3 = new TestActionTask(test.TaskManager, _ => { });
 
-			task.Then(task2).Then(task3);
+				task.Then(task2).Then(task3);
 
-			var top = task3.GetTopOfChain();
-			Assert.AreSame(task2, top);
+				var top = task3.GetTopOfChain();
+				Assert.AreSame(task2, top);
 
-			StopTest(watch, logger, taskManager);
+			}
 		}
 
 		[Test]
 		public void GetTopOfChain_ReturnsTopTaskWhenNotStarted()
 		{
-			StartTest(out var watch, out var logger, out var taskManager);
+			using (var test = StartTest())
+			{
 
-			var task1 = new TPLTask(taskManager, () => Task.FromResult(true));
-			var task2 = new TestActionTask(taskManager, _ => { });
-			var task3 = new TestActionTask(taskManager, _ => { });
+				var task1 = new TPLTask(test.TaskManager, () => Task.FromResult(true));
+				var task2 = new TestActionTask(test.TaskManager, _ => { });
+				var task3 = new TestActionTask(test.TaskManager, _ => { });
 
-			task1.Then(task2).Then(task3);
+				task1.Then(task2).Then(task3);
 
-			var top = task3.GetTopOfChain();
-			Assert.AreSame(task1, top);
+				var top = task3.GetTopOfChain();
+				Assert.AreSame(task1, top);
 
-			StopTest(watch, logger, taskManager);
+			}
 		}
 
 		/***
@@ -136,84 +141,70 @@ namespace ThreadingTests
 		[CustomUnityTest]
 		public IEnumerator MergingTwoChainsWorks()
 		{
-			StartTest(out var watch, out var logger, out var taskManager);
-
-			var callOrder = new List<string>();
-			var dependsOrder = new List<ITask>();
-
-			ITask innerChainTask1;
-			ITask<string> innerChainTask2;
-			ITask<string> innerChainTask3;
-
-			ITask<int> outerChainTask1;
-			ITask<string> outerChainTask2;
-			ITask outerChainTask3;
-
-			Action<ITask> onStart = t => logger.Trace($"OnStart {t.Name}");
-			Action<ITask, bool, Exception> onEnd = (t, _, __) => logger.Trace($"OnEnd {t.Name}");
-			Action<ITask<string>, string, bool, Exception> onEndString = (t, _, __, ___) => logger.Trace($"OnEnd {t.Name}");
-			Action<ITask<int>, int, bool, Exception> onEndInt = (t, _, __, ___) => logger.Trace($"OnEnd {t.Name}");
-
-
-			innerChainTask1 = new TPLTask(taskManager, () => Task.FromResult(true)) { Name = nameof(innerChainTask1) };
-			innerChainTask1.OnStart += t => {
-				onStart(t);
-				callOrder.Add(nameof(innerChainTask1));
-			};
-			innerChainTask1.OnEnd += onEnd;
-
-			innerChainTask2 = innerChainTask1.Then(_ => {
-				callOrder.Add(nameof(innerChainTask2));
-				return "1";
-			}, nameof(innerChainTask2));
-			innerChainTask2.OnStart += onStart;
-			innerChainTask2.OnEnd += onEndString;
-
-			innerChainTask3 = innerChainTask2.Finally((s, e, d) => {
-				callOrder.Add(nameof(innerChainTask3));
-				return d;
-			}, nameof(innerChainTask3));
-			innerChainTask3.OnStart += onStart;
-			innerChainTask3.OnEnd += onEndString;
-
-			outerChainTask1 = new FuncTask<int>(taskManager, _ => {
-				callOrder.Add(nameof(outerChainTask1));
-				return 1;
-			}) { Name = nameof(outerChainTask1) };
-			outerChainTask1.OnStart += onStart;
-			outerChainTask1.OnEnd += onEndInt;
-
-			outerChainTask2 = outerChainTask1.Then(innerChainTask3);
-			outerChainTask2.OnStart += onStart;
-			outerChainTask2.OnEnd += onEndString;
-
-			outerChainTask3 = outerChainTask2.Finally((s, e) => callOrder.Add(nameof(outerChainTask3)), nameof(outerChainTask3));
-			outerChainTask3.OnStart += onStart;
-			outerChainTask3.OnEnd += onEnd;
-
-			var dependsOn = outerChainTask3;
-			while (dependsOn != null)
+			using (var test = StartTest())
 			{
-				dependsOrder.Add(dependsOn);
-				dependsOn = dependsOn.DependsOn;
+
+				var callOrder = new List<string>();
+				var dependsOrder = new List<ITask>();
+
+				ITask innerChainTask1;
+				ITask<string> innerChainTask2;
+				ITask<string> innerChainTask3;
+
+				ITask<int> outerChainTask1;
+				ITask<string> outerChainTask2;
+				ITask outerChainTask3;
+
+
+				innerChainTask1 = test.TaskManager.With(() => Task.FromResult(true), nameof(innerChainTask1));
+				innerChainTask1.OnStart += t => {
+					callOrder.Add(nameof(innerChainTask1));
+				};
+
+				innerChainTask2 = innerChainTask1.Then(() => {
+					callOrder.Add(nameof(innerChainTask2));
+					return "1";
+				}, nameof(innerChainTask2));
+
+				innerChainTask3 = innerChainTask2.Finally((s, e, d) => {
+					callOrder.Add(nameof(innerChainTask3));
+					return d;
+				}, nameof(innerChainTask3));
+
+
+				outerChainTask1 = test.TaskManager.With(() => {
+					callOrder.Add(nameof(outerChainTask1));
+					return 1;
+				}, nameof(outerChainTask1));
+
+
+				outerChainTask2 = outerChainTask1.Then(innerChainTask3);
+
+				outerChainTask3 = outerChainTask2.Finally((s, e) => callOrder.Add(nameof(outerChainTask3)), nameof(outerChainTask3));
+
+				var dependsOn = outerChainTask3;
+				while (dependsOn != null)
+				{
+					dependsOrder.Add(dependsOn);
+					dependsOn = dependsOn.DependsOn;
+				}
+
+				Assert.AreEqual(innerChainTask3, outerChainTask2);
+
+				{
+					var expected = new[] { outerChainTask1, innerChainTask1, innerChainTask2, innerChainTask3, outerChainTask3 };
+					CollectionAssert.AreEqual(expected, dependsOrder.Reverse<ITask>().ToArray());
+				}
+
+				// wait for the tasks to finish
+				foreach (var frame in StartAndWaitForCompletion(outerChainTask3)) yield return frame;
+
+				{
+					var expected = new[] { nameof(outerChainTask1), nameof(innerChainTask1), nameof(innerChainTask2), nameof(innerChainTask3), nameof(outerChainTask3) };
+					callOrder.Matches(expected);
+				}
+
 			}
-
-			Assert.AreEqual(innerChainTask3, outerChainTask2);
-
-			{
-				var expected = new[] { outerChainTask1, innerChainTask1, innerChainTask2, innerChainTask3, outerChainTask3 };
-				CollectionAssert.AreEqual(expected, dependsOrder.Reverse<ITask>().ToArray());
-			}
-
-			// wait for the tasks to finish
-			foreach (var frame in StartAndWaitForCompletion(outerChainTask3)) yield return frame;
-
-			{
-				var expected = new[] { nameof(outerChainTask1), nameof(innerChainTask1), nameof(innerChainTask2), nameof(innerChainTask3), nameof(outerChainTask3) };
-				callOrder.Matches(expected);
-			}
-
-			StopTest(watch, logger, taskManager);
 		}
 	}
 }

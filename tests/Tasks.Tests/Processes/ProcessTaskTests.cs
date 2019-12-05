@@ -14,16 +14,7 @@ namespace ProcessManagerTests
 		[Test]
 		public async Task CanRunProcess_()
 		{
-			using (var test = StartTest())
-			{
-				var task = new ProcessTask<string>(test.TaskManager,
-						test.ProcessManager.DefaultProcessEnvironment,
-						"where", "git", outputProcessor: new SimpleOutputProcessor())
-					.Configure(test.ProcessManager);
-
-				var ret = await task.StartAwait();
-				Assert.NotNull(ret);
-			}
+			await RunTest(CanRunProcess);
 		}
 
 		[Test]
@@ -77,6 +68,12 @@ namespace ProcessManagerTests
 		public async Task ProcessReturningErrorThrowsException_()
 		{
 			await RunTest(ProcessReturningErrorThrowsException);
+		}
+
+		[Test]
+		public async Task RunProcessOnMono_()
+		{
+			await RunTest(CanRunProcessOnMono);
 		}
 	}
 }

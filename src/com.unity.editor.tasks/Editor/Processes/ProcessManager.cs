@@ -31,11 +31,9 @@ namespace Unity.Editor.Tasks
 		}
 
 		/// <inheritdoc />
-		public virtual T Configure<T>(T processTask, ProcessStartInfo startInfo, string workingDirectory = null)
+		public virtual T Configure<T>(T processTask, ProcessStartInfo startInfo)
 			where T : IProcessTask
 		{
-			processTask.ProcessEnvironment.Configure(startInfo, workingDirectory);
-
 			processTask.Configure(this, startInfo);
 
 			processTask.OnStartProcess += p => processes.Add(p);
@@ -60,12 +58,14 @@ namespace Unity.Editor.Tasks
 				StandardErrorEncoding = Encoding.UTF8
 			};
 
-
 			startInfo.FileName = processTask.ProcessName.ToSPath().ToString();
 			startInfo.Arguments = processTask.ProcessArguments;
-			return Configure(processTask, startInfo, workingDirectory);
+			startInfo.WorkingDirectory = workingDirectory;
+
+			return Configure(processTask, startInfo);
 		}
 
+		/// <inheritdoc />
 		public virtual BaseProcessWrapper WrapProcess(string taskName,
 			ProcessStartInfo startInfo,
 			IOutputProcessor outputProcessor,
@@ -77,7 +77,6 @@ namespace Unity.Editor.Tasks
 			return new ProcessWrapper(taskName, startInfo, outputProcessor,
 				onStart, onEnd, onError, token);
 		}
-
 
 		/// <inheritdoc />
 		public void Stop()
@@ -103,6 +102,7 @@ namespace Unity.Editor.Tasks
 			}
 		}
 
+		/// <inheritdoc />
 		public void Dispose()
 		{
 			Dispose(true);

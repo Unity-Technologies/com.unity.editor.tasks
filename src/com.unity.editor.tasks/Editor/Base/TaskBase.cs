@@ -341,6 +341,7 @@ namespace Unity.Editor.Tasks
         private event Action<bool> finallyHandler;
 		private ILogging logger;
 		private Exception exception;
+		private CancellationTokenSource cts = new CancellationTokenSource();
 
 		/// <summary>
 		/// Empty constructor for default instances.
@@ -356,8 +357,10 @@ namespace Unity.Editor.Tasks
 		{
 			taskManager.EnsureNotNull(nameof(taskManager));
 
+			taskManager.Token.Register(cts.Cancel);
+			if (token.CanBeCanceled) token.Register(cts.Cancel);
 			TaskManager = taskManager;
-			Token = token;
+			Token = cts.Token;
 			progress = new Progress(this);
 			Task = new Task(RunSynchronously, Token, TaskCreationOptions.None);
 		}

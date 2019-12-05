@@ -18,7 +18,7 @@ namespace Unity.Editor.Tasks
 	/// An external process managed by the <see cref="IProcessManager" /> and
 	/// wrapped by a <see cref="IProcessTask" />
 	/// </summary>
-	public interface IProcess
+	public interface IProcess : IDisposable
 	{
 		/// <summary>
 		/// Event raised when the process exits
@@ -153,7 +153,7 @@ namespace Unity.Editor.Tasks
 	/// A task that runs an external process and returns the process output.
 	/// </summary>
 	/// <typeparam name="T">The output of the process, processed via an IOutputProcessor.</typeparam>
-	public class ProcessTask<T> : TaskBase<T>, IProcessTask<T>, IDisposable
+	public class ProcessTask<T> : TaskBase<T>, IProcessTask<T>
 	{
 		private Exception thrownException = null;
 		private T result;
@@ -221,6 +221,8 @@ namespace Unity.Editor.Tasks
 
 			this.EnsureNotNull(OutputProcessor, nameof(OutputProcessor));
 
+			ProcessEnvironment.Configure(startInfo);
+
 			Wrapper = processManager.WrapProcess(Name, startInfo, OutputProcessor,
 				RaiseOnStartProcess,
 				HandleOnEndProcess,
@@ -268,8 +270,8 @@ namespace Unity.Editor.Tasks
 
 		protected override void RaiseOnEnd(T data)
 		{
-			Dispose();
 			base.RaiseOnEnd(data);
+			Dispose();
 		}
 
 		/// <summary>
@@ -340,11 +342,11 @@ namespace Unity.Editor.Tasks
 		protected virtual void Dispose(bool disposing)
 		{
 			if (disposed) return;
+			disposed = true;
 			if (disposing)
 			{
-				Wrapper?.Dispose();
 				OnStartProcess = OnEndProcess = null;
-				disposed = true;
+				Wrapper?.Dispose();
 			}
 		}
 
@@ -368,7 +370,7 @@ namespace Unity.Editor.Tasks
 		/// <inheritdoc />
 		public virtual string ProcessName { get; protected set; }
 		/// <inheritdoc />
-		public virtual string ProcessArguments { get; }
+		public virtual string ProcessArguments { get; protected set; }
 
 		/// <inheritdoc />
 		public bool LongRunning { get; set; }
@@ -448,6 +450,8 @@ namespace Unity.Editor.Tasks
 			ConfigureOutputProcessor();
 
 			this.EnsureNotNull(OutputProcessor, nameof(OutputProcessor));
+
+			ProcessEnvironment.Configure(startInfo);
 
 			Wrapper = processManager.WrapProcess(Name, startInfo, OutputProcessor,
 				RaiseOnStartProcess,
