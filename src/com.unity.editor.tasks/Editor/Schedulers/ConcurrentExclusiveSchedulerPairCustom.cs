@@ -42,6 +42,7 @@ namespace Unity.Editor.Tasks
 	[DebuggerTypeProxy(typeof(ConcurrentExclusiveSchedulerPairCustom.DebugView))]
 	public class ConcurrentExclusiveSchedulerPairCustom
 	{
+		private readonly CancellationTokenSource cts = new CancellationTokenSource();
 		/// <summary>A dictionary mapping thread ID to a processing mode to denote what kinds of tasks are currently being processed on this thread.</summary>
 		private readonly ConcurrentDictionary<int, ProcessingMode> m_threadProcessingMapping = new ConcurrentDictionary<int, ProcessingMode>();
 		/// <summary>The scheduler used to queue and execute "concurrent" tasks that may run concurrently with other concurrent tasks.</summary>
@@ -67,7 +68,6 @@ namespace Unity.Editor.Tasks
 		/// <remarks>Lazily-initialized only if the scheduler pair is shutting down or if the Completion is requested.</remarks>
 		private CompletionState m_completionState;
 
-		private readonly CancellationToken token;
 
 		/// <summary>A constant value used to signal unlimited processing.</summary>
 		private const int UNLIMITED_PROCESSING = -1;
@@ -76,10 +76,12 @@ namespace Unity.Editor.Tasks
 		/// <summary>Default MaxItemsPerTask to use for processing if none is specified.</summary>
 		private const int DEFAULT_MAXITEMSPERTASK = UNLIMITED_PROCESSING;
 		/// <summary>Default MaxConcurrencyLevel is the processor count if not otherwise specified.</summary>
-		private static Int32 DefaultMaxConcurrencyLevel { get { return Environment.ProcessorCount; } }
+		private static Int32 DefaultMaxConcurrencyLevel => Environment.ProcessorCount;
 
 		/// <summary>Gets the sync obj used to protect all state on this instance.</summary>
-		private object ValueLock { get { return m_threadProcessingMapping; } }
+		private object ValueLock => m_threadProcessingMapping;
+
+		private CancellationToken Token => cts.Token;
 
 		/// <summary>
 		/// Initializes the ConcurrentExclusiveSchedulerCustom.
@@ -104,7 +106,7 @@ namespace Unity.Editor.Tasks
 			if (maxItemsPerTask == 0 || maxItemsPerTask < -1) throw new ArgumentOutOfRangeException(nameof(maxItemsPerTask));
 			Contract.EndContractBlock();
 
-			this.token = token;
+			token.Register(cts.Cancel);
 
 			// Store configuration
 			m_underlyingTaskScheduler = taskScheduler;
@@ -293,7 +295,7 @@ namespace Unity.Editor.Tasks
 					try
 					{
 						processingTask = new Task(thisPair => ((ConcurrentExclusiveSchedulerPairCustom)thisPair).ProcessExclusiveTasks(), this,
-							token, GetCreationOptionsForTask(fairly));
+							Token, GetCreationOptionsForTask(fairly));
 						processingTask.Start(m_underlyingTaskScheduler);
 						// When we call Start, if the underlying scheduler throws in QueueTask, TPL will fault the task and rethrow
 						// the exception.  To deal with that, we need a reference to the task object, so that we can observe its exception.
@@ -320,7 +322,7 @@ namespace Unity.Editor.Tasks
 							try
 							{
 								processingTask = new Task(thisPair => ((ConcurrentExclusiveSchedulerPairCustom)thisPair).ProcessConcurrentTasks(), this,
-									token, GetCreationOptionsForTask(fairly));
+									Token, GetCreationOptionsForTask(fairly));
 								processingTask.Start(m_underlyingTaskScheduler); // See above logic for why we use new + Start rather than StartNew
 							}
 							catch

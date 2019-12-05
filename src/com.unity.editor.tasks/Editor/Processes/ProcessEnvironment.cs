@@ -12,7 +12,7 @@ namespace Unity.Editor.Tasks
 
 	public interface IProcessEnvironment
 	{
-		void Configure(ProcessStartInfo psi, string workingDirectory = null);
+		void Configure(ProcessStartInfo psi);
 		IEnvironment Environment { get; }
 	}
 
@@ -23,13 +23,12 @@ namespace Unity.Editor.Tasks
 			Environment = environment;
 		}
 
-		public void Configure(ProcessStartInfo psi, string workingDirectory = null)
+		public void Configure(ProcessStartInfo psi)
 		{
 			Guard.EnsureNotNull(psi, nameof(psi));
-			workingDirectory = workingDirectory ?? Environment.UnityProjectPath;
 
+			var workingDirectory = psi.WorkingDirectory ?? Environment.UnityProjectPath;
 			string normalizedWorkingDirectory = workingDirectory.ToSPath().ToString();
-
 			psi.WorkingDirectory = normalizedWorkingDirectory;
 
 			var path = Environment.Path;

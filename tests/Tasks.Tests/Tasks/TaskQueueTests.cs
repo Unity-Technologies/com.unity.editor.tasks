@@ -3,14 +3,18 @@ using NUnit.Framework;
 
 namespace ThreadingTests
 {
+	// This file is only compiled when building the solution
+	// outside of Unity.
 	// Unity does not support async/await tests, but it does
 	// have a special type of test with a [CustomUnityTest] attribute
 	// which mimicks a coroutine in EditMode. This attribute is
-	// defined here so the tests can be compiled without
-	// referencing Unity, and nunit on the command line
-	// outside of Unity can execute the tests. Basically I don't
-	// want to keep two copies of all the tests so I run the
-	// UnityTest from here
+	// defined for tests running outside of Unity, and those tests
+	// are executed the await RunTest calls below, if running outside
+	// of Unity, so I don't have to keep two copies of tests.
+	//
+	// Tests that Unity can't run or shouldn't run can be added directly
+	// here.
+
 	partial class TaskQueueTests
 	{
 		[Test]

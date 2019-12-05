@@ -41,11 +41,12 @@ namespace Unity.Editor.Tasks.Internal.IO
 	using System;
 	using System.Collections.Generic;
 	using System.Diagnostics;
+	using System.Globalization;
 	using System.IO;
 	using System.Linq;
 	using System.Reflection;
+	using System.Runtime.CompilerServices;
 	using System.Text;
-	using Helpers;
 
 	[Serializable]
 	[DebuggerDisplay("{DebuggerDisplay,nq}")]
@@ -66,7 +67,7 @@ namespace Unity.Editor.Tasks.Internal.IO
 
 		public SPath(string path)
 		{
-			path.EnsureNotNull(nameof(path));
+			EnsureNotNull(path, nameof(path));
 
 			IsInitialized = true;
 
@@ -392,7 +393,7 @@ namespace Unity.Editor.Tasks.Internal.IO
 
 		public string InQuotes()
 		{
-			return "\"" + ToString() + "\"";
+			return "\"" + ToString() +"\"";
 		}
 
 		public string InQuotes(SlashMode slashMode)
@@ -1212,6 +1213,14 @@ namespace Unity.Editor.Tasks.Internal.IO
 		}
 
 		internal string DebuggerDisplay => ToString();
+
+
+		private static T EnsureNotNull<T>(T value, string name, [CallerMemberName] string caller = "")
+		{
+			if (value != null) return value;
+			string message = String.Format(CultureInfo.InvariantCulture, "In {0}, '{1}' must not be null", caller, name);
+			throw new ArgumentNullException(name, message);
+		}
 	}
 
 #if SIMPLEIO_INTERNAL

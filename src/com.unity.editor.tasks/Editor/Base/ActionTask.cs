@@ -21,33 +21,6 @@ namespace Unity.Editor.Tasks
 	public partial class ActionTask : TaskBase
 	{
 		/// <summary>
-		/// Creates an instance of ActionTask, using the cancellation token set in the task manager.
-		/// </summary>
-		/// <param name="taskManager"></param>
-		/// <param name="action"></param>
-		public ActionTask(ITaskManager taskManager, Action action)
-			: this(taskManager.EnsureNotNull(nameof(taskManager)), taskManager.Token, action)
-		{}
-
-		/// <summary>
-		/// Creates an instance of ActionTask, using the cancellation token set in the task manager.
-		/// </summary>
-		/// <param name="taskManager"></param>
-		/// <param name="action"></param>
-		public ActionTask(ITaskManager taskManager, Action<bool> action)
-			: this(taskManager.EnsureNotNull(nameof(taskManager)), taskManager.Token, action)
-		{ }
-
-		/// <summary>
-		/// Creates an instance of ActionTask, using the cancellation token set in the task manager.
-		/// </summary>
-		/// <param name="taskManager"></param>
-		/// <param name="action"></param>
-		public ActionTask(ITaskManager taskManager, Action<bool, Exception> action)
-			: this(taskManager.EnsureNotNull(nameof(taskManager)), taskManager.Token, action)
-		{ }
-
-		/// <summary>
 		/// Creates an instance of ActionTask.
 		/// </summary>
 		/// <param name="taskManager"></param>
@@ -136,26 +109,6 @@ namespace Unity.Editor.Tasks
 	public partial class ActionTask<T> : TaskBase
 	{
 		private readonly Func<T> getPreviousResult;
-
-		/// <summary>
-		/// Creates an instance of ActionTask, using the cancellation token set in the task manager.
-		/// </summary>
-		/// <param name="taskManager"></param>
-		/// <param name="action"></param>
-		/// <param name="getPreviousResult">Method to call that returns the value that this task is going to work with. You can also use the PreviousResult property to set this value</param>
-		public ActionTask(ITaskManager taskManager, Action<bool, T> action, Func<T> getPreviousResult = null)
-			: this(taskManager.EnsureNotNull(nameof(taskManager)), taskManager.Token, action, getPreviousResult)
-		{}
-
-		/// <summary>
-		/// Creates an instance of ActionTask, using the cancellation token set in the task manager.
-		/// </summary>
-		/// <param name="taskManager"></param>
-		/// <param name="action"></param>
-		/// <param name="getPreviousResult">Method to call that returns the value that this task is going to work with. You can also use the PreviousResult property to set this value</param>
-		public ActionTask(ITaskManager taskManager, Action<bool, Exception, T> action, Func<T> getPreviousResult = null)
-			: this(taskManager.EnsureNotNull(nameof(taskManager)), taskManager.Token, action, getPreviousResult)
-		{ }
 
 		/// <summary>
 		/// Creates an instance of ActionTask.

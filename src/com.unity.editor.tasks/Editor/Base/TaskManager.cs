@@ -49,7 +49,8 @@ namespace Unity.Editor.Tasks
 		private readonly ConcurrentExclusiveSchedulerPairCustom manager;
 
 		private readonly ProgressReporter progressReporter = new ProgressReporter();
-		private CancellationTokenSource cts;
+		private readonly CancellationTokenSource cts = new CancellationTokenSource();
+		private bool stopped = false;
 
 		public event Action<IProgress> OnProgress
 		{
@@ -59,7 +60,6 @@ namespace Unity.Editor.Tasks
 
 		public TaskManager()
 		{
-			cts = new CancellationTokenSource();
 			manager = new ConcurrentExclusiveSchedulerPairCustom(cts.Token);
 			logger = LogHelper.GetLogger<TaskManager>();
 		}
@@ -150,17 +150,21 @@ namespace Unity.Editor.Tasks
 			task.Start(scheduler);
 		}
 
-		public async Task Stop()
+		public void Stop()
 		{
-			if (cts == null)
-				throw new ObjectDisposedException(nameof(TaskManager));
+			if (stopped) return;
 
-			// tell all schedulers to stop scheduling new tasks
-			manager.Complete();
-			// tell all tasks to exit
-			cts.Cancel();
-			// wait for everything to shut down within 500ms
-			await Task.WhenAny(manager.Completion, Task.Delay(500)).ConfigureAwait(false);
+			stopped = true;
+
+			try
+			{
+				// tell all schedulers to stop scheduling new tasks
+				manager.Complete();
+				// tell all tasks to exit
+				cts.Cancel();
+				// wait for everything to shut down within 500ms
+				manager.Completion.Wait(500);
+			} catch {}
 		}
 
 		private bool disposed = false;
@@ -168,10 +172,10 @@ namespace Unity.Editor.Tasks
 		protected virtual void Dispose(bool disposing)
 		{
 			if (disposed) return;
-			disposed = true;
 			if (disposing)
 			{
-				Stop().Wait(500);
+				disposed = true;
+				Stop();
 				cts.Dispose();
 			}
 		}
