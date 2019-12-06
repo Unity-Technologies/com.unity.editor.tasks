@@ -4,6 +4,8 @@
 
 ## [VERSION] - DATE
 
+## [1.2.1] - 2019-12-05
+
 - Refactor task extension methods to be easier to use. Add .net/mono process tasks
 
 `Then` and `ThenInUI` now take delegates that either have just the data, or success+exception+data, so

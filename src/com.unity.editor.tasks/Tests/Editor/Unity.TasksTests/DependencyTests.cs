@@ -12,6 +12,29 @@ namespace ThreadingTests
 	partial class DependencyTests : BaseTest
 	{
 		[CustomUnityTest]
+		public IEnumerator InsertingTaskInMiddleOfChain()
+		{
+			using (var test = StartTest())
+			{
+				ITask<string> taskC = default;
+
+				var taskA = test.TaskManager.With(() => {
+					taskC.DependsOn.Then(new FuncTask<string, string>(test.TaskManager, previous => previous + "B"))
+						.Then(taskC, taskIsTopOfChain: true);
+					return "A";
+				});
+
+				taskC = taskA.Then(previous => previous+"C");
+
+				var taskEnd = taskC.Finally((success, ex, previous) => previous);
+
+				foreach (var frame in StartAndWaitForCompletion(taskEnd)) yield return frame;
+
+				Assert.AreEqual("ABC", taskEnd.Result);
+			}
+		}
+
+		[CustomUnityTest]
 		public IEnumerator RunningDifferentTasksDependingOnSuccessOrFailure()
 		{
 			using (var test = StartTest())

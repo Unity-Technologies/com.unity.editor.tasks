@@ -18,6 +18,12 @@ namespace ThreadingTests
 	partial class DependencyTests
 	{
 		[Test]
+		public async Task InsertingTaskInMiddleOfChain_()
+		{
+			await RunTest(InsertingTaskInMiddleOfChain);
+		}
+
+		[Test]
 		public async Task RunningDifferentTasksDependingOnSuccessOrFailure_()
 		{
 			await RunTest(RunningDifferentTasksDependingOnSuccessOrFailure);

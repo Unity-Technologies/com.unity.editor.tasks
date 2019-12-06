@@ -264,7 +264,7 @@ namespace Unity.Editor.Tasks
 
 	namespace Extensions
 	{
-		public static class TaskExtensions
+		public static class TPLTaskExtensions
 		{
 			public static async Task<T> Timeout<T>(this Task<T> task, int timeout, string message, CancellationToken token = default)
 			{
