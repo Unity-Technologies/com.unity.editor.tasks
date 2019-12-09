@@ -10,6 +10,13 @@ namespace ProcessManagerTests
 	using Unity.Editor.Tasks;
 	using Unity.Editor.Tasks.Internal.IO;
 
+	public class HelperProcessTask : DotNetProcessTask<string>
+	{
+		public HelperProcessTask(ITaskManager taskManager, IProcessManager processManager, string executable, string args)
+			: base(taskManager, processManager, executable, args, new FirstNonNullLineOutputProcessor<string>())
+		{ }
+	}
+
 	public partial class ProcessTaskTests : BaseTest
 	{
 		[CustomUnityTest]
@@ -36,7 +43,7 @@ namespace ProcessManagerTests
 				var results = new List<string>();
 
 				var beforeProcess = new ActionTask(test.TaskManager, _ => results.Add("BeforeProcess")) { Name = "BeforeProcess" };
-				var processTask = new FirstNonNullLineProcessTask(test.TaskManager, test.ProcessManager, TestApp, @"--sleep 1000 --data ""ok""");
+				var processTask = new HelperProcessTask(test.TaskManager, test.ProcessManager, TestApp, @"--sleep 1000 --data ""ok""");
 
 				var processOutputTask = new FuncTask<string, int>(test.TaskManager, (b, previous) => {
 					results.Add(previous);
@@ -64,7 +71,7 @@ namespace ProcessManagerTests
 				var results = new List<string>();
 
 				var beforeProcess = new ActionTask(test.TaskManager, _ => results.Add("BeforeProcess")) { Name = "BeforeProcess" };
-				var processTask = new FirstNonNullLineProcessTask(test.TaskManager, test.ProcessManager, TestApp, "-x") { Name = "Process" };
+				var processTask = new HelperProcessTask(test.TaskManager, test.ProcessManager, TestApp, "-x") { Name = "Process" };
 
 				// this will never run because the process throws an exception
 				var processOutputTask = new FuncTask<string, int>(test.TaskManager, (success, previous) => {
@@ -98,14 +105,14 @@ namespace ProcessManagerTests
 				string process1Value = null;
 				string process2Value = null;
 
-				var process1Task = new FirstNonNullLineProcessTask(test.TaskManager, test.ProcessManager, TestApp, @"--sleep 100 -d process1")
+				var process1Task = new HelperProcessTask(test.TaskManager, test.ProcessManager, TestApp, @"--sleep 100 -d process1")
 								   .Configure(test.ProcessManager)
 								   .Then(s => {
 									   process1Value = s;
 									   values.Add(s);
 								   });
 
-				var process2Task = new FirstNonNullLineProcessTask(test.TaskManager, test.ProcessManager, TestApp, @"---sleep 100 -d process2")
+				var process2Task = new HelperProcessTask(test.TaskManager, test.ProcessManager, TestApp, @"---sleep 100 -d process2")
 								   .Configure(test.ProcessManager)
 								   .Then(s => {
 									   process2Value = s;
@@ -138,7 +145,7 @@ namespace ProcessManagerTests
 
 				var expectedOutput = "Hello";
 
-				var procTask = new FirstNonNullLineProcessTask(test.TaskManager, test.ProcessManager, TestApp, @"--sleep 100 -i")
+				var procTask = new HelperProcessTask(test.TaskManager, test.ProcessManager, TestApp, @"--sleep 100 -i")
 					.Configure(test.ProcessManager);
 
 				procTask.OnStartProcess += proc => {
@@ -176,13 +183,13 @@ namespace ProcessManagerTests
 				// run a process that prints "one name" in the console
 				// then run another process that throws an exception and sets exit code to -1
 				// exit codes != 0 cause a ProcessException to be thrown
-				var task = new FirstNonNullLineProcessTask(test.TaskManager, test.ProcessManager, TestApp, @"--sleep 100 -d ""first""")
+				var task = new HelperProcessTask(test.TaskManager, test.ProcessManager, TestApp, @"--sleep 100 -d ""first""")
 						   // this won't run because there's no exception here
 						   .Catch(ex => thrown1 = ex)
 						   // save the output of the process
 						   .Then(output.Add)
 						   // run the second process, which is going to throw an exception
-						   .Then(new FirstNonNullLineProcessTask(test.TaskManager, test.ProcessManager, TestApp, @"-d ""second"" -e kaboom -r -1"))
+						   .Then(new HelperProcessTask(test.TaskManager, test.ProcessManager, TestApp, @"-d ""second"" -e kaboom -r -1"))
 						   // this records the exception
 						   .Catch(ex => thrown2 = ex)
 						   // this never runs because of the exception

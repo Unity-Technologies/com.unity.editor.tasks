@@ -2,13 +2,15 @@ namespace Unity.Editor.Tasks
 {
 	using Helpers;
 
-	public class FindExecTask : FirstNonNullLineProcessTask
+	public class FindExecTask : NativeProcessTask<string>
 	{
 		public FindExecTask(ITaskManager taskManager, IProcessManager processManager, string execToFind)
 			: base(taskManager, processManager,
 				Guard.EnsureNotNull(processManager, nameof(processManager)).DefaultProcessEnvironment.Environment.IsWindows ? "where" : "which",
-				execToFind)
-		{}
+				execToFind, new FirstNonNullLineOutputProcessor<string>())
+		{
+			Affinity = TaskAffinity.None;
+		}
 
 		public override TaskAffinity Affinity => TaskAffinity.None;
 	}

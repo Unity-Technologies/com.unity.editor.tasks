@@ -56,6 +56,9 @@ namespace Unity.Editor.Tasks
 
 		private ILogging logger;
 		private bool detached;
+		private DateTimeOffset lastOutput;
+		private Exception thrownException;
+		private AutoResetEvent gotOutput;
 
 		public ProcessWrapper(string taskName, ProcessStartInfo startInfo,
 			IOutputProcessor outputProcessor,
@@ -80,67 +83,23 @@ namespace Unity.Editor.Tasks
 
 		public override void Run()
 		{
-			DateTimeOffset lastOutput = DateTimeOffset.UtcNow;
-			Exception thrownException = null;
-			var gotOutput = new AutoResetEvent(false);
+			lastOutput = DateTimeOffset.UtcNow;
+			thrownException = null;
+			gotOutput = new AutoResetEvent(false);
 
 			if (StartInfo.RedirectStandardError)
-			{
-				Process.ErrorDataReceived += (s, e) => {
-					//if (e.Data != null)
-					//{
-					//    Logger.Trace("ErrorData \"" + (e.Data == null ? "'null'" : e.Data) + "\"");
-					//}
-
-					lastOutput = DateTimeOffset.UtcNow;
-					gotOutput.Set();
-					if (e.Data != null)
-					{
-						var line = Encoding.UTF8.GetString(Encoding.UTF8.GetBytes(e.Data));
-						errors.Add(line.TrimEnd('\r', '\n'));
-					}
-				};
-			}
+				Process.ErrorDataReceived += OnErrorDataReceived;
 
 			if (StartInfo.RedirectStandardOutput)
-			{
-				Process.OutputDataReceived += (s, e) => {
-					try
-					{
-						lastOutput = DateTimeOffset.UtcNow;
-						gotOutput.Set();
-						if (e.Data != null)
-						{
-							var line = Encoding.UTF8.GetString(Encoding.UTF8.GetBytes(e.Data)).TrimEnd('\r', '\n');
-							outputProcessor.Process(line);
-						}
-						else
-						{
-							outputProcessor.Process(null);
-						}
-					}
-					catch (Exception ex)
-					{
-						errors.Add(ex.GetExceptionMessageShort());
-					}
-				};
-			}
+				Process.OutputDataReceived += OnOutputDataReceived;
+
+			Process.Exited += OnExited;
 
 			try
 			{
 				Logger.Trace($"Running '{StartInfo.FileName} {StartInfo.Arguments}' in '{StartInfo.WorkingDirectory}'");
 
 				token.ThrowIfCancellationRequested();
-
-				if (StartInfo.CreateNoWindow)
-				{
-					Process.Exited += (obj, args) => {
-						while (!token.IsCancellationRequested && gotOutput.WaitOne(100))
-						{ }
-						HasExited = true;
-						stopEvent.Set();
-					};
-				}
 
 				Process.Start();
 
@@ -236,18 +195,83 @@ namespace Unity.Editor.Tasks
 				onError?.Invoke(thrownException, string.Join(Environment.NewLine, errors.ToArray()));
 
 			onEnd?.Invoke();
+		}
 
-			Dispose();
+		private void OnExited(object sender, EventArgs e)
+		{
+			try
+			{
+				while (!token.IsCancellationRequested && gotOutput.WaitOne(100))
+				{ }
+				HasExited = true;
+				stopEvent.Set();
+			}
+			catch (Exception ex)
+			{
+				errors.Add(ex.GetExceptionMessageShort());
+			}
+		}
+
+		private void OnErrorDataReceived(object sender, DataReceivedEventArgs e)
+		{
+			try
+			{
+				//if (e.Data != null)
+				//{
+				//    Logger.Trace("ErrorData \"" + (e.Data == null ? "'null'" : e.Data) + "\"");
+				//}
+
+				lastOutput = DateTimeOffset.UtcNow;
+				gotOutput.Set();
+				if (e.Data != null)
+				{
+					var line = Encoding.UTF8.GetString(Encoding.UTF8.GetBytes(e.Data));
+					errors.Add(line.TrimEnd('\r', '\n'));
+				}
+			}
+			catch (Exception ex)
+			{
+				errors.Add(ex.GetExceptionMessageShort());
+			}
+		}
+
+		private void OnOutputDataReceived(object sender, DataReceivedEventArgs e)
+		{
+			try
+			{
+				lastOutput = DateTimeOffset.UtcNow;
+				gotOutput.Set();
+				if (e.Data != null)
+				{
+					var line = Encoding.UTF8.GetString(Encoding.UTF8.GetBytes(e.Data)).TrimEnd('\r', '\n');
+					outputProcessor.Process(line);
+				}
+				else
+				{
+					outputProcessor.Process(null);
+				}
+			}
+			catch (Exception ex)
+			{
+				errors.Add(ex.GetExceptionMessageShort());
+			}
 		}
 
 		public override void Stop(bool dontWait = false)
 		{
+			if (disposed) return;
 			try
 			{
 				if (StartInfo.RedirectStandardError)
+				{
+					Process.ErrorDataReceived -= OnErrorDataReceived;
 					Process.CancelErrorRead();
+				}
 				if (StartInfo.RedirectStandardOutput)
+				{
+					Process.OutputDataReceived -= OnOutputDataReceived;
 					Process.CancelOutputRead();
+				}
 				if (!Process.HasExited && StartInfo.RedirectStandardInput)
 					Input.WriteLine("\x3");
 				if (Process.HasExited)
@@ -256,14 +280,21 @@ namespace Unity.Editor.Tasks
 			catch
 			{ }
 
+			bool waitSucceeded = false;
 			try
 			{
-				bool waitSucceeded = false;
 				if (!dontWait)
 				{
 					waitSucceeded = Process.WaitForExit(500);
 				}
+			}
+			catch (Exception ex)
+			{
+				Logger.Trace(ex);
+			}
 
+			try
+			{
 				if (!waitSucceeded)
 				{
 					Process.Kill();
@@ -291,6 +322,41 @@ namespace Unity.Editor.Tasks
 			return waitSucceeded;
 		}
 
+		struct CleanupData
+		{
+			public Process process;
+			public ProcessStartInfo startInfo;
+			public StreamWriter input;
+			public ManualResetEventSlim done;
+		}
+
+		private static void Cleanup(ProcessWrapper wrapper)
+		{
+			var done = new ManualResetEventSlim(false);
+			ThreadPool.QueueUserWorkItem(s => {
+				var data = (CleanupData)s;
+
+				try
+				{
+					if (data.startInfo.RedirectStandardError)
+						data.process.CancelErrorRead();
+
+				}
+				catch { }
+				try
+				{
+					if (data.startInfo.RedirectStandardOutput)
+						data.process.CancelOutputRead();
+				}
+				catch { }
+
+				data.input?.Dispose();
+				data.process.Dispose();
+
+			}, new CleanupData { done = done, input = wrapper.Input, process = wrapper.Process, startInfo = wrapper.StartInfo });
+			done.Wait(200);
+		}
+
 		private bool disposed;
 
 		protected override void Dispose(bool disposing)
@@ -298,17 +364,12 @@ namespace Unity.Editor.Tasks
 			if (disposed) return;
 			if (disposing)
 			{
-				try
-				{
-					if (StartInfo.RedirectStandardError)
-						Process.CancelErrorRead();
-					if (StartInfo.RedirectStandardOutput)
-						Process.CancelOutputRead();
-				}
-				catch { }
-				Process.Dispose();
-				Input?.Dispose();
+				if (StartInfo.RedirectStandardError)
+					Process.ErrorDataReceived -= OnErrorDataReceived;
+				if (StartInfo.RedirectStandardOutput)
+					Process.OutputDataReceived -= OnOutputDataReceived;
 				stopEvent.Dispose();
+				Cleanup(this);
 				disposed = true;
 			}
 		}

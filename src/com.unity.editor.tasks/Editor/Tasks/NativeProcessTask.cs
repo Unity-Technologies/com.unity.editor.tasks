@@ -10,216 +10,196 @@ namespace Unity.Editor.Tasks
 	using Internal.IO;
 
 	/// <summary>
-	/// Runs a dotnet process. On Windows, it just runs the executable. On non-Windows,
-	/// it runs the executable using Unity's mono.
+	/// Runs a process.
 	/// </summary>
-	public class DotNetProcessTask : BaseProcessTask
+	public class NativeProcessTask : BaseProcessTask
 	{
 		/// <summary>
-		/// Runs a dotnet process. On Windows, it just runs the executable. On non-Windows,
-		/// it runs the executable using Unity's mono.
+		/// Runs a process.
 		/// </summary>
 		/// <remarks>You need to call <see cref="ProcessManager.Configure{T}(T, string)"/> on this task before running it.</remarks>
-		public DotNetProcessTask(ITaskManager taskManager,
+		public NativeProcessTask(ITaskManager taskManager,
 				IEnvironment environment,
 				string executable, string arguments)
-			: base(taskManager, null, new ProcessEnvironment(environment), environment,
-				  executable, arguments, null, false, false)
+			: base(taskManager, null, new ProcessEnvironment(environment), null,
+				  executable, arguments, null, false, true)
 		{ }
 
 		/// <summary>
-		/// Runs a dotnet process. On Windows, it just runs the executable. On non-Windows,
-		/// it runs the executable using Unity's mono.
+		/// Runs a process.
 		/// </summary>
 		/// <remarks>You need to call <see cref="ProcessManager.Configure{T}(T, string)"/> on this task before running it.</remarks>
-		public DotNetProcessTask(ITaskManager taskManager,
+		public NativeProcessTask(ITaskManager taskManager,
 				IProcessEnvironment processEnvironment,
-				IEnvironment environment,
 				string executable, string arguments)
-			: base(taskManager, null, processEnvironment, environment,
-				  executable, arguments, null, false, false)
+			: base(taskManager, null, processEnvironment, null,
+				  executable, arguments, null, false, true)
 		{ }
 
 		/// <summary>
-		/// Runs a dotnet process. On Windows, it just runs the executable. On non-Windows,
-		/// it runs the executable using Unity's mono.
+		/// Runs a process.
 		/// </summary>
 		/// <remarks>You don't need to call <see cref="ProcessManager.Configure{T}(T, string)"/> on this task,
 		/// it already does it in the constructor.
 		/// </remarks>
-		public DotNetProcessTask(ITaskManager taskManager, IProcessManager processManager,
+		public NativeProcessTask(ITaskManager taskManager, IProcessManager processManager,
 				string executable, string arguments,
 				string workingDirectory = null)
 			: base(taskManager, processManager,
 				  processManager.DefaultProcessEnvironment,
-				  processManager.DefaultProcessEnvironment.Environment,
-				  executable, arguments, workingDirectory, false, false)
-		{}
+				  null,
+				  executable, arguments, workingDirectory, false, true)
+		{ }
 
 		/// <summary>
-		/// Runs a dotnet process. On Windows, it just runs the executable. On non-Windows,
-		/// it runs the executable using Unity's mono.
+		/// Runs a process.
 		/// </summary>
 		/// <remarks>You don't need to call <see cref="ProcessManager.Configure{T}(T, string)"/> on this task,
 		/// it already does it in the constructor.
 		/// </remarks>
-		public DotNetProcessTask(ITaskManager taskManager, IProcessManager processManager,
-			IEnvironment environment, IProcessEnvironment processEnvironment,
+		public NativeProcessTask(ITaskManager taskManager, IProcessManager processManager,
+			IProcessEnvironment processEnvironment,
 			string executable, string arguments,
 			string workingDirectory = null)
 			: base(taskManager, processManager,
-					processEnvironment,environment,
-					executable, arguments, workingDirectory, false, false)
-		{}
+					processEnvironment, null,
+					executable, arguments, workingDirectory, false, true)
+		{ }
 	}
 
 	/// <summary>
-	/// Runs a dotnet process. On Windows, it just runs the executable. On non-Windows,
-	/// it runs the executable using Unity's mono.
+	/// Runs a process.
 	/// </summary>
-	public class DotNetProcessTask<T> : BaseProcessTask<T>
+	public class NativeProcessTask<T> : BaseProcessTask<T>
 	{
 		/// <summary>
-		/// Runs a dotnet process. On Windows, it just runs the executable. On non-Windows,
-		/// it runs the executable using Unity's mono.
+		/// Runs a process.
 		/// </summary>
 		/// <remarks>You need to call <see cref="ProcessManager.Configure{T}(T, string)"/> on this task before running it.</remarks>
-		public DotNetProcessTask(ITaskManager taskManager,
+		public NativeProcessTask(ITaskManager taskManager,
 			IProcessEnvironment processEnvironment,
-			IEnvironment environment,
 			string executable,
 			string arguments,
 			IOutputProcessor<T> outputProcessor)
 			: base(taskManager, null,
-				  processEnvironment, environment,
-				  executable, arguments, null, outputProcessor, false, false)
+				  processEnvironment, null,
+				  executable, arguments, null, outputProcessor, false, true)
 		{ }
 
 		/// <summary>
-		/// Runs a dotnet process. On Windows, it just runs the executable. On non-Windows,
-		/// it runs the executable using Unity's mono.
+		/// Runs a process.
 		/// </summary>
 		/// <remarks>You need to call <see cref="ProcessManager.Configure{T}(T, string)"/> on this task before running it.</remarks>
-		public DotNetProcessTask(ITaskManager taskManager,
+		public NativeProcessTask(ITaskManager taskManager,
 			IEnvironment environment,
 			string executable,
 			string arguments,
 			IOutputProcessor<T> outputProcessor)
 			: base(taskManager, null,
-				  new ProcessEnvironment(environment), environment,
-				  executable, arguments, null, outputProcessor, false, false)
+				  new ProcessEnvironment(environment), null,
+				  executable, arguments, null, outputProcessor, false, true)
 		{ }
 
 		/// <summary>
-		/// Runs a dotnet process. On Windows, it just runs the executable. On non-Windows,
-		/// it runs the executable using Unity's mono.
+		/// Runs a process.
 		/// </summary>
 		/// <remarks>You don't need to call <see cref="ProcessManager.Configure{T}(T, string)"/> on this task,
 		/// it already does it in the constructor.
 		/// </remarks>
-		public DotNetProcessTask(ITaskManager taskManager,
+		public NativeProcessTask(ITaskManager taskManager,
 			IProcessManager processManager,
 			string executable,
 			string arguments,
 			IOutputProcessor<T> outputProcessor,
 			string workingDirectory = null)
 			: base(taskManager, processManager.EnsureNotNull(nameof(processManager)),
-				  processManager.DefaultProcessEnvironment, processManager.DefaultProcessEnvironment.Environment,
-				  executable, arguments, workingDirectory, outputProcessor, false, false)
+				  processManager.DefaultProcessEnvironment, null,
+				  executable, arguments, workingDirectory, outputProcessor, false, true)
 		{ }
 
 		/// <summary>
-		/// Runs a dotnet process. On Windows, it just runs the executable. On non-Windows,
-		/// it runs the executable using Unity's mono.
+		/// Runs a process.
 		/// </summary>
 		/// <remarks>You don't need to call <see cref="ProcessManager.Configure{T}(T, string)"/> on this task,
 		/// it already does it in the constructor.
 		/// </remarks>
-		public DotNetProcessTask(ITaskManager taskManager,
+		public NativeProcessTask(ITaskManager taskManager,
 			IProcessManager processManager,
 			IProcessEnvironment processEnvironment,
-			IEnvironment environment,
 			string executable,
 			string arguments,
 			IOutputProcessor<T> outputProcessor,
 			string workingDirectory = null)
 			: base(taskManager, processManager.EnsureNotNull(nameof(processManager)),
-				  processEnvironment ?? processManager.DefaultProcessEnvironment, environment,
-				  executable, arguments, workingDirectory, outputProcessor, false, false)
+				  processEnvironment ?? processManager.DefaultProcessEnvironment, null,
+				  executable, arguments, workingDirectory, outputProcessor, false, true)
 		{ }
 
 		/// <summary>
-		/// Runs a dotnet process. On Windows, it just runs the executable. On non-Windows,
-		/// it runs the executable using Unity's mono.
+		/// Runs a process.
 		/// </summary>
 		/// <remarks>You need to call <see cref="ProcessManager.Configure{T}(T, string)"/> on this task before running it.</remarks>
-		public DotNetProcessTask(ITaskManager taskManager,
+		public NativeProcessTask(ITaskManager taskManager,
 			IEnvironment environment,
 			string executable,
 			string arguments,
 			Func<IProcessTask<T>, string, bool> isMatch,
 			Func<IProcessTask<T>, string, T> processor)
 			: base(taskManager, null,
-				  new ProcessEnvironment(environment), environment,
-				  executable, arguments, null, isMatch, processor, false, false)
+				  new ProcessEnvironment(environment), null,
+				  executable, arguments, null, isMatch, processor, false, true)
 		{ }
 
 		/// <summary>
-		/// Runs a dotnet process. On Windows, it just runs the executable. On non-Windows,
-		/// it runs the executable using Unity's mono.
+		/// Runs a process.
 		/// </summary>
 		/// <remarks>You need to call <see cref="ProcessManager.Configure{T}(T, string)"/> on this task before running it.</remarks>
-		public DotNetProcessTask(ITaskManager taskManager,
+		public NativeProcessTask(ITaskManager taskManager,
 			IEnvironment environment,
 			string executable,
 			string arguments,
 			Func<IProcessTask<T>, string, T> processor)
 			: base(taskManager, null,
-				  new ProcessEnvironment(environment), environment,
-				  executable, arguments, null, null, processor, false, false)
+				  new ProcessEnvironment(environment), null,
+				  executable, arguments, null, null, processor, false, true)
 		{ }
 
 		/// <summary>
-		/// Runs a dotnet process. On Windows, it just runs the executable. On non-Windows,
-		/// it runs the executable using Unity's mono.
+		/// Runs a process.
 		/// </summary>
 		/// <remarks>You need to call <see cref="ProcessManager.Configure{T}(T, string)"/> on this task before running it.</remarks>
-		public DotNetProcessTask(ITaskManager taskManager,
+		public NativeProcessTask(ITaskManager taskManager,
 			IProcessEnvironment processEnvironment,
-			IEnvironment environment,
 			string executable,
 			string arguments,
 			Func<IProcessTask<T>, string, bool> isMatch,
 			Func<IProcessTask<T>, string, T> processor)
 			: base(taskManager, null,
-				  processEnvironment, environment,
-				  executable, arguments, null, isMatch, processor, false, false)
+				  processEnvironment, null,
+				  executable, arguments, null, isMatch, processor, false, true)
 		{ }
 
 		/// <summary>
-		/// Runs a dotnet process. On Windows, it just runs the executable. On non-Windows,
-		/// it runs the executable using Unity's mono.
+		/// Runs a process.
 		/// </summary>
 		/// <remarks>You need to call <see cref="ProcessManager.Configure{T}(T, string)"/> on this task before running it.</remarks>
-		public DotNetProcessTask(ITaskManager taskManager,
+		public NativeProcessTask(ITaskManager taskManager,
 			IProcessEnvironment processEnvironment,
-			IEnvironment environment,
 			string executable,
 			string arguments,
 			Func<IProcessTask<T>, string, T> processor)
 			: base(taskManager, null,
-				  processEnvironment, environment,
-				  executable, arguments, null, null, processor, false, false)
+				  processEnvironment, null,
+				  executable, arguments, null, null, processor, false, true)
 		{ }
 
 		/// <summary>
-		/// Runs a dotnet process. On Windows, it just runs the executable. On non-Windows,
-		/// it runs the executable using Unity's mono.
+		/// Runs a process.
 		/// </summary>
 		/// <remarks>You don't need to call <see cref="ProcessManager.Configure{T}(T, string)"/> on this task,
 		/// it already does it in the constructor.
 		/// </remarks>
-		public DotNetProcessTask(ITaskManager taskManager,
+		public NativeProcessTask(ITaskManager taskManager,
 			IProcessManager processManager,
 			string executable,
 			string arguments,
@@ -227,67 +207,62 @@ namespace Unity.Editor.Tasks
 			Func<IProcessTask<T>, string, T> processor,
 			string workingDirectory = null)
 			: base(taskManager, processManager.EnsureNotNull(nameof(processManager)),
-				  processManager.DefaultProcessEnvironment, processManager.DefaultProcessEnvironment.Environment,
-				  executable, arguments, workingDirectory, isMatch, processor, false, false)
+				  processManager.DefaultProcessEnvironment, null,
+				  executable, arguments, workingDirectory, isMatch, processor, false, true)
 		{ }
 
 		/// <summary>
-		/// Runs a dotnet process. On Windows, it just runs the executable. On non-Windows,
-		/// it runs the executable using Unity's mono.
+		/// Runs a process.
 		/// </summary>
 		/// <remarks>You don't need to call <see cref="ProcessManager.Configure{T}(T, string)"/> on this task,
 		/// it already does it in the constructor.
 		/// </remarks>
-		public DotNetProcessTask(ITaskManager taskManager,
+		public NativeProcessTask(ITaskManager taskManager,
 			IProcessManager processManager,
 			string executable,
 			string arguments,
 			Func<IProcessTask<T>, string, T> processor,
 			string workingDirectory = null)
 			: base(taskManager, processManager.EnsureNotNull(nameof(processManager)),
-				  processManager.DefaultProcessEnvironment, processManager.DefaultProcessEnvironment.Environment,
-				  executable, arguments, workingDirectory, null, processor, false, false)
+				  processManager.DefaultProcessEnvironment, null,
+				  executable, arguments, workingDirectory, null, processor, false, true)
 		{ }
 
 		/// <summary>
-		/// Runs a dotnet process. On Windows, it just runs the executable. On non-Windows,
-		/// it runs the executable using Unity's mono.
+		/// Runs a process.
 		/// </summary>
 		/// <remarks>You don't need to call <see cref="ProcessManager.Configure{T}(T, string)"/> on this task,
 		/// it already does it in the constructor.
 		/// </remarks>
-		public DotNetProcessTask(ITaskManager taskManager,
+		public NativeProcessTask(ITaskManager taskManager,
 			IProcessManager processManager,
 			IProcessEnvironment processEnvironment,
-			IEnvironment environment,
 			string executable,
 			string arguments,
 			Func<IProcessTask<T>, string, bool> isMatch,
 			Func<IProcessTask<T>, string, T> processor,
 			string workingDirectory = null)
 			: base(taskManager, processManager.EnsureNotNull(nameof(processManager)),
-				  processEnvironment ?? processManager.DefaultProcessEnvironment, environment,
-				  executable, arguments, workingDirectory, isMatch, processor, false, false)
+				  processEnvironment ?? processManager.DefaultProcessEnvironment, null,
+				  executable, arguments, workingDirectory, isMatch, processor, false, true)
 		{ }
 
 		/// <summary>
-		/// Runs a dotnet process. On Windows, it just runs the executable. On non-Windows,
-		/// it runs the executable using Unity's mono.
+		/// Runs a process.
 		/// </summary>
 		/// <remarks>You don't need to call <see cref="ProcessManager.Configure{T}(T, string)"/> on this task,
 		/// it already does it in the constructor.
 		/// </remarks>
-		public DotNetProcessTask(ITaskManager taskManager,
+		public NativeProcessTask(ITaskManager taskManager,
 			IProcessManager processManager,
 			IProcessEnvironment processEnvironment,
-			IEnvironment environment,
 			string executable,
 			string arguments,
 			Func<IProcessTask<T>, string, T> processor,
 			string workingDirectory = null)
 			: base(taskManager, processManager.EnsureNotNull(nameof(processManager)),
-				  processEnvironment ?? processManager.DefaultProcessEnvironment, environment,
-				  executable, arguments, workingDirectory, null, processor, false, false)
+				  processEnvironment ?? processManager.DefaultProcessEnvironment, null,
+				  executable, arguments, workingDirectory, null, processor, false, true)
 		{ }
 	}
 }

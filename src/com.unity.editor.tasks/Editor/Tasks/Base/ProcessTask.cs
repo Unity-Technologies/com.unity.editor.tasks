@@ -271,7 +271,7 @@ namespace Unity.Editor.Tasks
 		protected override void RaiseOnEnd(T data)
 		{
 			base.RaiseOnEnd(data);
-			Dispose();
+			OnStartProcess = OnEndProcess = null;
 		}
 
 		/// <summary>
@@ -580,7 +580,6 @@ namespace Unity.Editor.Tasks
 			Dispose(true);
 			GC.SuppressFinalize(this);
 		}
-
 
 		public BaseProcessWrapper Wrapper { get; private set; }
 		/// <inheritdoc />

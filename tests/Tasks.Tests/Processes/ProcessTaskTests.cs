@@ -23,7 +23,7 @@ namespace ProcessManagerTests
 			Process process = default;
 			using (var test = StartTest())
 			{
-				var task = new FirstNonNullLineProcessTask(test.TaskManager, test.ProcessManager,
+				var task = new HelperProcessTask(test.TaskManager, test.ProcessManager,
 					TestApp, @"--sleep 1000 --data ""ok""");
 
 				task.OnStartProcess += p => {
