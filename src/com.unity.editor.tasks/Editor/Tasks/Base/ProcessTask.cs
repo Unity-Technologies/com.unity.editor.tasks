@@ -216,6 +216,9 @@ namespace Unity.Editor.Tasks
 		/// </summary>
 		public virtual void Configure(IProcessManager processManager, ProcessStartInfo startInfo, IOutputProcessor<T> processor = null)
 		{
+			ProcessName = startInfo.FileName;
+			ProcessArguments = startInfo.Arguments;
+
 			OutputProcessor = processor ?? OutputProcessor;
 			ConfigureOutputProcessor();
 
