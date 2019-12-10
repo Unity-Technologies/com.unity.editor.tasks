@@ -134,6 +134,7 @@ namespace Unity.Editor.Tasks
 
 		public static ITask WithAsync(this ITaskManager taskManager, Func<Task> asyncDelegate, string name) => WithAsync(taskManager, asyncDelegate, TaskAffinity.Concurrent, name);
 		public static ITask<T> WithAsync<T>(this ITaskManager taskManager, Func<Task<T>> asyncDelegate, string name) => WithAsync(taskManager, asyncDelegate, TaskAffinity.Concurrent, name);
+		public static ITask<TRet> WithAsync<T, TRet>(this ITaskManager taskManager, Func<T, Task<TRet>> asyncDelegate, T state, string name) => WithAsync(taskManager, asyncDelegate, state, TaskAffinity.Concurrent, name);
 
 		public static ITask WithUIAsync(this ITaskManager taskManager, Func<Task> asyncDelegate, string name = "WithUIAsync") => WithAsync(taskManager, asyncDelegate, TaskAffinity.UI, name);
 		public static ITask<TRet> WithUIAsync<TRet>(this ITaskManager taskManager, Func<Task<TRet>> asyncDelegate, string name = "WithUIAsync") => WithAsync(taskManager, asyncDelegate, TaskAffinity.UI, name);
@@ -141,5 +142,6 @@ namespace Unity.Editor.Tasks
 
 		public static ITask WithExclusiveAsync(this ITaskManager taskManager, Func<Task> asyncDelegate, string name = "WithExclusiveAsync") => WithAsync(taskManager, asyncDelegate, TaskAffinity.Exclusive, name);
 		public static ITask<T> WithExclusiveAsync<T>(this ITaskManager taskManager, Func<Task<T>> asyncDelegate, string name = "WithExclusiveAsync") => WithAsync(taskManager, asyncDelegate, TaskAffinity.Exclusive, name);
+		public static ITask<TRet> WithExclusiveAsync<T, TRet>(this ITaskManager taskManager, Func<T, Task<TRet>> asyncDelegate, T state, string name = "WithExclusiveAsync") => WithAsync(taskManager, asyncDelegate, state, TaskAffinity.Exclusive, name);
 	}
 }

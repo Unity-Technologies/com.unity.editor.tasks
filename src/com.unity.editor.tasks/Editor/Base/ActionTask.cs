@@ -124,7 +124,7 @@ namespace Unity.Editor.Tasks
 
 			this.getPreviousResult = getPreviousResult;
 			Callback = action;
-			Task = new Task(RunSynchronously, Token, TaskCreationOptions.None);
+			Task = new Task(InternalRunSynchronously, Token, TaskCreationOptions.None);
 			Name = $"ActionTask<{typeof(T)}>";
 		}
 
@@ -142,7 +142,7 @@ namespace Unity.Editor.Tasks
 
 			this.getPreviousResult = getPreviousResult;
 			CallbackWithException = action;
-			Task = new Task(RunSynchronously, Token, TaskCreationOptions.None);
+			Task = new Task(InternalRunSynchronously, Token, TaskCreationOptions.None);
 			Name = $"ActionTask<Exception, {typeof(T)}>";
 		}
 

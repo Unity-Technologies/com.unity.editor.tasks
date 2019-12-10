@@ -374,7 +374,7 @@ namespace Unity.Editor.Tasks
 			TaskManager = taskManager;
 			Token = cts.Token;
 			progress = new Progress(this);
-			Task = new Task(RunSynchronously, Token, TaskCreationOptions.None);
+			Task = new Task(InternalRunSynchronously, Token, TaskCreationOptions.None);
 		}
 
         /// <inheritdoc />
@@ -538,6 +538,12 @@ namespace Unity.Editor.Tasks
 			{
 				RaiseOnEnd();
 			}
+		}
+
+		internal void InternalRunSynchronously()
+		{
+			current = this;
+			RunSynchronously();
 		}
 
 		internal void InternalStart(TaskScheduler scheduler)
@@ -922,6 +928,9 @@ namespace Unity.Editor.Tasks
 		/// <inheritdoc />
 		public virtual string Message { get; set; }
 
+		[ThreadStatic] protected static TaskBase current;
+		public static ITask CurrentTask => current;
+
 		/// <inheritdoc />
 		protected ILogging Logger { get { return logger = logger ?? LogHelper.GetLogger(GetType()); } }
 	}
@@ -962,7 +971,7 @@ namespace Unity.Editor.Tasks
 		protected TaskBase(ITaskManager taskManager, CancellationToken token)
 			: base(taskManager, token)
 		{
-			Task = new Task<TResult>(RunSynchronously, Token, TaskCreationOptions.None);
+			Task = new Task<TResult>(InternalRunSynchronously, Token, TaskCreationOptions.None);
 		}
 
         /// <inheritdoc />
@@ -1088,6 +1097,12 @@ namespace Unity.Editor.Tasks
 				RaiseOnEnd(ret);
 			}
 			return ret;
+		}
+
+		internal new TResult InternalRunSynchronously()
+		{
+			current = this;
+			return RunSynchronously();
 		}
 
 		/// <summary>

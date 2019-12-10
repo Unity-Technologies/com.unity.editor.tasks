@@ -19,7 +19,7 @@ namespace Unity.Editor.Tasks
 		protected TPLTask(ITaskManager taskManager, CancellationToken token)
 			: base(taskManager, token)
 		{
-			Task = new Task(RunSynchronously, Token, TaskCreationOptions.None);
+			Task = new Task(InternalRunSynchronously, Token, TaskCreationOptions.None);
 		}
 
 		public TPLTask(ITaskManager taskManager, Func<Task> task) : this(taskManager, taskManager?.Token ?? default, task) { }
@@ -92,7 +92,7 @@ namespace Unity.Editor.Tasks
 		protected TPLTask(ITaskManager taskManager, CancellationToken token)
 			: base(taskManager, token)
 		{
-			Task = new Task<T>(RunSynchronously, Token, TaskCreationOptions.None);
+			Task = new Task<T>(InternalRunSynchronously, Token, TaskCreationOptions.None);
 		}
 
 		public TPLTask(ITaskManager taskManager, Func<Task<T>> task) : this(taskManager, taskManager?.Token ?? default, task) { }
@@ -165,7 +165,7 @@ namespace Unity.Editor.Tasks
 		protected TPLTask(ITaskManager taskManager, CancellationToken token)
 			: base(taskManager, token)
 		{
-			Task = new Task<TResult>(RunSynchronously, Token, TaskCreationOptions.None);
+			Task = new Task<TResult>(InternalRunSynchronously, Token, TaskCreationOptions.None);
 		}
 
 		public TPLTask(ITaskManager taskManager, Func<T, Task<TResult>> task) : this(taskManager, taskManager?.Token ?? default, task) { }

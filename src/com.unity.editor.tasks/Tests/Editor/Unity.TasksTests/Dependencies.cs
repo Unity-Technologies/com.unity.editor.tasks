@@ -9,6 +9,8 @@ using Unity.Editor.Tasks;
 
 namespace ThreadingTests
 {
+	using System.Threading;
+
 	partial class Dependencies : BaseTest
 	{
 		class TestActionTask : ActionTask
@@ -107,6 +109,54 @@ namespace ThreadingTests
 				var top = task3.GetTopOfChain();
 				Assert.AreSame(task1, top);
 
+			}
+		}
+
+		[CustomUnityTest]
+		public IEnumerator CurrentTaskWorks()
+		{
+			using (var test = StartTest())
+			{
+
+				ITask<bool> task1, task2, task3;
+				task1 = task2 = task3 = null;
+
+				var s1 = new ManualResetEventSlim();
+				var s2 = new ManualResetEventSlim();
+				var s3 = new ManualResetEventSlim();
+				var signal = new ManualResetEventSlim();
+
+				task1 = test.TaskManager.With(() => {
+					s1.Set();
+					signal.Wait();
+					return TaskBase.CurrentTask == task1;
+				}, TaskAffinity.None);
+				task2 = test.TaskManager.With(() => {
+					s2.Set();
+					signal.Wait();
+					return TaskBase.CurrentTask == task2;
+				}, TaskAffinity.None);
+				task3 = test.TaskManager.With(() => {
+					s3.Set();
+					signal.Wait();
+					return TaskBase.CurrentTask == task3;
+				});
+
+				var t1 = task1.Finally((s, e, ret) => { if (!s) e.Rethrow(); return ret; }).Start();
+				var t2 = task2.Finally((s, e, ret) => { if (!s) e.Rethrow(); return ret; }).Start();
+				var t3 = task3.Finally((s, e, ret) => { if (!s) e.Rethrow(); return ret; }).Start();
+
+				s1.Wait();
+				s2.Wait();
+				s3.Wait();
+				signal.Set();
+
+				// wait for the tasks to finish
+				foreach (var frame in StartAndWaitForCompletion(t1, t2, t3)) yield return frame;
+
+				Assert.True(task1.Result);
+				Assert.True(task2.Result);
+				Assert.True(task3.Result);
 			}
 		}
 

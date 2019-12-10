@@ -36,5 +36,11 @@ namespace ThreadingTests
 		{
 			await RunTest(MergingTwoChainsWorks);
 		}
+
+		[Test]
+		public async Task CurrentTaskWorks_()
+		{
+			await RunTest(CurrentTaskWorks);
+		}
 	}
 }
