@@ -97,7 +97,16 @@ namespace Unity.Editor.Tasks
 			if (disposed) return;
 			if (disposing)
 			{
-				Stop();
+				foreach (var p in processes.ToArray())
+				{
+					try
+					{
+						p.Stop();
+						p.Dispose();
+					}
+					catch {}
+				}
+
 				disposed = true;
 			}
 		}

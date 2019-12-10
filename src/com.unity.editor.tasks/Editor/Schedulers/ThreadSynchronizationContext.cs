@@ -125,9 +125,7 @@ namespace Unity.Editor.Tasks
 					dataSignal.Dispose();
 				}
 				catch
-				{
-					System.Diagnostics.Debugger.Break();
-				}
+				{}
 			}
 		}
 
