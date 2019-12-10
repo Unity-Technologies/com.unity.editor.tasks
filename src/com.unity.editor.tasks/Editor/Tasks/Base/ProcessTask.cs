@@ -11,6 +11,7 @@ using System.Threading;
 
 namespace Unity.Editor.Tasks
 {
+	using System.Threading.Tasks;
 	using Extensions;
 	using Unity.Editor.Tasks.Helpers;
 
@@ -77,10 +78,16 @@ namespace Unity.Editor.Tasks
 		void Configure(IProcessManager processManager, ProcessStartInfo startInfo);
 
 		/// <summary>
-		/// An overloaded <see cref="ITask.Start" /> method that returns IProcessTask, to make it easier to chain.
+		/// An overloaded <see cref="ITask.Start()" /> method that returns IProcessTask, to make it easier to chain.
 		/// </summary>
 		/// <returns>The started task.</returns>
 		new IProcessTask Start();
+
+		/// <summary>
+		/// An overloaded <see cref="ITask.Start(System.Threading.Tasks.TaskScheduler)" /> method that returns IProcessTask, to make it easier to chain.
+		/// </summary>
+		/// <returns>The started task.</returns>
+		new IProcessTask Start(TaskScheduler customScheduler);
 
 		/// <summary>
 		/// If you call this on a running process task, it will trigger the task to finish, raising
@@ -110,10 +117,16 @@ namespace Unity.Editor.Tasks
 		void Configure(IProcessManager processManager, ProcessStartInfo startInfo, IOutputProcessor<T> processor = null);
 
 		/// <summary>
-		/// An overloaded <see cref="ITask.Start" /> method that returns IProcessTask, to make it easier to chain.
+		/// An overloaded <see cref="ITask.Start()" /> method that returns IProcessTask, to make it easier to chain.
 		/// </summary>
 		/// <returns>The started task.</returns>
 		new IProcessTask<T> Start();
+
+		/// <summary>
+		/// An overloaded <see cref="ITask.Start(TaskScheduler)" /> method that returns IProcessTask, to make it easier to chain.
+		/// </summary>
+		/// <returns>The started task.</returns>
+		new IProcessTask<T> Start(TaskScheduler customScheduler);
 
 		/// <inheritdoc />
 		event Action<T> OnOutput;
@@ -142,10 +155,15 @@ namespace Unity.Editor.Tasks
 		void Configure(IProcessManager processManager, ProcessStartInfo startInfo, IOutputProcessor<TData, T> processor = null);
 
 		/// <summary>
-		/// An overloaded <see cref="ITask.Start" /> method that returns IProcessTask, to make it easier to chain.
+		/// An overloaded <see cref="ITask.Start()" /> method that returns IProcessTask, to make it easier to chain.
 		/// </summary>
 		/// <returns>The started task.</returns>
 		new IProcessTask<TData, T> Start();
+		/// <summary>
+		/// An overloaded <see cref="ITask.Start(TaskScheduler)" /> method that returns IProcessTask, to make it easier to chain.
+		/// </summary>
+		/// <returns>The started task.</returns>
+		new IProcessTask<TData, T> Start(TaskScheduler customScheduler);
 	}
 
 
@@ -249,10 +267,16 @@ namespace Unity.Editor.Tasks
 		}
 
 		/// <inheritdoc />
-		IProcessTask IProcessTask.Start()
+		public new IProcessTask<T> Start(TaskScheduler customScheduler)
 		{
-			return Start();
+			base.Start(customScheduler);
+			return this;
 		}
+
+		/// <inheritdoc />
+		IProcessTask IProcessTask.Start() => Start();
+		/// <inheritdoc />
+		IProcessTask IProcessTask.Start(TaskScheduler customScheduler) => Start(customScheduler);
 
 		/// <inheritdoc />
 		public void Stop()
@@ -471,18 +495,23 @@ namespace Unity.Editor.Tasks
 		/// <inheritdoc />
 		void IProcessTask.Configure(IProcessManager processManager, ProcessStartInfo process) => Configure(processManager, process, null);
 
-		IProcessTask IProcessTask.Start()
-		{
-			Start();
-			return this;
-		}
-
 		/// <inheritdoc />
 		public new IProcessTask<T, List<T>> Start()
 		{
 			base.Start();
 			return this;
 		}
+
+		/// <inheritdoc />
+		public new IProcessTask<T, List<T>> Start(TaskScheduler customScheduler)
+		{
+			base.Start(customScheduler);
+			return this;
+		}
+
+		IProcessTask IProcessTask.Start() => Start();
+		IProcessTask IProcessTask.Start(TaskScheduler customScheduler) => Start(customScheduler);
+
 
 		/// <inheritdoc />
 		public void Stop()

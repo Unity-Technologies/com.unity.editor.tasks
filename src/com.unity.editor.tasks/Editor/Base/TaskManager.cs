@@ -36,7 +36,6 @@ namespace Unity.Editor.Tasks
 		TaskScheduler GetScheduler(TaskAffinity affinity);
 		TaskScheduler ConcurrentScheduler { get; }
 		TaskScheduler ExclusiveScheduler { get; }
-		TaskScheduler LongRunningScheduler { get; }
 		TaskScheduler UIScheduler { get; set; }
 		CancellationToken Token { get; }
 		bool InUIThread { get; }
@@ -102,8 +101,8 @@ namespace Unity.Editor.Tasks
 					return ExclusiveScheduler;
 				case TaskAffinity.UI:
 					return UIScheduler;
-				case TaskAffinity.LongRunning:
-					return LongRunningScheduler;
+				case TaskAffinity.Custom:
+					return null;
 				case TaskAffinity.None:
 					return TaskScheduler.Default;
 				case TaskAffinity.Concurrent:
@@ -131,6 +130,9 @@ namespace Unity.Editor.Tasks
 
 		private void Schedule(TaskBase task, TaskScheduler scheduler, bool setupFaultHandler, string schedulerName)
 		{
+			if (task.Affinity == TaskAffinity.Custom)
+				scheduler = task.TaskScheduler;
+
 			if (setupFaultHandler)
 			{
 				// we run this exception handler in the long running scheduler so it doesn't get blocked
@@ -142,12 +144,12 @@ namespace Unity.Editor.Tasks
 				},
 					cts.Token,
 					TaskContinuationOptions.OnlyOnFaulted,
-					GetScheduler(TaskAffinity.LongRunning)
+					GetScheduler(TaskAffinity.None)
 				);
 			}
 
 			task.Progress(progressReporter.UpdateProgress);
-			task.Start(scheduler);
+			task.InternalStart(scheduler);
 		}
 
 		public void Stop()
@@ -189,8 +191,6 @@ namespace Unity.Editor.Tasks
 		public TaskScheduler UIScheduler { get; set; }
 		public TaskScheduler ConcurrentScheduler => manager.ConcurrentScheduler;
 		public TaskScheduler ExclusiveScheduler => manager.ExclusiveScheduler;
-		private TaskScheduler longRunningScheduler;
-		public TaskScheduler LongRunningScheduler => longRunningScheduler ?? (longRunningScheduler = new TaskSchedulerExcludingThread(UIThread));
 		public CancellationToken Token => cts.Token;
 		public int UIThread { get; private set; }
 		public bool InUIThread => UIThread == 0 || Thread.CurrentThread.ManagedThreadId == UIThread;

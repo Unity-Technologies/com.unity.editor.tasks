@@ -94,6 +94,12 @@ namespace Unity.Editor.Tasks
 		ITask Start();
 
         /// <summary>
+        /// Start a task.
+        /// </summary>
+        /// <returns></returns>
+        ITask Start(TaskScheduler customScheduler);
+
+        /// <summary>
 		/// Executes the body of the task. This is called when tasks run, but if you want to run the task directly, you can call this.
 		/// </summary>
 		void RunSynchronously();
@@ -225,6 +231,12 @@ namespace Unity.Editor.Tasks
 		/// </summary>
 		/// <returns></returns>
 		new ITask<TResult> Start();
+
+        /// <summary>
+        /// Starts a task.
+        /// </summary>
+        /// <returns></returns>
+        new ITask<TResult> Start(TaskScheduler customScheduler);
 
         /// <summary>
         /// Executes the body of the task. This is called when tasks run, but if you want to run the task directly, you can call this.
@@ -500,6 +512,19 @@ namespace Unity.Editor.Tasks
 		}
 
 		/// <inheritdoc />
+		public ITask Start(TaskScheduler scheduler)
+		{
+			TaskScheduler = scheduler;
+			var depends = GetTopMostStartableTask();
+			if (depends != null)
+			{
+				depends.TaskScheduler = scheduler;
+				depends.Schedule();
+			}
+			return this;
+		}
+
+		/// <inheritdoc />
 		public virtual void RunSynchronously()
 		{
 			RaiseOnStart();
@@ -515,10 +540,23 @@ namespace Unity.Editor.Tasks
 			}
 		}
 
-		internal void Start(TaskScheduler scheduler)
+		internal void InternalStart(TaskScheduler scheduler)
 		{
 			if (Task.Status == TaskStatus.Created)
 			{
+				if (scheduler == null)
+				{
+					var message = $"Missing scheduler on task {Name} with affinity {Affinity}.";
+					if (Affinity == TaskAffinity.Custom)
+					{
+						message += " Tasks with custom affinity must be started with Start(TaskScheduler).";
+					}
+					else if (Affinity == TaskAffinity.UI)
+					{
+						message += " Did you call TaskManager.Initialize()?";
+					}
+					throw new InvalidOperationException(message);
+				}
 				Task.Start(scheduler);
 			}
 		}
@@ -594,6 +632,29 @@ namespace Unity.Editor.Tasks
 		protected void SetContinuation(TaskBase continuation, TaskContinuationOptions runOptions)
 		{
 			Token.ThrowIfCancellationRequested();
+
+			continuation.TaskScheduler = TaskScheduler;
+
+			var scheduler = TaskManager.GetScheduler(continuation.Affinity);
+			if (continuation.Affinity == TaskAffinity.Custom)
+			{
+				scheduler = TaskScheduler;
+			}
+
+			if (scheduler == null)
+			{
+				var message = $"Missing scheduler on task {Name} with affinity {Affinity}.";
+				if (Affinity == TaskAffinity.Custom)
+				{
+					message += " Tasks with custom affinity must be started with Start(TaskScheduler).";
+				}
+				else if (Affinity == TaskAffinity.UI)
+				{
+					message += " Did you call TaskManager.Initialize()?";
+				}
+				throw new InvalidOperationException(message);
+			}
+
 			Task.ContinueWith(_ =>
 				{
 					Token.ThrowIfCancellationRequested();
@@ -601,7 +662,7 @@ namespace Unity.Editor.Tasks
 				},
 				Token,
 				runOptions,
-				TaskManager.GetScheduler(continuation.Affinity));
+				scheduler);
 		}
 
         /// <summary>
@@ -795,7 +856,7 @@ namespace Unity.Editor.Tasks
 					return depends.Exception;
 				depends = depends.DependsOn;
 			}
-			return null;
+			return previousException;
 		}
 
 		internal ITask CatchInternal(Func<Exception, bool> handler)
@@ -856,6 +917,8 @@ namespace Unity.Editor.Tasks
 		public CancellationToken Token { get; }
 		/// <inheritdoc />
 		public ITaskManager TaskManager { get; }
+		/// <inheritdoc />
+		public TaskScheduler TaskScheduler { get; private set; }
 		/// <inheritdoc />
 		public virtual string Message { get; set; }
 
@@ -990,6 +1053,13 @@ namespace Unity.Editor.Tasks
 		public new ITask<TResult> Start()
 		{
 			base.Start();
+			return this;
+		}
+
+		/// <inheritdoc />
+		public new ITask<TResult> Start(TaskScheduler customScheduler)
+		{
+			base.Start(customScheduler);
 			return this;
 		}
 
@@ -1314,6 +1384,7 @@ namespace Unity.Editor.Tasks
 		void ITask.RunSynchronously() => throw new NotImplementedException();
 
 		ITask ITask.Start() => throw new NotImplementedException();
+		ITask ITask.Start(TaskScheduler customScheduler) => throw new NotImplementedException();
 
 		T ITask.Then<T>(T continuation, TaskRunOptions runOptions, bool taskIsTopOfChain) => throw new NotImplementedException();
 

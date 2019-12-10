@@ -22,11 +22,9 @@ namespace Unity.Editor.Tasks
 		/// </summary>
 		UI,
 		/// <summary>
-		/// Tasks with this affinity are long-lived and not expected to return until the app shuts down or something fails.
-		/// They'll run on the thread pool, and if it's a ProcessTask, it won't exit until the underlying process stops or
-		/// the Task is explicitely stopped.
+		/// Tasks with this affinity use a custom scheduler specified via <see cref="TaskBase.InternalStart"/>
 		/// </summary>
-		LongRunning,
+		Custom,
 		/// <summary>
 		/// Tasks with this affinity run in the thread pool. <see cref="ITask.Finally" /> task handlers run with this affinity by default.
 		/// </summary>

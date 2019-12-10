@@ -13,6 +13,134 @@ namespace ThreadingTests
 
 	partial class SchedulerTests : BaseTest
 	{
+		[Test]
+		public void CustomScheduler_ThrowsIfNotSet()
+		{
+			using (var test = StartTest())
+			{
+				var task = test.TaskManager.With(() => {}, TaskAffinity.Custom);
+				Assert.Throws<InvalidOperationException>(() => task.Start());
+			}
+		}
+
+		[CustomUnityTest]
+		public IEnumerator CustomScheduler_Works()
+		{
+			using (var test = StartTest())
+			{
+				using (var context = new ThreadSynchronizationContext(test.TaskManager.Token))
+				using (var scheduler = new SynchronizationContextTaskScheduler(context))
+				{
+					int expected = 0;
+					scheduler.Context.Send(_ => expected = Thread.CurrentThread.ManagedThreadId, null);
+
+					var task = test.TaskManager.With(() => Thread.CurrentThread.ManagedThreadId, TaskAffinity.Custom);
+					task.Start(scheduler);
+
+					foreach (var frame in StartAndWaitForCompletion(task)) yield return frame;
+
+					Assert.Greater(task.Result, 1);
+					task.Result.Matches(expected);
+				}
+			}
+		}
+
+		[CustomUnityTest]
+		public IEnumerator CustomScheduler_AsyncKeepsOrder()
+		{
+			using (var test = StartTest())
+			{
+				using (var context = new ThreadSynchronizationContext(test.TaskManager.Token))
+				using (var scheduler = new SynchronizationContextTaskScheduler(context))
+				{
+					int expected = 0;
+					scheduler.Context.Send(_ => expected = Thread.CurrentThread.ManagedThreadId, null);
+
+					var order = new List<int>();
+					var task1 = test.TaskManager
+					                .WithAsync(async s => {
+						                await Task.Delay(10);
+						                s.Add(1);
+						                return s;
+					                }, order, TaskAffinity.Custom)
+					                .Finally((s, e, ret) => {
+						                if (!s) e.Rethrow();
+						                return ret;
+					                });
+
+					var task2 = test.TaskManager.WithAsync(async s => {
+						                await Task.Yield();
+						                s.Add(2);
+						                return s;
+					                }, order, TaskAffinity.Custom)
+					                .Finally((s, e, ret) => {
+						                if (!s) e.Rethrow();
+						                return ret;
+					                });
+
+
+					var task3 = test.TaskManager.WithAsync(async s => {
+						                s.Add(3);
+						                await Task.Yield();
+						                return s;
+					                }, order, TaskAffinity.Custom)
+					                .Finally((s, e, ret) => {
+						                if (!s) e.Rethrow();
+						                return ret;
+					                });
+
+					task1.Start(scheduler);
+					task2.Start(scheduler);
+					task3.Start(scheduler);
+					foreach (var frame in WaitForCompletion(task1, task2, task3)) yield return frame;
+
+					order.Matches(new int[] { 1, 2, 3 });
+				}
+			}
+		}
+
+		[CustomUnityTest]
+		public IEnumerator CustomScheduler_ChainRunsOnTheSameScheduler()
+		{
+			using (var test = StartTest())
+			{
+				using (var context = new ThreadSynchronizationContext(test.TaskManager.Token))
+				using (var scheduler = new SynchronizationContextTaskScheduler(context))
+				{
+					int expected = 0;
+					scheduler.Context.Send(_ => expected = Thread.CurrentThread.ManagedThreadId, null);
+
+					var task = test.TaskManager
+					               .With(s => {
+						               s.Add(Thread.CurrentThread.ManagedThreadId);
+						               return s;
+					               }, new List<int>(), TaskAffinity.Custom)
+					               .ThenInUI(s => {
+						               s.Add(Thread.CurrentThread.ManagedThreadId);
+						               return s;
+					               })
+					               .Then(s => {
+						               s.Add(Thread.CurrentThread.ManagedThreadId);
+						               return s;
+					               }, TaskAffinity.Custom)
+					               .Finally((s, e, ret) => {
+						               if (!s) e.Rethrow();
+						               return ret;
+					               });
+
+					task.Start(scheduler);
+					foreach (var frame in WaitForCompletion(task)) yield return frame;
+
+					if (!task.Successful)
+					{
+						task.Exception.Rethrow();
+					}
+					var actual = task.Result;
+					actual.Matches(new[] { expected, test.TaskManager.UIThread, expected });
+				}
+			}
+		}
+
 		[CustomUnityTest]
 		public IEnumerator ChainingOnDifferentSchedulers()
 		{

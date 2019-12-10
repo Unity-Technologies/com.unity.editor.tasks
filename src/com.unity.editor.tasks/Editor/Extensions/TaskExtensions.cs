@@ -134,7 +134,7 @@ namespace Unity.Editor.Tasks
 			return task.Then(cont, runOptions);
 		}
 
-		public static ITask<TRet> ThenAsync<T, TRet>(this ITask task, Func<T, Task<TRet>> asyncDelegate, TaskAffinity affinity = TaskAffinity.Concurrent, string name = null, TaskRunOptions runOptions = TaskRunOptions.OnSuccess)
+		public static ITask<TRet> ThenAsync<T, TRet>(this ITask<T> task, Func<T, Task<TRet>> asyncDelegate, TaskAffinity affinity = TaskAffinity.Concurrent, string name = null, TaskRunOptions runOptions = TaskRunOptions.OnSuccess)
 		{
 			task.EnsureNotNull(nameof(task));
 			asyncDelegate.EnsureNotNull(nameof(asyncDelegate));

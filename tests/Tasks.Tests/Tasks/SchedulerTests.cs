@@ -18,6 +18,24 @@ namespace ThreadingTests
 	partial class SchedulerTests
 	{
 		[Test]
+		public async Task CustomScheduler_Works_()
+		{
+			await RunTest(CustomScheduler_Works);
+		}
+
+		[Test]
+		public async Task CustomScheduler_ChainRunsOnTheSameScheduler_()
+		{
+			await RunTest(CustomScheduler_ChainRunsOnTheSameScheduler);
+		}
+
+		[Test]
+		public async Task CustomScheduler_AsyncKeepsOrder_()
+		{
+			await RunTest(CustomScheduler_AsyncKeepsOrder);
+		}
+
+		[Test]
 		public async Task ChainingOnDifferentSchedulers_()
 		{
 			await RunTest(ChainingOnDifferentSchedulers);
