@@ -23,21 +23,20 @@ namespace ProcessManagerTests
 			Process process = default;
 			using (var test = StartTest())
 			{
-				var task = new HelperProcessTask(test.TaskManager, test.ProcessManager,
-					TestApp, @"--sleep 1000 --data ""ok""");
+				using (var task = new HelperProcessTask(test.TaskManager, test.ProcessManager,
+					TestApp, @"--sleep 1000 --data ""ok"""))
+				{
 
-				task.OnStartProcess += p => {
-					process = ((ProcessWrapper)p.Wrapper).Process;
-					task.Detach();
-				};
-				var ret = await task.StartAwait();
-				Assert.Null(ret);
-				Assert.False(task.Wrapper.HasExited);
+					task.OnStartProcess += p => {
+						process = ((ProcessWrapper)p.Wrapper).Process;
+						task.Detach();
+					};
+					var ret = await task.StartAwait();
+					Assert.Null(ret);
+					Assert.False(task.Wrapper.HasExited);
+					Assert.False(process.HasExited);
+				}
 			}
-
-			Assert.Throws<InvalidOperationException>(() => {
-				var i = process.HasExited;
-			});
 		}
 
 		[Test]
