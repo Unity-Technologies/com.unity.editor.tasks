@@ -4,6 +4,8 @@
 
 ## [VERSION] - DATE
 
+- Harden cancelling and disposing schedulers
+
 ## [1.2.7] - 2019-12-10
 
 - Add a threadlocal static field with the current task in TaskBase.
