@@ -4,6 +4,14 @@
 
 ## [VERSION] - DATE
 
+## [1.2.7] - 2019-12-10
+
+- Add a threadlocal static field with the current task in TaskBase.
+- Add support for running tasks on custom schedulers
+- Harden disposing of resources
+- Add Native/DotNet/Mono ProcessTask classes to simplify running processes.
+- Fix potential type collisions. Add a test to show how to insert tasks in a chain.
+
 ## [1.2.1] - 2019-12-05
 
 - Refactor task extension methods to be easier to use. Add .net/mono process tasks

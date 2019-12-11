@@ -12,6 +12,7 @@ namespace Unity.Editor.Tasks
 		private readonly ConcurrentQueue<PostData> queue = new ConcurrentQueue<PostData>();
 		private readonly ManualResetEventSlim dataSignal = new ManualResetEventSlim(false);
 		private readonly CancellationTokenSource cts = new CancellationTokenSource();
+		private readonly CancellationTokenSource externalCts;
 		private ManualResetEvent completion = new ManualResetEvent(false);
 
 		private int threadId;
@@ -20,7 +21,8 @@ namespace Unity.Editor.Tasks
 
 		public ThreadSynchronizationContext(CancellationToken token)
 		{
-			token.Register(Dispose);
+			externalCts = CancellationTokenSource.CreateLinkedTokenSource(token);
+			externalCts.Token.Register(Dispose);
 			Task.Factory.StartNew(Start, token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
 		}
 
@@ -92,7 +94,7 @@ namespace Unity.Editor.Tasks
 
 				threadId = Thread.CurrentThread.ManagedThreadId;
 
-				while (!cts.Token.IsCancellationRequested)
+				while (!cts.IsCancellationRequested)
 				{
 					Pump();
 					dataSignal.Wait(cts.Token);
@@ -114,6 +116,8 @@ namespace Unity.Editor.Tasks
 			if (disposing)
 			{
 				disposed = true;
+				externalCts.Dispose();
+
 				cts.Cancel();
 
 				if (!IsInSyncThread)

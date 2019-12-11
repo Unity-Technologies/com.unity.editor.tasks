@@ -42,7 +42,7 @@ namespace Unity.Editor.Tasks
 	[DebuggerTypeProxy(typeof(ConcurrentExclusiveSchedulerPairCustom.DebugView))]
 	public class ConcurrentExclusiveSchedulerPairCustom
 	{
-		private readonly CancellationTokenSource cts = new CancellationTokenSource();
+		private readonly CancellationTokenSource cts;
 		/// <summary>A dictionary mapping thread ID to a processing mode to denote what kinds of tasks are currently being processed on this thread.</summary>
 		private readonly ConcurrentDictionary<int, ProcessingMode> m_threadProcessingMapping = new ConcurrentDictionary<int, ProcessingMode>();
 		/// <summary>The scheduler used to queue and execute "concurrent" tasks that may run concurrently with other concurrent tasks.</summary>
@@ -106,7 +106,7 @@ namespace Unity.Editor.Tasks
 			if (maxItemsPerTask == 0 || maxItemsPerTask < -1) throw new ArgumentOutOfRangeException(nameof(maxItemsPerTask));
 			Contract.EndContractBlock();
 
-			token.Register(cts.Cancel);
+			cts = CancellationTokenSource.CreateLinkedTokenSource(token);
 
 			// Store configuration
 			m_underlyingTaskScheduler = taskScheduler;

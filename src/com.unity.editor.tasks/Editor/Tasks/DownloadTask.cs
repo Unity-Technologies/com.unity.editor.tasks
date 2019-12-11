@@ -16,6 +16,7 @@ namespace Unity.Editor.Tasks
 
 	public class DownloadTask : TaskBase<string>
 	{
+		private readonly CancellationTokenSource cts;
 		public DownloadTask(ITaskManager taskManager, UriString url, string targetDirectory, string filename = null, int retryCount = 0)
 			 : this(taskManager, taskManager?.Token ?? default, url, targetDirectory, filename, retryCount)
 		{ }
@@ -29,6 +30,8 @@ namespace Unity.Editor.Tasks
 			int retryCount = 0)
 			: base(taskManager, token)
 		{
+			cts = CancellationTokenSource.CreateLinkedTokenSource(Token);
+
 			RetryCount = retryCount;
 			Url = url;
 			Filename = string.IsNullOrEmpty(filename) ? url.Filename : filename;
@@ -80,7 +83,7 @@ namespace Unity.Editor.Tasks
 			{
 				exception = null;
 
-				if (Token.IsCancellationRequested)
+				if (cts.IsCancellationRequested)
 					break;
 
 				try
@@ -92,7 +95,7 @@ namespace Unity.Editor.Tasks
 						result = Downloader.Download(Logger, Url, destinationStream,
 							 (value, total) => {
 								 UpdateProgress(value, total);
-								 return !Token.IsCancellationRequested;
+								 return !cts.IsCancellationRequested;
 							 });
 					}
 
@@ -106,11 +109,11 @@ namespace Unity.Editor.Tasks
 					exception = ex;
 					result = false;
 				}
-			} while (!result && attempts++ < RetryCount);
+			} while (!cts.IsCancellationRequested && !result && attempts++ < RetryCount);
 
 			if (!result)
 			{
-				Token.ThrowIfCancellationRequested();
+				cts.Token.ThrowIfCancellationRequested();
 				throw new DownloadException("Error downloading file", exception);
 			}
 

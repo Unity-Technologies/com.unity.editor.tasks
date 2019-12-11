@@ -49,6 +49,7 @@ namespace Unity.Editor.Tasks
 
 		private readonly ProgressReporter progressReporter = new ProgressReporter();
 		private readonly CancellationTokenSource cts = new CancellationTokenSource();
+		private TaskScheduler uiScheduler;
 		private bool stopped = false;
 
 		public event Action<IProgress> OnProgress
@@ -71,7 +72,9 @@ namespace Unity.Editor.Tasks
 		{
 			SetUIThread();
 			if (UIScheduler == null)
-				UIScheduler = SynchronizationContext.Current.FromSynchronizationContext();
+			{
+				UIScheduler = uiScheduler = SynchronizationContext.Current.FromSynchronizationContext();
+			}
 			return this;
 		}
 
@@ -83,7 +86,7 @@ namespace Unity.Editor.Tasks
 		/// <returns></returns>
 		public ITaskManager Initialize(SynchronizationContext synchronizationContext)
 		{
-			UIScheduler = synchronizationContext.FromSynchronizationContext();
+			UIScheduler = uiScheduler = synchronizationContext.FromSynchronizationContext();
 			synchronizationContext.Send(_ => SetUIThread(), null);
 			return this;
 		}
@@ -155,18 +158,8 @@ namespace Unity.Editor.Tasks
 		public void Stop()
 		{
 			if (stopped) return;
-
 			stopped = true;
-
-			try
-			{
-				// tell all schedulers to stop scheduling new tasks
-				manager.Complete();
-				// tell all tasks to exit
-				cts.Cancel();
-				// wait for everything to shut down within 500ms
-				manager.Completion.Wait(500);
-			} catch {}
+			Dispose();
 		}
 
 		private bool disposed = false;
@@ -177,7 +170,19 @@ namespace Unity.Editor.Tasks
 			if (disposing)
 			{
 				disposed = true;
-				Stop();
+				try
+				{
+					// tell all schedulers to stop scheduling new tasks
+					manager.Complete();
+					(uiScheduler as SynchronizationContextTaskScheduler)?.Dispose();
+
+					// tell all tasks to exit
+					cts.Cancel();
+
+					// wait for everything to shut down within 500ms
+					manager.Completion.Wait(500);
+				}
+				catch { }
 				cts.Dispose();
 			}
 		}

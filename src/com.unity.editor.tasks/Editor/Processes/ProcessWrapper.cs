@@ -52,7 +52,7 @@ namespace Unity.Editor.Tasks
 		private readonly IOutputProcessor outputProcessor;
 		private readonly ManualResetEventSlim stopEvent = new ManualResetEventSlim(false);
 		private readonly string taskName;
-		private readonly CancellationToken token;
+		private readonly CancellationTokenSource cts;
 
 		private ILogging logger;
 		private bool detached;
@@ -71,7 +71,7 @@ namespace Unity.Editor.Tasks
 			this.onStart = onStart;
 			this.onEnd = onEnd;
 			this.onError = onError;
-			this.token = token;
+			cts = CancellationTokenSource.CreateLinkedTokenSource(token);
 			Process = new Process { StartInfo = startInfo, EnableRaisingEvents = true };
 		}
 
@@ -99,7 +99,7 @@ namespace Unity.Editor.Tasks
 			{
 				Logger.Trace($"Running '{StartInfo.FileName} {StartInfo.Arguments}' in '{StartInfo.WorkingDirectory}'");
 
-				token.ThrowIfCancellationRequested();
+				cts.Token.ThrowIfCancellationRequested();
 
 				Process.Start();
 
@@ -116,7 +116,7 @@ namespace Unity.Editor.Tasks
 
 				if (StartInfo.CreateNoWindow)
 				{
-					stopEvent.Wait(token);
+					stopEvent.Wait(cts.Token);
 					if (!detached)
 					{
 						var exited = WaitForExit(500);
@@ -125,12 +125,12 @@ namespace Unity.Editor.Tasks
 							// process is done and we haven't seen output, we're done
 							while (gotOutput.WaitOne(100)) { }
 						}
-						else if (token.IsCancellationRequested)
+						else if (cts.IsCancellationRequested)
 						// if we're exiting
 						{
 							Stop(true);
 							ExitCode = Process.ExitCode;
-							token.ThrowIfCancellationRequested();
+							cts.Token.ThrowIfCancellationRequested();
 							throw new ProcessException(-2, "Process timed out");
 						}
 
@@ -169,11 +169,13 @@ namespace Unity.Editor.Tasks
 				if (errorCode == 2)
 					sb.AppendLine("The system cannot find the file specified.");
 				sb.AppendLine($"Working directory: {StartInfo.WorkingDirectory}");
-				foreach (string env in StartInfo.EnvironmentVariables.Keys)
-				{
-					sb.AppendFormat("{0}:{1}", env, StartInfo.EnvironmentVariables[env]);
-					sb.AppendLine();
-				}
+
+				//foreach (string env in StartInfo.EnvironmentVariables.Keys)
+				//{
+				//	sb.AppendFormat("{0}:{1}", env, StartInfo.EnvironmentVariables[env]);
+				//	sb.AppendLine();
+				//}
+
 				thrownException = new ProcessException(errorCode, sb.ToString(), ex);
 			}
 
@@ -201,7 +203,7 @@ namespace Unity.Editor.Tasks
 		{
 			try
 			{
-				while (!token.IsCancellationRequested && gotOutput.WaitOne(100))
+				while (!cts.IsCancellationRequested && gotOutput.WaitOne(100))
 				{ }
 				HasExited = true;
 				stopEvent.Set();

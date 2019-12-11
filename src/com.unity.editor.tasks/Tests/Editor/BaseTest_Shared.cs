@@ -23,7 +23,7 @@ namespace BaseTests
 		public readonly ITaskManager TaskManager;
 		public readonly IEnvironment Environment;
 		public readonly IProcessManager ProcessManager;
-		private readonly CancellationTokenSource cts = new CancellationTokenSource();
+		private readonly CancellationTokenSource cts;
 
 		public TestData(string testName, ILogging logger)
 		{
@@ -32,7 +32,7 @@ namespace BaseTests
 			Watch = new Stopwatch();
 			TestPath = SPath.CreateTempDirectory(testName);
 			TaskManager = new TaskManager();
-			TaskManager.Token.Register(cts.Cancel);
+			cts = CancellationTokenSource.CreateLinkedTokenSource(TaskManager.Token);
 
 			try
 			{
