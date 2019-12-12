@@ -10,7 +10,7 @@
     },
     "repository" : {
       "type" : "git",
-      "url": "ssh://git@github.com/Unity-Technologies/com.unity.editor.tasks.git",
+      "url": "git@github.com/Unity-Technologies/com.unity.editor.tasks.git",
       "directory": "",
       "revision": ""
     },
