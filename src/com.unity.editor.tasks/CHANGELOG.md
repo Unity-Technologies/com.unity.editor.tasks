@@ -4,6 +4,12 @@
 
 ## [VERSION] - DATE
 
+- Throw real exception when rethrowing aggregate exceptions
+- TaskData is a useful stub class for handling progress reporting, make it public
+- TaskManager.UIScheduler is no longer settable. If you want to use a custom UI scheduler, use a custom synchronization context. If you need a custom single-threaded synchronization context, use the `ThreadSynchronizationContext` class.
+
+## [1.2.8] - 2019-12-11
+
 - Harden cancelling and disposing schedulers
 
 ## [1.2.7] - 2019-12-10
