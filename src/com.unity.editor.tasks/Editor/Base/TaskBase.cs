@@ -1127,7 +1127,7 @@ namespace Unity.Editor.Tasks
 		///     catch (Exception ex)
 		///     {
 		///         if (!RaiseFaultHandlers(ex))
-		///             ThrownException.Rethrow();
+		///             Exception.Rethrow();
 		///     }
 		///     return result;
 		/// }
@@ -1265,7 +1265,7 @@ namespace Unity.Editor.Tasks
 		///     catch (Exception ex)
 		///     {
 		///         if (!RaiseFaultHandlers(ex))
-		///             ThrownException.Rethrow();
+		///             Exception.Rethrow();
 		///     }
 		///     return result;
 		/// }
@@ -1348,8 +1348,10 @@ namespace Unity.Editor.Tasks
 		}
 	}
 
-
-	class TaskData : ITask
+	/// <summary>
+	/// Stub task that can be used to update progress.
+	/// </summary>
+	public class TaskData : ITask
 	{
 		public Progress progress;
 

@@ -193,6 +193,8 @@ namespace Unity.Editor.Tasks
 				tcs.TrySetResult(r);
 			});
 			task.Catch(e => {
+				if (e is AggregateException)
+					e = e.GetBaseException() ?? e;
 				tcs.TrySetException(e);
 			});
 			task.Start();
@@ -214,6 +216,8 @@ namespace Unity.Editor.Tasks
 				tcs.TrySetResult(success);
 			});
 			task.Catch(e => {
+				if (e is AggregateException)
+					e = e.GetBaseException() ?? e;
 				tcs.TrySetException(e);
 			});
 			task.Start();

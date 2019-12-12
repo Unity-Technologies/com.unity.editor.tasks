@@ -9,6 +9,8 @@ using Unity.Editor.Tasks;
 
 namespace ThreadingTests
 {
+	using System.Threading;
+
 	partial class Exceptions : BaseTest
 	{
 		[CustomUnityTest]
@@ -16,7 +18,6 @@ namespace ThreadingTests
 		{
 			using (var test = StartTest())
 			{
-
 				var task = new FuncTask<string>(test.TaskManager, () => { throw new InvalidOperationException(); });
 				bool exceptionThrown1, exceptionThrown2;
 				exceptionThrown1 = exceptionThrown2 = false;

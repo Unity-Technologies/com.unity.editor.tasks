@@ -359,14 +359,9 @@ namespace ThreadingTests
 		}
 
 
-		class TestData
-		{
-			public bool Done = false;
-		}
-
 		private async Task SetDataExclusiveAsync(ITaskManager taskManager, List<string> list, string data)
 		{
-			Assert.AreNotEqual(taskManager.UIThread, Thread.CurrentThread.ManagedThreadId, "async task ran on the main thread when it shouldn't have");
+			Assert.False(taskManager.InUIThread, "async task ran on the main thread when it shouldn't have");
 
 			list.Add($"{data} start");
 			await Task.Delay(10);
@@ -376,7 +371,8 @@ namespace ThreadingTests
 		}
 		private async Task<bool> SetDataExclusiveAsync1(ITaskManager taskManager, List<string> list, string data)
 		{
-			Assert.AreNotEqual(taskManager.UIThread, Thread.CurrentThread.ManagedThreadId, "async task ran on the main thread when it shouldn't have");
+			Assert.False(taskManager.InUIThread, "async task ran on the main thread when it shouldn't have");
+
 			list.Add($"{data} start");
 			await Task.Delay(2);
 			list.Add($"{data} then");

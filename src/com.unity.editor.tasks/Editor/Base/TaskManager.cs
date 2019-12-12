@@ -36,7 +36,7 @@ namespace Unity.Editor.Tasks
 		TaskScheduler GetScheduler(TaskAffinity affinity);
 		TaskScheduler ConcurrentScheduler { get; }
 		TaskScheduler ExclusiveScheduler { get; }
-		TaskScheduler UIScheduler { get; set; }
+		TaskScheduler UIScheduler { get; }
 		CancellationToken Token { get; }
 		bool InUIThread { get; }
 		int UIThread { get; }
@@ -71,10 +71,7 @@ namespace Unity.Editor.Tasks
 		public ITaskManager Initialize()
 		{
 			SetUIThread();
-			if (UIScheduler == null)
-			{
-				UIScheduler = uiScheduler = SynchronizationContext.Current.FromSynchronizationContext();
-			}
+			uiScheduler = new SynchronizationContextTaskScheduler(SynchronizationContext.Current);
 			return this;
 		}
 
@@ -86,7 +83,7 @@ namespace Unity.Editor.Tasks
 		/// <returns></returns>
 		public ITaskManager Initialize(SynchronizationContext synchronizationContext)
 		{
-			UIScheduler = uiScheduler = synchronizationContext.FromSynchronizationContext();
+			uiScheduler = synchronizationContext.FromSynchronizationContext();
 			synchronizationContext.Send(_ => SetUIThread(), null);
 			return this;
 		}
@@ -193,12 +190,12 @@ namespace Unity.Editor.Tasks
 			GC.SuppressFinalize(this);
 		}
 
-		public TaskScheduler UIScheduler { get; set; }
+		public TaskScheduler UIScheduler => uiScheduler;
 		public TaskScheduler ConcurrentScheduler => manager.ConcurrentScheduler;
 		public TaskScheduler ExclusiveScheduler => manager.ExclusiveScheduler;
 		public CancellationToken Token => cts.Token;
 		public int UIThread { get; private set; }
-		public bool InUIThread => UIThread == 0 || Thread.CurrentThread.ManagedThreadId == UIThread;
+		public bool InUIThread => UIThread == 0 || UIThread == Thread.CurrentThread.ManagedThreadId;
 	}
 }
 
