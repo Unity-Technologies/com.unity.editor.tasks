@@ -5,6 +5,9 @@
     <PackageSourceRoot>$(MSBuildProjectDirectory)\..\</PackageSourceRoot>
     <FullBuild Condition="'$(SolutionName)' == 'Unity.Editor.Tasks'">true</FullBuild>
     <IsPackable Condition="'$(FullBuild)' != 'true'">false</IsPackable>
+    <PackageId>com.unity.editor.tasks</PackageId>
+    <AssemblyName>Unity.Editor.Tasks</AssemblyName>
+    <DefaultNamespace>$(AssemblyName)</DefaultNamespace>
     <Description>A friendly threaded task system for the Unity Editor.</Description>
     <CodeAnalysisRuleSet>$(RootDir)src\rules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
