@@ -132,6 +132,10 @@ namespace Unity.Editor.Tasks
 		/// <returns></returns>
 		ITask GetEndOfChain();
 
+		/// <summary>Checks whether any task on the chain is marked as exclusive.</summary>
+		/// <returns>true if any task on the chain is marked as exclusive</returns>
+		bool IsChainExclusive();
+
         /// <summary>
 		/// Was the task successful?
 		/// </summary>
@@ -579,6 +583,15 @@ namespace Unity.Editor.Tasks
 			else if (continuationOnAlways != null)
 				return continuationOnAlways.GetEndOfChain();
 			return this;
+		}
+
+		/// <summary>Checks whether any task on the chain is marked as exclusive.</summary>
+		/// <returns>true if any task on the chain is marked as exclusive</returns>
+		public bool IsChainExclusive()
+		{
+			if (Affinity == TaskAffinity.Exclusive)
+				return true;
+			return DependsOn?.IsChainExclusive() ?? false;
 		}
 
 		/// <inheritdoc />
@@ -1393,6 +1406,8 @@ namespace Unity.Editor.Tasks
 		ITask ITask.GetEndOfChain() => throw new NotImplementedException();
 
 		ITask ITask.GetTopOfChain(bool onlyCreated) => throw new NotImplementedException();
+
+		bool ITask.IsChainExclusive() => false;
 
 		ITask ITask.Progress(Action<IProgress> progressHandler) => throw new NotImplementedException();
 
