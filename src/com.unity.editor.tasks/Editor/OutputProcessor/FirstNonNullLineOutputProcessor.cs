@@ -2,28 +2,30 @@ namespace Unity.Editor.Tasks
 {
 	using System;
 
-	public class FirstNonNullLineOutputProcessor<T> : FirstResultOutputProcessor<T>
+	/// <summary>
+	/// Returns the first non-null, non-empty (after trim) input.
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	public class FirstNonNullOutputProcessor<T> : FirstResultOutputProcessor<T>
 	{
-		public FirstNonNullLineOutputProcessor(Func<string, T> converter = null)
-			: base((string line, out T ret) => Parse(line, out ret, converter))
-		{ }
+		public FirstNonNullOutputProcessor(Func<string, T> converter)
+			: base(converter)
+		{}
 
-		private static bool Parse(string line, out T result, Func<string, T> converter = null)
+		public FirstNonNullOutputProcessor(FuncO<string, T, bool> handler = null)
+			: base(handler)
+		{}
+
+		protected override bool ProcessLine(string line, out T result)
 		{
 			result = default;
-			if (String.IsNullOrEmpty(line))
+
+			if (string.IsNullOrEmpty(line))
 				return false;
 
 			line = line.Trim();
 
-			if (converter != null)
-			{
-				result = converter(line);
-				return true;
-			}
-
-			result = (T)(object)line;
-			return true;
+			return base.ProcessLine(line, out result);
 		}
 	}
 }

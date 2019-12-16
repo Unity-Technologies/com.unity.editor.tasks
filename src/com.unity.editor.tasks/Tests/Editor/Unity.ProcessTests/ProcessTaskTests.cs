@@ -13,7 +13,7 @@ namespace ProcessManagerTests
 	public class HelperProcessTask : DotNetProcessTask<string>
 	{
 		public HelperProcessTask(ITaskManager taskManager, IProcessManager processManager, string executable, string args)
-			: base(taskManager, processManager, executable, args, new FirstNonNullLineOutputProcessor<string>())
+			: base(taskManager, processManager, executable, args, new FirstNonNullOutputProcessor<string>())
 		{ }
 	}
 

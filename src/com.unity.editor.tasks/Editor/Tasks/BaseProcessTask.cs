@@ -25,7 +25,7 @@ namespace Unity.Editor.Tasks
 			string executable, string arguments,
 			string workingDirectory,
 			bool alwaysUseMono, bool neverUseMono)
-			: base(taskManager, processEnvironment, outputProcessor: new SimpleOutputProcessor())
+			: base(taskManager, processEnvironment, outputProcessor: new StringOutputProcessor())
 		{
 			if (neverUseMono || !alwaysUseMono && environment.IsWindows)
 			{

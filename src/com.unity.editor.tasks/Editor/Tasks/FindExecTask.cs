@@ -7,7 +7,7 @@ namespace Unity.Editor.Tasks
 		public FindExecTask(ITaskManager taskManager, IProcessManager processManager, string execToFind)
 			: base(taskManager, processManager,
 				Guard.EnsureNotNull(processManager, nameof(processManager)).DefaultProcessEnvironment.Environment.IsWindows ? "where" : "which",
-				execToFind, new FirstNonNullLineOutputProcessor<string>())
+				execToFind, new FirstNonNullOutputProcessor<string>())
 		{
 			Affinity = TaskAffinity.None;
 		}

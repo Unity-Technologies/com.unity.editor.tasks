@@ -76,7 +76,6 @@ namespace Unity.Editor.Tasks
 		}
 
 		public string ApplicationName { get; }
-		public string LogPath { get; }
 		public string UnityVersion { get; set; }
 		public string UnityApplication { get; set; }
 		public string UnityApplicationContents { get; set; }

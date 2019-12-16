@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Unity.Editor.Tasks
 {
@@ -31,38 +30,68 @@ namespace Unity.Editor.Tasks
 	{
 		public delegate T3 FuncO<in T1, T2, out T3>(T1 arg1, out T2 out1);
 
+		private Func<string, T> converter;
 		private readonly FuncO<string, T, bool> handler;
-		private readonly Func<string, T> simpleHandler;
+
+		private static readonly bool IsString = typeof(T) == typeof(string);
 
 		private ILogging logger;
 		public event Action<T> OnEntry;
 
-		public BaseOutputProcessor(FuncO<string, T, bool> handler = null)
+		public BaseOutputProcessor() {}
+
+		public BaseOutputProcessor(FuncO<string, T, bool> handler)
 		{
 			this.handler = handler;
 		}
 
-		public BaseOutputProcessor(Func<string, T> handler)
+		public BaseOutputProcessor(Func<string, T> converter)
 		{
-			this.simpleHandler = handler;
+			this.converter = converter;
 		}
 
 		public void Process(string line)
 		{
-			if (handler != null)
-			{
-				if (handler(line, out T entry))
-					RaiseOnEntry(entry);
-			}
-			else if (simpleHandler != null)
-			{
-				RaiseOnEntry(simpleHandler(line));
-			}
-			else
-				LineReceived(line);
+			LineReceived(line);
 		}
 
-		public virtual void LineReceived(string line) {}
+		protected virtual void LineReceived(string line)
+		{
+			if (handler != null)
+			{
+				if (handler(line, out var result))
+					RaiseOnEntry(result);
+				return;
+			}
+
+			if (converter != null)
+			{
+				// if there's a converter, all results it returns are valid
+				var result = ConvertResult(line);
+				RaiseOnEntry(result);
+				return;
+			}
+
+			if (ProcessLine(line, out var entry))
+				RaiseOnEntry(entry);
+		}
+
+		protected virtual T ConvertResult(string line)
+		{
+			if (converter != null)
+				return converter(line);
+			else if (IsString)
+				return (T)(object)line;
+			return default;
+		}
+
+		protected virtual bool ProcessLine(string line, out T result)
+		{
+			result = ConvertResult(line);
+			// if T is string, no conversion is needed, result is valid
+			if (IsString) return true;
+			return false;
+		}
 
 		protected void RaiseOnEntry(T entry)
 		{
@@ -77,6 +106,59 @@ namespace Unity.Editor.Tasks
 	public class BaseOutputProcessor<TData, T> : BaseOutputProcessor<T>, IOutputProcessor<TData, T>
 	{
 		public new event Action<TData> OnEntry;
+		private Func<string, TData> converter;
+		private readonly FuncO<string, TData, bool> handler;
+		private static readonly bool IsString = typeof(T) == typeof(string);
+
+		public BaseOutputProcessor() {}
+
+		public BaseOutputProcessor(FuncO<string, TData, bool> handler)
+		{
+			this.handler = handler;
+		}
+
+		public BaseOutputProcessor(Func<string, TData> converter)
+		{
+			this.converter = converter;
+		}
+
+		protected override void LineReceived(string line)
+		{
+			if (handler != null)
+			{
+				if (handler(line, out TData result))
+					RaiseOnEntry(result);
+				return;
+			}
+
+			if (converter != null)
+			{
+				// if there's a converter, all results it returns are valid
+				var result = ConvertResult(line);
+				RaiseOnEntry(result);
+				return;
+			}
+
+			if (ProcessLine(line, out TData entry))
+				RaiseOnEntry(entry);
+		}
+
+		protected new virtual TData ConvertResult(string line)
+		{
+			if (converter != null)
+				return converter(line);
+			else if (IsString)
+				return (TData)(object)line;
+			return default;
+		}
+
+		protected virtual bool ProcessLine(string line, out TData result)
+		{
+			result = ConvertResult(line);
+			// if T is string, no conversion is needed, result is valid
+			if (IsString) return true;
+			return false;
+		}
 
 		protected virtual void RaiseOnEntry(TData entry)
 		{
@@ -86,6 +168,14 @@ namespace Unity.Editor.Tasks
 
 	public abstract class BaseOutputListProcessor<T> : BaseOutputProcessor<T, List<T>>
 	{
+		public BaseOutputListProcessor() { }
+
+		public BaseOutputListProcessor(FuncO<string, T, bool> handler) : base(handler)
+		{}
+
+		public BaseOutputListProcessor(Func<string, T> converter)
+		{}
+
 		protected override void RaiseOnEntry(T entry)
 		{
 			if (Result == null)
@@ -94,44 +184,6 @@ namespace Unity.Editor.Tasks
 			}
 			Result.Add(entry);
 			base.RaiseOnEntry(entry);
-		}
-	}
-
-	/// <summary>
-	/// Takes a string, raises an event with it, discards the result
-	/// </summary>
-	public class RaiseAndDiscardOutputProcessor : BaseOutputProcessor<string>
-	{
-		public override void LineReceived(string line)
-		{
-			RaiseOnEntry(line);
-		}
-
-		public override string Result => string.Empty;
-	}
-
-	public class SimpleOutputProcessor : BaseOutputProcessor<string>
-	{
-		private readonly StringBuilder sb = new StringBuilder();
-
-		public override void LineReceived(string line)
-		{
-			if (line == null)
-				return;
-			sb.AppendLine(line);
-			RaiseOnEntry(line);
-		}
-
-		public override string Result { get { return sb.ToString(); } }
-	}
-
-	public class SimpleListOutputProcessor : BaseOutputListProcessor<string>
-	{
-		public override void LineReceived(string line)
-		{
-			if (line == null)
-				return;
-			RaiseOnEntry(line);
 		}
 	}
 }

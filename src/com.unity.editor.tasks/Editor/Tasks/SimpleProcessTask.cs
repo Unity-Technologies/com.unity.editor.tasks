@@ -14,7 +14,7 @@ namespace Unity.Editor.Tasks
 			: base(taskManager, taskManager?.Token ?? default,
 				processManager.EnsureNotNull(nameof(processManager)).DefaultProcessEnvironment,
 				executable, arguments,
-				processor ?? new SimpleListOutputProcessor())
+				processor ?? new StringListOutputProcessor())
 		{
 			processManager.Configure(this, workingDirectory);
 		}
