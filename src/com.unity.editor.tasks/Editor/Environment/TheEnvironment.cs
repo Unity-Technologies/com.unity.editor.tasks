@@ -5,48 +5,17 @@
 
 using System;
 
-#if UNITY_EDITOR
-using UnityEngine;
-using UnityEditor;
-#endif
-
 namespace Unity.Editor.Tasks
 {
-    using Internal.IO;
-#if !UNITY_EDITOR
 
+#if UNITY_EDITOR
+	using UnityEngine;
+	using UnityEditor;
+#else
 	using EditorStubs;
-	namespace EditorStubs
-	{
-		public class SerializeFieldAttribute : Attribute
-		{
-
-		}
-
-		public class ScriptableSingleton<T>
-			where T : class, new()
-		{
-			private static T _instance;
-			public static T instance => _instance ?? (_instance = new T());
-
-			protected void Save(bool flush)
-			{ }
-		}
-
-		public static class Application
-		{
-			public static string productName { get; } = "DefaultApplication";
-			public static string unityVersion { get; set; } = "2019.2.1f1";
-			public static string projectPath { get; set; }
-		}
-
-		public static class EditorApplication
-		{
-			public static string applicationPath { get; set; }
-			public static string applicationContentsPath { get; set; }
-		}
-	}
 #endif
+
+    using Internal.IO;
 
 	public sealed class TheEnvironment : ScriptableSingleton<TheEnvironment>
 	{
