@@ -4,26 +4,24 @@ namespace Unity.Editor.Tasks
 
 	public class FirstNonNullLineOutputProcessor<T> : FirstResultOutputProcessor<T>
 	{
-		public FirstNonNullLineOutputProcessor(Func<string, T> converter = null)
-			: base((string line, out T ret) => Parse(line, out ret, converter))
-		{ }
+		public FirstNonNullLineOutputProcessor(Func<string, T> converter)
+			: base(converter)
+		{}
 
-		private static bool Parse(string line, out T result, Func<string, T> converter = null)
+		public FirstNonNullLineOutputProcessor(FuncO<string, T, bool> handler = null)
+			: base(handler)
+		{}
+
+		protected override bool ProcessLine(string line, out T result)
 		{
 			result = default;
-			if (String.IsNullOrEmpty(line))
+
+			if (string.IsNullOrEmpty(line))
 				return false;
 
 			line = line.Trim();
 
-			if (converter != null)
-			{
-				result = converter(line);
-				return true;
-			}
-
-			result = (T)(object)line;
-			return true;
+			return base.ProcessLine(line, out result);
 		}
 	}
 }

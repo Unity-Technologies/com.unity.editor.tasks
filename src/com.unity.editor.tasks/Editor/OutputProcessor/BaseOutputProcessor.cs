@@ -32,7 +32,8 @@ namespace Unity.Editor.Tasks
 		public delegate T3 FuncO<in T1, T2, out T3>(T1 arg1, out T2 out1);
 
 		private readonly FuncO<string, T, bool> handler;
-		private readonly Func<string, T> simpleHandler;
+		private static readonly bool IsString = typeof(T) == typeof(string);
+		private protected Func<string, T> Converter { get; }
 
 		private ILogging logger;
 		public event Action<T> OnEntry;
@@ -42,27 +43,43 @@ namespace Unity.Editor.Tasks
 			this.handler = handler;
 		}
 
-		public BaseOutputProcessor(Func<string, T> handler)
+		public BaseOutputProcessor(Func<string, T> converter)
 		{
-			this.simpleHandler = handler;
+			this.Converter = converter;
 		}
 
 		public void Process(string line)
 		{
-			if (handler != null)
-			{
-				if (handler(line, out T entry))
-					RaiseOnEntry(entry);
-			}
-			else if (simpleHandler != null)
-			{
-				RaiseOnEntry(simpleHandler(line));
-			}
-			else
-				LineReceived(line);
+            if (ProcessLine(line, out T entry))
+				RaiseOnEntry(entry);
 		}
 
-		public virtual void LineReceived(string line) {}
+		protected virtual bool ProcessLine(string line, out T result)
+		{
+			result = default;
+
+            if (handler != null)
+			{
+				if (handler(line, out result))
+				{
+					return true;
+				}
+				return false;
+			}
+
+            if (Converter != null)
+			{
+				result = Converter(line);
+				return true;
+			}
+
+			if (IsString)
+			{
+				result = (T)(object)line;
+				return true;
+			}
+			return false;
+		}
 
 		protected void RaiseOnEntry(T entry)
 		{
@@ -102,11 +119,6 @@ namespace Unity.Editor.Tasks
 	/// </summary>
 	public class RaiseAndDiscardOutputProcessor : BaseOutputProcessor<string>
 	{
-		public override void LineReceived(string line)
-		{
-			RaiseOnEntry(line);
-		}
-
 		public override string Result => string.Empty;
 	}
 
@@ -114,12 +126,15 @@ namespace Unity.Editor.Tasks
 	{
 		private readonly StringBuilder sb = new StringBuilder();
 
-		public override void LineReceived(string line)
+		protected override bool ProcessLine(string line, out string result)
 		{
+			base.ProcessLine(line, out result);
+
 			if (line == null)
-				return;
+				return false;
+
 			sb.AppendLine(line);
-			RaiseOnEntry(line);
+			return true;
 		}
 
 		public override string Result { get { return sb.ToString(); } }
@@ -127,11 +142,12 @@ namespace Unity.Editor.Tasks
 
 	public class SimpleListOutputProcessor : BaseOutputListProcessor<string>
 	{
-		public override void LineReceived(string line)
+		protected override bool ProcessLine(string line, out List<string> result)
 		{
+			base.ProcessLine(line, out result);
 			if (line == null)
-				return;
-			RaiseOnEntry(line);
+				return false;
+			return true;
 		}
 	}
 }
