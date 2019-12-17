@@ -369,7 +369,7 @@ namespace Unity.Editor.Tasks
 		/// </summary>
 		/// <param name="taskManager"></param>
 		/// <param name="token"></param>
-		protected TaskBase(ITaskManager taskManager, CancellationToken token)
+		protected TaskBase(ITaskManager taskManager, CancellationToken token = default)
 		{
 			taskManager.EnsureNotNull(nameof(taskManager));
 			cts = CancellationTokenSource.CreateLinkedTokenSource(taskManager.Token, token);
@@ -476,7 +476,7 @@ namespace Unity.Editor.Tasks
 		{
 			Guard.EnsureNotNull(actionToContinueWith, nameof(actionToContinueWith));
 
-			var finallyTask = new ActionTask(TaskManager, Token, (s, ex) => {
+			var finallyTask = new ActionTask(TaskManager, (s, ex) => {
 				actionToContinueWith(s, ex);
 				if (!s)
 					ex.Rethrow();
@@ -972,14 +972,9 @@ namespace Unity.Editor.Tasks
 		protected TaskBase() {}
 
         /// <summary>
-        /// Creates a TaskBase instance, using the cancellation token set in the task manager.
-        /// </summary>
-        protected TaskBase(ITaskManager taskManager) : this(taskManager.EnsureNotNull(nameof(taskManager)), taskManager.Token) {}
-
-        /// <summary>
         /// Creates a TaskBase instance.
         /// </summary>
-		protected TaskBase(ITaskManager taskManager, CancellationToken token)
+		protected TaskBase(ITaskManager taskManager, CancellationToken token = default)
 			: base(taskManager, token)
 		{
 			Task = new Task<TResult>(InternalRunSynchronously, Token, TaskCreationOptions.None);
@@ -1049,7 +1044,9 @@ namespace Unity.Editor.Tasks
 		{
 			Guard.EnsureNotNull(continuation, "continuation");
 
-			return Then(new FuncTask<TResult, TResult>(TaskManager, Token, continuation) { Affinity = affinity, Name = name ?? "Finally" }, TaskRunOptions.OnAlways);
+			var finallyTask = Then(new FuncTask<TResult, TResult>(TaskManager, continuation) { Affinity = affinity, Name = name ?? "Finally" }, TaskRunOptions.OnAlways);
+			finallyTask.CatchInternal(_ => true);
+			return finallyTask;
 		}
 
 		/// <summary>
@@ -1059,7 +1056,7 @@ namespace Unity.Editor.Tasks
 		{
 			Guard.EnsureNotNull(continuation, "continuation");
 
-			var finallyTask = new ActionTask<TResult>(TaskManager, Token, (s, ex, res) => {
+			var finallyTask = new ActionTask<TResult>(TaskManager, (s, ex, res) => {
 				continuation(s, ex, res);
 				if (!s)
 					ex.Rethrow();
@@ -1205,21 +1202,12 @@ namespace Unity.Editor.Tasks
 		private readonly Func<T> getPreviousResult;
 
 		/// <summary>
-		/// Creates an instance of TaskBase, using the cancellation token set in the task manager.
-		/// </summary>
-		/// <param name="taskManager"></param>
-		/// <param name="getPreviousResult">Method to call that returns the value that this task is going to work with. You can also use the PreviousResult property to set this value</param>
-		protected TaskBase(ITaskManager taskManager, Func<T> getPreviousResult = null)
-			: this(taskManager.EnsureNotNull(nameof(taskManager)), taskManager.Token, getPreviousResult)
-		{}
-
-		/// <summary>
 		/// Creates an instance of TaskBase.
 		/// </summary>
 		/// <param name="taskManager"></param>
 		/// <param name="token"></param>
 		/// <param name="getPreviousResult">Method to call that returns the value that this task is going to work with. You can also use the PreviousResult property to set this value</param>
-		protected TaskBase(ITaskManager taskManager, CancellationToken token, Func<T> getPreviousResult = null)
+		protected TaskBase(ITaskManager taskManager, Func<T> getPreviousResult = null, CancellationToken token = default)
 			: base(taskManager, token)
 		{
 			Task = new Task<TResult>(RunSynchronously, Token, TaskCreationOptions.None);
@@ -1310,13 +1298,8 @@ namespace Unity.Editor.Tasks
 		///
 		/// </summary>
 		/// <param name="taskManager"></param>
-		protected DataTaskBase(ITaskManager taskManager) : base(taskManager) {}
-        /// <summary>
-		///
-		/// </summary>
-		/// <param name="taskManager"></param>
 		/// <param name="token"></param>
-		protected DataTaskBase(ITaskManager taskManager, CancellationToken token) : base(taskManager, token) {}
+		protected DataTaskBase(ITaskManager taskManager, CancellationToken token = default) : base(taskManager, token) {}
 
         /// <summary>
 		/// Raises the OnData event.
@@ -1342,19 +1325,12 @@ namespace Unity.Editor.Tasks
         /// <summary>
 		///
 		/// </summary>
-		/// <param name="taskManager"></param>
-		protected DataTaskBase(ITaskManager taskManager) : base(taskManager) {}
-        /// <summary>
-		///
-		/// </summary>
-		/// <param name="taskManager"></param>
-		/// <param name="token"></param>
-		protected DataTaskBase(ITaskManager taskManager, CancellationToken token) : base(taskManager, token) {}
+		protected DataTaskBase(ITaskManager taskManager, Func<T> getPreviousResult = null, CancellationToken token = default) : base(taskManager, getPreviousResult, token) {}
 
-        /// <summary>
-        /// Raises the OnData event.
-        /// </summary>
-        /// <param name="data"></param>
+		/// <summary>
+		/// Raises the OnData event.
+		/// </summary>
+		/// <param name="data"></param>
 		protected void RaiseOnData(TData data)
 		{
 			OnData?.Invoke(data);

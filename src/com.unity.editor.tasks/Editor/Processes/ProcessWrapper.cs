@@ -63,7 +63,7 @@ namespace Unity.Editor.Tasks
 		public ProcessWrapper(string taskName, ProcessStartInfo startInfo,
 			IOutputProcessor outputProcessor,
 			Action onStart, Action onEnd, Action<Exception, string> onError,
-			CancellationToken token)
+			CancellationToken token = default)
 			: base(startInfo)
 		{
 			this.taskName = taskName;

@@ -1,20 +1,19 @@
 namespace Unity.Editor.Tasks
 {
-	using System;
-	using System.Collections.Generic;
+	using System.Threading;
 	using Helpers;
 
-	public class SimpleListProcessTask : ProcessTaskWithListOutput<string>
+	public class StringListProcessTask : ProcessTaskWithListOutput<string>
 	{
-		public SimpleListProcessTask(
+		public StringListProcessTask(
 			ITaskManager taskManager, IProcessManager processManager,
 			string executable, string arguments, string workingDirectory = null,
-			IOutputProcessor<string, List<string>> processor = null
+			CancellationToken token = default
 		)
-			: base(taskManager, taskManager?.Token ?? default,
+			: base(taskManager,
 				processManager.EnsureNotNull(nameof(processManager)).DefaultProcessEnvironment,
 				executable, arguments,
-				processor ?? new StringListOutputProcessor())
+				new StringListOutputProcessor(), token: token)
 		{
 			processManager.Configure(this, workingDirectory);
 		}

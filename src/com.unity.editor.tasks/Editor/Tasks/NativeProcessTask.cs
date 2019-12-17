@@ -6,6 +6,7 @@
 namespace Unity.Editor.Tasks
 {
 	using System;
+	using System.Threading;
 	using Helpers;
 	using Internal.IO;
 
@@ -20,9 +21,10 @@ namespace Unity.Editor.Tasks
 		/// <remarks>You need to call <see cref="ProcessManager.Configure{T}(T, string)"/> on this task before running it.</remarks>
 		public NativeProcessTask(ITaskManager taskManager,
 				IEnvironment environment,
-				string executable, string arguments)
+				string executable, string arguments,
+				CancellationToken token = default)
 			: base(taskManager, null, new ProcessEnvironment(environment), null,
-				  executable, arguments, null, false, true)
+				  executable, arguments, null, false, true, token)
 		{ }
 
 		/// <summary>
@@ -31,9 +33,10 @@ namespace Unity.Editor.Tasks
 		/// <remarks>You need to call <see cref="ProcessManager.Configure{T}(T, string)"/> on this task before running it.</remarks>
 		public NativeProcessTask(ITaskManager taskManager,
 				IProcessEnvironment processEnvironment,
-				string executable, string arguments)
+				string executable, string arguments,
+				CancellationToken token = default)
 			: base(taskManager, null, processEnvironment, null,
-				  executable, arguments, null, false, true)
+				  executable, arguments, null, false, true, token)
 		{ }
 
 		/// <summary>
@@ -44,11 +47,12 @@ namespace Unity.Editor.Tasks
 		/// </remarks>
 		public NativeProcessTask(ITaskManager taskManager, IProcessManager processManager,
 				string executable, string arguments,
-				string workingDirectory = null)
+				string workingDirectory = null,
+				CancellationToken token = default)
 			: base(taskManager, processManager,
 				  processManager.DefaultProcessEnvironment,
 				  null,
-				  executable, arguments, workingDirectory, false, true)
+				  executable, arguments, workingDirectory, false, true, token)
 		{ }
 
 		/// <summary>
@@ -60,10 +64,11 @@ namespace Unity.Editor.Tasks
 		public NativeProcessTask(ITaskManager taskManager, IProcessManager processManager,
 			IProcessEnvironment processEnvironment,
 			string executable, string arguments,
-			string workingDirectory = null)
+			string workingDirectory = null,
+			CancellationToken token = default)
 			: base(taskManager, processManager,
 					processEnvironment, null,
-					executable, arguments, workingDirectory, false, true)
+					executable, arguments, workingDirectory, false, true, token)
 		{ }
 	}
 
@@ -80,10 +85,11 @@ namespace Unity.Editor.Tasks
 			IProcessEnvironment processEnvironment,
 			string executable,
 			string arguments,
-			IOutputProcessor<T> outputProcessor)
+			IOutputProcessor<T> outputProcessor,
+			CancellationToken token = default)
 			: base(taskManager, null,
 				  processEnvironment, null,
-				  executable, arguments, null, outputProcessor, false, true)
+				  executable, arguments, null, outputProcessor, false, true, token)
 		{ }
 
 		/// <summary>
@@ -94,10 +100,11 @@ namespace Unity.Editor.Tasks
 			IEnvironment environment,
 			string executable,
 			string arguments,
-			IOutputProcessor<T> outputProcessor)
+			IOutputProcessor<T> outputProcessor,
+			CancellationToken token = default)
 			: base(taskManager, null,
 				  new ProcessEnvironment(environment), null,
-				  executable, arguments, null, outputProcessor, false, true)
+				  executable, arguments, null, outputProcessor, false, true, token)
 		{ }
 
 		/// <summary>
@@ -111,10 +118,11 @@ namespace Unity.Editor.Tasks
 			string executable,
 			string arguments,
 			IOutputProcessor<T> outputProcessor,
-			string workingDirectory = null)
+			string workingDirectory = null,
+			CancellationToken token = default)
 			: base(taskManager, processManager.EnsureNotNull(nameof(processManager)),
 				  processManager.DefaultProcessEnvironment, null,
-				  executable, arguments, workingDirectory, outputProcessor, false, true)
+				  executable, arguments, workingDirectory, outputProcessor, false, true, token)
 		{ }
 
 		/// <summary>
@@ -129,10 +137,11 @@ namespace Unity.Editor.Tasks
 			string executable,
 			string arguments,
 			IOutputProcessor<T> outputProcessor,
-			string workingDirectory = null)
+			string workingDirectory = null,
+			CancellationToken token = default)
 			: base(taskManager, processManager.EnsureNotNull(nameof(processManager)),
 				  processEnvironment ?? processManager.DefaultProcessEnvironment, null,
-				  executable, arguments, workingDirectory, outputProcessor, false, true)
+				  executable, arguments, workingDirectory, outputProcessor, false, true, token)
 		{ }
 
 		/// <summary>
@@ -144,10 +153,11 @@ namespace Unity.Editor.Tasks
 			string executable,
 			string arguments,
 			Func<IProcessTask<T>, string, bool> isMatch,
-			Func<IProcessTask<T>, string, T> processor)
+			Func<IProcessTask<T>, string, T> processor,
+			CancellationToken token = default)
 			: base(taskManager, null,
 				  new ProcessEnvironment(environment), null,
-				  executable, arguments, null, isMatch, processor, false, true)
+				  executable, arguments, null, isMatch, processor, false, true, token)
 		{ }
 
 		/// <summary>
@@ -158,10 +168,11 @@ namespace Unity.Editor.Tasks
 			IEnvironment environment,
 			string executable,
 			string arguments,
-			Func<IProcessTask<T>, string, T> processor)
+			Func<IProcessTask<T>, string, T> processor,
+			CancellationToken token = default)
 			: base(taskManager, null,
 				  new ProcessEnvironment(environment), null,
-				  executable, arguments, null, null, processor, false, true)
+				  executable, arguments, null, null, processor, false, true, token)
 		{ }
 
 		/// <summary>
@@ -173,10 +184,11 @@ namespace Unity.Editor.Tasks
 			string executable,
 			string arguments,
 			Func<IProcessTask<T>, string, bool> isMatch,
-			Func<IProcessTask<T>, string, T> processor)
+			Func<IProcessTask<T>, string, T> processor,
+			CancellationToken token = default)
 			: base(taskManager, null,
 				  processEnvironment, null,
-				  executable, arguments, null, isMatch, processor, false, true)
+				  executable, arguments, null, isMatch, processor, false, true, token)
 		{ }
 
 		/// <summary>
@@ -187,10 +199,11 @@ namespace Unity.Editor.Tasks
 			IProcessEnvironment processEnvironment,
 			string executable,
 			string arguments,
-			Func<IProcessTask<T>, string, T> processor)
+			Func<IProcessTask<T>, string, T> processor,
+			CancellationToken token = default)
 			: base(taskManager, null,
 				  processEnvironment, null,
-				  executable, arguments, null, null, processor, false, true)
+				  executable, arguments, null, null, processor, false, true, token)
 		{ }
 
 		/// <summary>
@@ -205,10 +218,11 @@ namespace Unity.Editor.Tasks
 			string arguments,
 			Func<IProcessTask<T>, string, bool> isMatch,
 			Func<IProcessTask<T>, string, T> processor,
-			string workingDirectory = null)
+			string workingDirectory = null,
+			CancellationToken token = default)
 			: base(taskManager, processManager.EnsureNotNull(nameof(processManager)),
 				  processManager.DefaultProcessEnvironment, null,
-				  executable, arguments, workingDirectory, isMatch, processor, false, true)
+				  executable, arguments, workingDirectory, isMatch, processor, false, true, token)
 		{ }
 
 		/// <summary>
@@ -222,10 +236,11 @@ namespace Unity.Editor.Tasks
 			string executable,
 			string arguments,
 			Func<IProcessTask<T>, string, T> processor,
-			string workingDirectory = null)
+			string workingDirectory = null,
+			CancellationToken token = default)
 			: base(taskManager, processManager.EnsureNotNull(nameof(processManager)),
 				  processManager.DefaultProcessEnvironment, null,
-				  executable, arguments, workingDirectory, null, processor, false, true)
+				  executable, arguments, workingDirectory, null, processor, false, true, token)
 		{ }
 
 		/// <summary>
@@ -241,10 +256,11 @@ namespace Unity.Editor.Tasks
 			string arguments,
 			Func<IProcessTask<T>, string, bool> isMatch,
 			Func<IProcessTask<T>, string, T> processor,
-			string workingDirectory = null)
+			string workingDirectory = null,
+			CancellationToken token = default)
 			: base(taskManager, processManager.EnsureNotNull(nameof(processManager)),
 				  processEnvironment ?? processManager.DefaultProcessEnvironment, null,
-				  executable, arguments, workingDirectory, isMatch, processor, false, true)
+				  executable, arguments, workingDirectory, isMatch, processor, false, true, token)
 		{ }
 
 		/// <summary>
@@ -259,10 +275,11 @@ namespace Unity.Editor.Tasks
 			string executable,
 			string arguments,
 			Func<IProcessTask<T>, string, T> processor,
-			string workingDirectory = null)
+			string workingDirectory = null,
+			CancellationToken token = default)
 			: base(taskManager, processManager.EnsureNotNull(nameof(processManager)),
 				  processEnvironment ?? processManager.DefaultProcessEnvironment, null,
-				  executable, arguments, workingDirectory, null, processor, false, true)
+				  executable, arguments, workingDirectory, null, processor, false, true, token)
 		{ }
 	}
 }

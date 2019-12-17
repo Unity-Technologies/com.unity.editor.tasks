@@ -72,7 +72,7 @@ namespace Unity.Editor.Tasks
 			Action onStart,
 			Action onEnd,
 			Action<Exception, string> onError,
-			CancellationToken token)
+			CancellationToken token = default)
 		{
 			return new ProcessWrapper(taskName, startInfo, outputProcessor,
 				onStart, onEnd, onError, token);

@@ -23,17 +23,8 @@ namespace Unity.Editor.Tasks
 		/// Creates an instance of the TaskQueue.
 		/// </summary>
 		/// <param name="taskManager"></param>
-		public TaskQueue(ITaskManager taskManager) : base(taskManager)
-		{
-			Initialize(aggregateTask.Task);
-		}
-
-		/// <summary>
-		/// Creates an instance of the TaskQueue.
-		/// </summary>
-		/// <param name="taskManager"></param>
 		/// <param name="token"></param>
-		public TaskQueue(ITaskManager taskManager, CancellationToken token) : base(taskManager, token)
+		public TaskQueue(ITaskManager taskManager, CancellationToken token = default) : base(taskManager, token)
 		{
 			Initialize(aggregateTask.Task);
 		}
@@ -141,21 +132,10 @@ namespace Unity.Editor.Tasks
 		/// If <typeparamref name="TTaskResult"/> is not assignable to <typeparamref name="TResult"/>, you must pass a
 		/// method to convert between the two. Implicit conversions don't count.
 		/// </summary>
-		/// <param name="taskManager"></param>
-		/// <param name="resultConverter"></param>
-		public TaskQueue(ITaskManager taskManager, Func<ITask<TTaskResult>, TResult> resultConverter = null)
-			: this(taskManager, taskManager?.Token ?? default, resultConverter)
-		{ }
-
-		/// <summary>
-		/// If <typeparamref name="TTaskResult"/> is not assignable to <typeparamref name="TResult"/>, you must pass a
-		/// method to convert between the two. Implicit conversions don't count (so even though SPath has an implicit
-		/// conversion to string, you still need to pass in a converter)
-		/// </summary>
 		/// <param name="token"></param>
 		/// <param name="resultConverter"></param>
 		/// <param name="taskManager"></param>
-		public TaskQueue(ITaskManager taskManager, CancellationToken token, Func<ITask<TTaskResult>, TResult> resultConverter = null)
+		public TaskQueue(ITaskManager taskManager, Func<ITask<TTaskResult>, TResult> resultConverter = null, CancellationToken token = default)
 			: base(taskManager, token)
 		{
 			// this excludes implicit operators - that requires using reflection to figure out if
@@ -268,12 +248,7 @@ namespace Unity.Editor.Tasks
 		/// 
 		/// </summary>
 		/// <param name="taskManager"></param>
-		public TaskQueue(ITaskManager taskManager) : base(taskManager) { }
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="taskManager"></param>
 		/// <param name="token"></param>
-		public TaskQueue(ITaskManager taskManager, CancellationToken token) : base(taskManager, token) { }
+		public TaskQueue(ITaskManager taskManager, CancellationToken token = default) : base(taskManager, token: token) { }
 	}
 }

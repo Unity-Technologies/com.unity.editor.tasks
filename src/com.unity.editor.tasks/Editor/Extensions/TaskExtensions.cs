@@ -66,63 +66,63 @@ namespace Unity.Editor.Tasks
 		{
 			task.EnsureNotNull(nameof(task));
 			continuation.EnsureNotNull(nameof(continuation));
-			return task.Then(new ActionTask(task.TaskManager, task.Token, continuation) { Affinity = affinity, Name = name }, runOptions);
+			return task.Then(new ActionTask(task.TaskManager, continuation, token: task.Token) { Affinity = affinity, Name = name }, runOptions);
 		}
 
 		public static ITask Then(this ITask task, Action<bool, Exception> continuation, TaskAffinity affinity = TaskAffinity.Concurrent, string name = "Then", TaskRunOptions runOptions = TaskRunOptions.OnSuccess)
 		{
 			task.EnsureNotNull(nameof(task));
 			continuation.EnsureNotNull(nameof(continuation));
-			return task.Then(new ActionTask(task.TaskManager, task.Token, continuation) { Affinity = affinity, Name = name }, runOptions);
+			return task.Then(new ActionTask(task.TaskManager, continuation, token: task.Token) { Affinity = affinity, Name = name }, runOptions);
 		}
 
 		public static ITask Then<T>(this ITask<T> task, Action<T> continuation, TaskAffinity affinity = TaskAffinity.Concurrent, string name = null, TaskRunOptions runOptions = TaskRunOptions.OnSuccess)
 		{
 			task.EnsureNotNull(nameof(task));
 			continuation.EnsureNotNull(nameof(continuation));
-			return task.Then(new ActionTask<T>(task.TaskManager, task.Token, continuation) { Affinity = affinity, Name = name ?? $"Then<{typeof(T)}>" }, runOptions);
+			return task.Then(new ActionTask<T>(task.TaskManager, continuation, token: task.Token) { Affinity = affinity, Name = name ?? $"Then<{typeof(T)}>" }, runOptions);
 		}
 
 		public static ITask Then<T>(this ITask<T> task, Action<bool, Exception, T> continuation, TaskAffinity affinity = TaskAffinity.Concurrent, string name = null, TaskRunOptions runOptions = TaskRunOptions.OnSuccess)
 		{
 			task.EnsureNotNull(nameof(task));
 			continuation.EnsureNotNull(nameof(continuation));
-			return task.Then(new ActionTask<T>(task.TaskManager, task.Token, continuation) { Affinity = affinity, Name = name ?? $"Then<{typeof(T)}>" }, runOptions);
+			return task.Then(new ActionTask<T>(task.TaskManager, continuation, token: task.Token) { Affinity = affinity, Name = name ?? $"Then<{typeof(T)}>" }, runOptions);
 		}
 
 		public static ITask<T> Then<T>(this ITask task, Func<T> continuation, TaskAffinity affinity = TaskAffinity.Concurrent, string name = null, TaskRunOptions runOptions = TaskRunOptions.OnSuccess)
 		{
 			task.EnsureNotNull(nameof(task));
 			continuation.EnsureNotNull(nameof(continuation));
-			return task.Then(new FuncTask<T>(task.TaskManager, task.Token, continuation) { Affinity = affinity, Name = name ?? $"ThenFunc<{typeof(T)}>" }, runOptions);
+			return task.Then(new FuncTask<T>(task.TaskManager, continuation, token: task.Token) { Affinity = affinity, Name = name ?? $"ThenFunc<{typeof(T)}>" }, runOptions);
 		}
 
 		public static ITask<T> Then<T>(this ITask task, Func<bool, Exception, T> continuation, TaskAffinity affinity = TaskAffinity.Concurrent, string name = null, TaskRunOptions runOptions = TaskRunOptions.OnSuccess)
 		{
 			task.EnsureNotNull(nameof(task));
 			continuation.EnsureNotNull(nameof(continuation));
-			return task.Then(new FuncTask<T>(task.TaskManager, task.Token, continuation) { Affinity = affinity, Name = name ?? $"ThenFunc<{typeof(T)}>" }, runOptions);
+			return task.Then(new FuncTask<T>(task.TaskManager, continuation, token: task.Token) { Affinity = affinity, Name = name ?? $"ThenFunc<{typeof(T)}>" }, runOptions);
 		}
 
 		public static ITask<TRet> Then<T, TRet>(this ITask<T> task, Func<T, TRet> continuation, TaskAffinity affinity = TaskAffinity.Concurrent, string name = null, TaskRunOptions runOptions = TaskRunOptions.OnSuccess)
 		{
 			task.EnsureNotNull(nameof(task));
 			continuation.EnsureNotNull(nameof(continuation));
-			return task.Then(new FuncTask<T, TRet>(task.TaskManager, task.Token, continuation) { Affinity = affinity, Name = name ?? $"ThenFunc<{typeof(T)}, {typeof(TRet)}>" }, runOptions);
+			return task.Then(new FuncTask<T, TRet>(task.TaskManager, continuation, token: task.Token) { Affinity = affinity, Name = name ?? $"ThenFunc<{typeof(T)}, {typeof(TRet)}>" }, runOptions);
 		}
 
 		public static ITask<TRet> Then<T, TRet>(this ITask<T> task, Func<bool, Exception, T, TRet> continuation, TaskAffinity affinity = TaskAffinity.Concurrent, string name = null, TaskRunOptions runOptions = TaskRunOptions.OnSuccess)
 		{
 			task.EnsureNotNull(nameof(task));
 			continuation.EnsureNotNull(nameof(continuation));
-			return task.Then(new FuncTask<T, TRet>(task.TaskManager, task.Token, continuation) { Affinity = affinity, Name = name ?? $"ThenFunc<{typeof(T)}, {typeof(TRet)}>" }, runOptions);
+			return task.Then(new FuncTask<T, TRet>(task.TaskManager, continuation, token: task.Token) { Affinity = affinity, Name = name ?? $"ThenFunc<{typeof(T)}, {typeof(TRet)}>" }, runOptions);
 		}
 
 		public static ITask ThenAsync(this ITask task, Func<Task> asyncDelegate, TaskAffinity affinity = TaskAffinity.Concurrent, string name = "ThenAsync", TaskRunOptions runOptions = TaskRunOptions.OnSuccess)
 		{
 			task.EnsureNotNull(nameof(task));
 			asyncDelegate.EnsureNotNull(nameof(asyncDelegate));
-			var cont = new TPLTask(task.TaskManager, asyncDelegate) { Affinity = affinity, Name = name};
+			var cont = new TPLTask(task.TaskManager, asyncDelegate, token: task.Token) { Affinity = affinity, Name = name};
 			return task.Then(cont, runOptions);
 		}
 
@@ -130,7 +130,7 @@ namespace Unity.Editor.Tasks
 		{
 			task.EnsureNotNull(nameof(task));
 			asyncDelegate.EnsureNotNull(nameof(asyncDelegate));
-			var cont = new TPLTask<T>(task.TaskManager, asyncDelegate) { Affinity = affinity, Name = name ?? $"ThenAsync<{typeof(T)}>" };
+			var cont = new TPLTask<T>(task.TaskManager, asyncDelegate, token: task.Token) { Affinity = affinity, Name = name ?? $"ThenAsync<{typeof(T)}>" };
 			return task.Then(cont, runOptions);
 		}
 
@@ -138,7 +138,7 @@ namespace Unity.Editor.Tasks
 		{
 			task.EnsureNotNull(nameof(task));
 			asyncDelegate.EnsureNotNull(nameof(asyncDelegate));
-			var cont = new TPLTask<T, TRet>(task.TaskManager, asyncDelegate) { Affinity = affinity, Name = name ?? $"ThenAsync<{typeof(T)}, {typeof(TRet)}>" };
+			var cont = new TPLTask<T, TRet>(task.TaskManager, asyncDelegate, token: task.Token) { Affinity = affinity, Name = name ?? $"ThenAsync<{typeof(T)}, {typeof(TRet)}>" };
 			return task.Then(cont, runOptions);
 		}
 
@@ -259,7 +259,7 @@ namespace Unity.Editor.Tasks
 		/// <param name="source"></param>
 		/// <param name="token"></param>
 		/// <returns></returns>
-		public static T StartSync<T>(this ITask<T> source, CancellationToken token)
+		public static T StartSync<T>(this ITask<T> source, CancellationToken token = default)
 		{
 			StartAwait(source).Wait(token);
 			return source.Result;

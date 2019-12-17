@@ -44,7 +44,7 @@ namespace Unity.Editor.Tasks
 			Action onStart,
 			Action onEnd,
 			Action<Exception, string> onError,
-			CancellationToken token);
+			CancellationToken token = default);
 
 		/// <summary>
 		/// Stops all running processes managed by this manager.

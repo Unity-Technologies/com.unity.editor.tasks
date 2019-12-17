@@ -9,22 +9,18 @@ namespace Unity.Editor.Tasks
 		private Func<Task> taskGetter;
 		private Task task;
 
-		public TPLTask(ITaskManager taskManager, CancellationToken token, Func<Task> theGetter)
+		public TPLTask(ITaskManager taskManager, Func<Task> theGetter, CancellationToken token = default)
 			: this(taskManager, token)
 		{
 			Initialize(theGetter);
 		}
 
 		// main constructor, everyone should go through here
-		protected TPLTask(ITaskManager taskManager, CancellationToken token)
+		protected TPLTask(ITaskManager taskManager, CancellationToken token = default)
 			: base(taskManager, token)
 		{
 			Task = new Task(InternalRunSynchronously, Token, TaskCreationOptions.None);
 		}
-
-		public TPLTask(ITaskManager taskManager, Func<Task> task) : this(taskManager, taskManager?.Token ?? default, task) { }
-
-		protected TPLTask(ITaskManager taskManager) : this(taskManager, taskManager?.Token ?? default) { }
 
 		/// <summary>
 		/// Call this if you're subclassing and haven't called one of the main public constructors
@@ -82,22 +78,18 @@ namespace Unity.Editor.Tasks
 		private Func<Task<T>> taskGetter;
 		private Task<T> task;
 
-		public TPLTask(ITaskManager taskManager, CancellationToken token, Func<Task<T>> theGetter)
+		public TPLTask(ITaskManager taskManager, Func<Task<T>> theGetter, CancellationToken token = default)
 			: this(taskManager, token)
 		{
 			Initialize(theGetter);
 		}
 
 		// main constructor, everyone should go through here
-		protected TPLTask(ITaskManager taskManager, CancellationToken token)
+		protected TPLTask(ITaskManager taskManager, CancellationToken token = default)
 			: base(taskManager, token)
 		{
 			Task = new Task<T>(InternalRunSynchronously, Token, TaskCreationOptions.None);
 		}
-
-		public TPLTask(ITaskManager taskManager, Func<Task<T>> task) : this(taskManager, taskManager?.Token ?? default, task) { }
-
-		protected TPLTask(ITaskManager taskManager) : this(taskManager, taskManager?.Token ?? default) { }
 
 		/// <summary>
 		/// Call this if you're subclassing and haven't called one of the main public constructors
@@ -155,22 +147,18 @@ namespace Unity.Editor.Tasks
 		private Func<T, Task<TResult>> taskGetter;
 		private Task<TResult> task;
 
-		public TPLTask(ITaskManager taskManager, CancellationToken token, Func<T, Task<TResult>> theGetter)
-			: this(taskManager, token)
+		public TPLTask(ITaskManager taskManager, Func<T, Task<TResult>> theGetter, Func<T> getPreviousResult = null, CancellationToken token = default)
+			: this(taskManager, getPreviousResult, token)
 		{
 			Initialize(theGetter);
 		}
 
 		// main constructor, everyone should go through here
-		protected TPLTask(ITaskManager taskManager, CancellationToken token)
-			: base(taskManager, token)
+		protected TPLTask(ITaskManager taskManager, Func<T> getPreviousResult = null, CancellationToken token = default)
+			: base(taskManager, getPreviousResult, token)
 		{
 			Task = new Task<TResult>(InternalRunSynchronously, Token, TaskCreationOptions.None);
 		}
-
-		public TPLTask(ITaskManager taskManager, Func<T, Task<TResult>> task) : this(taskManager, taskManager?.Token ?? default, task) { }
-
-		protected TPLTask(ITaskManager taskManager) : this(taskManager, taskManager?.Token ?? default) { }
 
 		/// <summary>
 		/// Call this if you're subclassing and haven't called one of the main public constructors

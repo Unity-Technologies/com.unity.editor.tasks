@@ -6,6 +6,7 @@
 namespace Unity.Editor.Tasks
 {
 	using System;
+	using System.Threading;
 	using Helpers;
 	using Internal.IO;
 
@@ -24,8 +25,9 @@ namespace Unity.Editor.Tasks
 			IEnvironment environment,
 			string executable, string arguments,
 			string workingDirectory,
-			bool alwaysUseMono, bool neverUseMono)
-			: base(taskManager, processEnvironment, outputProcessor: new StringOutputProcessor())
+			bool alwaysUseMono, bool neverUseMono,
+			CancellationToken token = default)
+			: base(taskManager, processEnvironment, outputProcessor: new StringOutputProcessor(), token: token)
 		{
 			if (neverUseMono || !alwaysUseMono && environment.IsWindows)
 			{
@@ -64,8 +66,9 @@ namespace Unity.Editor.Tasks
 			string executable, string arguments, string workingDirectory,
 			Func<IProcessTask<T>, string, bool> isMatch,
 			Func<IProcessTask<T>, string, T> processor,
-			bool alwaysUseMono, bool neverUseMono)
-			: base(taskManager, processEnvironment)
+			bool alwaysUseMono, bool neverUseMono,
+			CancellationToken token = default)
+			: base(taskManager, processEnvironment, token: token)
 		{
 			this.isMatch = isMatch;
 			this.processor = processor;
@@ -95,8 +98,9 @@ namespace Unity.Editor.Tasks
 		/// </remarks>
 		protected BaseProcessTask(ITaskManager taskManager, IProcessManager processManager, IProcessEnvironment processEnvironment, IEnvironment environment,
 			string executable, string arguments, string workingDirectory,
-			IOutputProcessor<T> outputProcessor, bool alwaysUseMono, bool neverUseMono)
-			: base(taskManager, processEnvironment, outputProcessor: outputProcessor)
+			IOutputProcessor<T> outputProcessor, bool alwaysUseMono, bool neverUseMono,
+			CancellationToken token = default)
+			: base(taskManager, processEnvironment, outputProcessor: outputProcessor, token: token)
 		{
 			if (neverUseMono || !alwaysUseMono && environment.IsWindows)
 			{
@@ -114,8 +118,9 @@ namespace Unity.Editor.Tasks
 				processManager.Configure(this, workingDirectory);
 		}
 
-		protected BaseProcessTask(ITaskManager taskManager, IProcessEnvironment processEnvironment, IOutputProcessor<T> outputProcessor)
-			: base(taskManager, processEnvironment, outputProcessor: outputProcessor)
+		protected BaseProcessTask(ITaskManager taskManager, IProcessEnvironment processEnvironment, IOutputProcessor<T> outputProcessor,
+			CancellationToken token = default)
+			: base(taskManager, processEnvironment, outputProcessor: outputProcessor, token: token)
 		{ }
 
 		protected override void ConfigureOutputProcessor()

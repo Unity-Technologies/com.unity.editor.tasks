@@ -21,7 +21,7 @@ namespace Unity.Editor.Tasks
 		/// <param name="taskManager"></param>
 		/// <param name="token"></param>
 		/// <param name="action"></param>
-		public FuncTask(ITaskManager taskManager, CancellationToken token, Func<T> action)
+		public FuncTask(ITaskManager taskManager, Func<T> action, CancellationToken token = default)
 			: base(taskManager, token)
 		{
 			Guard.EnsureNotNull(action, "action");
@@ -35,7 +35,7 @@ namespace Unity.Editor.Tasks
 		/// <param name="taskManager"></param>
 		/// <param name="token"></param>
 		/// <param name="action"></param>
-		public FuncTask(ITaskManager taskManager, CancellationToken token, Func<bool, T> action)
+		public FuncTask(ITaskManager taskManager, Func<bool, T> action, CancellationToken token = default)
 			: base(taskManager, token)
 		{
 			Guard.EnsureNotNull(action, "action");
@@ -49,7 +49,7 @@ namespace Unity.Editor.Tasks
 		/// <param name="taskManager"></param>
 		/// <param name="token"></param>
 		/// <param name="action"></param>
-		public FuncTask(ITaskManager taskManager, CancellationToken token, Func<bool, Exception, T> action)
+		public FuncTask(ITaskManager taskManager, Func<bool, Exception, T> action, CancellationToken token = default)
 			: base(taskManager, token)
 		{
 			Guard.EnsureNotNull(action, "action");
@@ -114,8 +114,8 @@ namespace Unity.Editor.Tasks
 		/// <param name="token"></param>
 		/// <param name="action"></param>
 		/// <param name="getPreviousResult"></param>
-		public FuncTask(ITaskManager taskManager, CancellationToken token, Func<bool, T, TResult> action, Func<T> getPreviousResult = null)
-			: base(taskManager, token, getPreviousResult)
+		public FuncTask(ITaskManager taskManager, Func<bool, T, TResult> action, Func<T> getPreviousResult = null, CancellationToken token = default)
+			: base(taskManager, getPreviousResult, token: token)
 		{
 			Guard.EnsureNotNull(action, "action");
 			Callback = action;
@@ -129,8 +129,8 @@ namespace Unity.Editor.Tasks
 		/// <param name="token"></param>
 		/// <param name="action"></param>
 		/// <param name="getPreviousResult"></param>
-		public FuncTask(ITaskManager taskManager, CancellationToken token, Func<bool, Exception, T, TResult> action, Func<T> getPreviousResult = null)
-			: base(taskManager, token, getPreviousResult)
+		public FuncTask(ITaskManager taskManager, Func<bool, Exception, T, TResult> action, Func<T> getPreviousResult = null, CancellationToken token = default)
+			: base(taskManager, getPreviousResult, token: token)
 		{
 			Guard.EnsureNotNull(action, "action");
 			CallbackWithException = action;
@@ -185,7 +185,7 @@ namespace Unity.Editor.Tasks
 		/// <param name="taskManager"></param>
 		/// <param name="token"></param>
 		/// <param name="action"></param>
-		public FuncListTask(ITaskManager taskManager, CancellationToken token, Func<bool, List<T>> action)
+		public FuncListTask(ITaskManager taskManager, Func<bool, List<T>> action, CancellationToken token = default)
 			: base(taskManager, token)
 		{
 			Guard.EnsureNotNull(action, "action");
@@ -198,7 +198,7 @@ namespace Unity.Editor.Tasks
 		/// <param name="taskManager"></param>
 		/// <param name="token"></param>
 		/// <param name="action"></param>
-		public FuncListTask(ITaskManager taskManager, CancellationToken token, Func<bool, Exception, List<T>> action)
+		public FuncListTask(ITaskManager taskManager, Func<bool, Exception, List<T>> action, CancellationToken token = default)
 			: base(taskManager, token)
 		{
 			Guard.EnsureNotNull(action, "action");
@@ -211,7 +211,7 @@ namespace Unity.Editor.Tasks
 		/// <param name="taskManager"></param>
 		/// <param name="token"></param>
 		/// <param name="action"></param>
-		public FuncListTask(ITaskManager taskManager, CancellationToken token, Func<bool, FuncListTask<T>, List<T>> action)
+		public FuncListTask(ITaskManager taskManager, Func<bool, FuncListTask<T>, List<T>> action, CancellationToken token = default)
 			: base(taskManager, token)
 		{
 			Guard.EnsureNotNull(action, "action");
@@ -279,11 +279,8 @@ namespace Unity.Editor.Tasks
 		/// <summary>
 		/// Creates an instance of FuncListTask.
 		/// </summary>
-		/// <param name="taskManager"></param>
-		/// <param name="token"></param>
-		/// <param name="action"></param>
-		public FuncListTask(ITaskManager taskManager, CancellationToken token, Func<bool, T, List<TResult>> action)
-			: base(taskManager, token)
+		public FuncListTask(ITaskManager taskManager, Func<bool, T, List<TResult>> action, Func<T> getPreviousResult = null, CancellationToken token = default)
+			: base(taskManager, getPreviousResult, token)
 		{
 			Guard.EnsureNotNull(action, "action");
 			Callback = action;
@@ -292,11 +289,8 @@ namespace Unity.Editor.Tasks
 		/// <summary>
 		/// Creates an instance of FuncListTask.
 		/// </summary>
-		/// <param name="taskManager"></param>
-		/// <param name="token"></param>
-		/// <param name="action"></param>
-		public FuncListTask(ITaskManager taskManager, CancellationToken token, Func<bool, Exception, T, List<TResult>> action)
-			: base(taskManager, token)
+		public FuncListTask(ITaskManager taskManager, Func<bool, Exception, T, List<TResult>> action, Func<T> getPreviousResult = null, CancellationToken token = default)
+			: base(taskManager, getPreviousResult, token)
 		{
 			Guard.EnsureNotNull(action, "action");
 			CallbackWithException = action;

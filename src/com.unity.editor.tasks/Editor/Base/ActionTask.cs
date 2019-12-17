@@ -26,7 +26,7 @@ namespace Unity.Editor.Tasks
 		/// <param name="taskManager"></param>
 		/// <param name="token"></param>
 		/// <param name="action"></param>
-		public ActionTask(ITaskManager taskManager, CancellationToken token, Action action)
+		public ActionTask(ITaskManager taskManager, Action action, CancellationToken token = default)
 			: base(taskManager, token)
 		{
 			Guard.EnsureNotNull(action, "action");
@@ -40,7 +40,7 @@ namespace Unity.Editor.Tasks
 		/// <param name="taskManager"></param>
 		/// <param name="token"></param>
 		/// <param name="action"></param>
-		public ActionTask(ITaskManager taskManager, CancellationToken token, Action<bool> action)
+		public ActionTask(ITaskManager taskManager, Action<bool> action, CancellationToken token = default)
 			: base(taskManager, token)
 		{
 			Guard.EnsureNotNull(action, "action");
@@ -54,7 +54,7 @@ namespace Unity.Editor.Tasks
 		/// <param name="taskManager"></param>
 		/// <param name="token"></param>
 		/// <param name="action"></param>
-		public ActionTask(ITaskManager taskManager, CancellationToken token, Action<bool, Exception> action)
+		public ActionTask(ITaskManager taskManager, Action<bool, Exception> action, CancellationToken token = default)
 			: base(taskManager, token)
 		{
 			Guard.EnsureNotNull(action, "action");
@@ -117,7 +117,7 @@ namespace Unity.Editor.Tasks
 		/// <param name="token"></param>
 		/// <param name="action"></param>
 		/// <param name="getPreviousResult">Method to call that returns the value that this task is going to work with. You can also use the PreviousResult property to set this value</param>
-		public ActionTask(ITaskManager taskManager, CancellationToken token, Action<bool, T> action, Func<T> getPreviousResult = null)
+		public ActionTask(ITaskManager taskManager, Action<bool, T> action, Func<T> getPreviousResult = null, CancellationToken token = default)
 			: base(taskManager, token)
 		{
 			Guard.EnsureNotNull(action, "action");
@@ -135,7 +135,7 @@ namespace Unity.Editor.Tasks
 		/// <param name="token"></param>
 		/// <param name="action"></param>
 		/// <param name="getPreviousResult">Method to call that returns the value that this task is going to work with. You can also use the PreviousResult property to set this value</param>
-		public ActionTask(ITaskManager taskManager, CancellationToken token, Action<bool, Exception, T> action, Func<T> getPreviousResult = null)
+		public ActionTask(ITaskManager taskManager, Action<bool, Exception, T> action, Func<T> getPreviousResult = null, CancellationToken token = default)
 			: base(taskManager, token)
 		{
 			Guard.EnsureNotNull(action, "action");

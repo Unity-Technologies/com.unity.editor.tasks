@@ -11,8 +11,6 @@ namespace Unity.Editor.Tasks
 
 	public class MainThreadSynchronizationContext: SynchronizationContext, IMainThreadSynchronizationContext
 	{
-		public MainThreadSynchronizationContext(CancellationToken token) {}
-
 		public void Schedule(Action action)
 		{
 			action.EnsureNotNull(nameof(action));
@@ -32,8 +30,7 @@ namespace Unity.Editor.Tasks
 #else
 	public class MainThreadSynchronizationContext : ThreadSynchronizationContext, IMainThreadSynchronizationContext
 	{
-		public MainThreadSynchronizationContext() : base(default) {}
-		public MainThreadSynchronizationContext(CancellationToken token) : base(token) {}
+		public MainThreadSynchronizationContext(CancellationToken token = default) : base(token) {}
 
 		public void Schedule(Action action)
 		{

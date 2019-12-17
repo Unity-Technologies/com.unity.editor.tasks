@@ -17,17 +17,13 @@ namespace Unity.Editor.Tasks
 	public class DownloadTask : TaskBase<string>
 	{
 		private readonly CancellationTokenSource cts;
-		public DownloadTask(ITaskManager taskManager, UriString url, string targetDirectory, string filename = null, int retryCount = 0)
-			 : this(taskManager, taskManager?.Token ?? default, url, targetDirectory, filename, retryCount)
-		{ }
-
 		public DownloadTask(
 			ITaskManager taskManager,
-			CancellationToken token,
 			UriString url,
 			string targetDirectory,
 			string filename = null,
-			int retryCount = 0)
+			int retryCount = 0,
+			CancellationToken token = default)
 			: base(taskManager, token)
 		{
 			cts = CancellationTokenSource.CreateLinkedTokenSource(Token);
@@ -178,17 +174,12 @@ namespace Unity.Editor.Tasks
 		public event Action<UriString, Exception> OnDownloadFailed;
 		public event Action<UriString> OnDownloadStart;
 
-		public Downloader(ITaskManager taskManager)
-			: this(taskManager, taskManager?.Token ?? default)
-		{
-		}
-
-		public Downloader(ITaskManager taskManager, CancellationToken token)
-			 : base(taskManager, token, t => {
+		public Downloader(ITaskManager taskManager, CancellationToken token = default)
+			 : base(taskManager, t => {
 				 var dt = t as DownloadTask;
 				 var destinationFile = Path.Combine(dt.TargetDirectory, dt.Url.Filename);
 				 return new DownloadData(dt.Url, destinationFile);
-			 })
+			 }, token)
 		{
 			Name = "Downloader";
 			Message = "Downloading...";

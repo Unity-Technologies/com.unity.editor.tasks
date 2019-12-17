@@ -188,35 +188,12 @@ namespace Unity.Editor.Tasks
 		/// <summary>
 		/// Runs a Process with the passed arguments
 		/// </summary>
-		/// <param name="executable"></param>
-		/// <param name="arguments"></param>
-		/// <param name="outputProcessor"></param>
-		/// <param name="taskManager"></param>
-		/// <param name="processEnvironment"></param>
 		public ProcessTask(ITaskManager taskManager,
 			IProcessEnvironment processEnvironment,
 			string executable = null,
 			string arguments = null,
-			IOutputProcessor<T> outputProcessor = null
-		)
-			: this(taskManager, taskManager?.Token ?? default, processEnvironment, executable, arguments, outputProcessor)
-		{}
-
-		/// <summary>
-		/// Runs a Process with the passed arguments
-		/// </summary>
-		/// <param name="taskManager"></param>
-		/// <param name="token"></param>
-		/// <param name="processEnvironment"></param>
-		/// <param name="executable"></param>
-		/// <param name="arguments"></param>
-		/// <param name="outputProcessor"></param>
-		public ProcessTask(ITaskManager taskManager,
-			CancellationToken token,
-			IProcessEnvironment processEnvironment,
-			string executable = null,
-			string arguments = null,
-			IOutputProcessor<T> outputProcessor = null
+			IOutputProcessor<T> outputProcessor = null,
+			CancellationToken token = default
 		)
 			: base(taskManager, token)
 		{
@@ -428,23 +405,6 @@ namespace Unity.Editor.Tasks
 		/// Runs a Process with the passed arguments
 		/// </summary>
 		/// <param name="taskManager"></param>
-		/// <param name="processEnvironment"></param>
-		/// <param name="executable"></param>
-		/// <param name="arguments"></param>
-		/// <param name="outputProcessor"></param>
-		public ProcessTaskWithListOutput(
-			ITaskManager taskManager,
-			IProcessEnvironment processEnvironment,
-			string executable = null,
-			string arguments = null,
-			IOutputProcessor<T, List<T>> outputProcessor = null)
-			: this(taskManager, taskManager?.Token ?? default, processEnvironment, executable, arguments, outputProcessor)
-		{}
-
-		/// <summary>
-		/// Runs a Process with the passed arguments
-		/// </summary>
-		/// <param name="taskManager"></param>
 		/// <param name="token"></param>
 		/// <param name="processEnvironment"></param>
 		/// <param name="executable"></param>
@@ -452,11 +412,11 @@ namespace Unity.Editor.Tasks
 		/// <param name="outputProcessor"></param>
 		public ProcessTaskWithListOutput(
 			ITaskManager taskManager,
-			CancellationToken token,
 			IProcessEnvironment processEnvironment,
 			string executable = null,
 			string arguments = null,
-			IOutputProcessor<T, List<T>> outputProcessor = null)
+			IOutputProcessor<T, List<T>> outputProcessor = null,
+			CancellationToken token = default)
 			: base(taskManager, token)
 		{
 			this.OutputProcessor = outputProcessor;

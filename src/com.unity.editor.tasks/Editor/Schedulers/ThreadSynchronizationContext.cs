@@ -19,10 +19,11 @@ namespace Unity.Editor.Tasks
 		protected bool IsInSyncThread => Thread.CurrentThread.ManagedThreadId == threadId;
 
 
-		public ThreadSynchronizationContext(CancellationToken token)
+		public ThreadSynchronizationContext(CancellationToken token = default)
 		{
 			externalCts = CancellationTokenSource.CreateLinkedTokenSource(token);
-			externalCts.Token.Register(Dispose);
+			if (token.CanBeCanceled)
+				externalCts.Token.Register(Dispose);
 			Task.Factory.StartNew(Start, token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
 		}
 
