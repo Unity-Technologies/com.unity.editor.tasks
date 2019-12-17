@@ -96,8 +96,6 @@ namespace Unity.Editor.Tasks
 		/// need to run a background process that won't be stopped if the domain goes down, call this.
 		/// </summary>
 		void Detach();
-
-		bool LongRunning { get; }
 	}
 
 	/// <summary>
@@ -229,8 +227,6 @@ namespace Unity.Editor.Tasks
 					Errors = error;
 				},
 				Token);
-
-			OutputProcessor.OnEntry += s => OnOutput?.Invoke(s);
 		}
 
 		/// <inheritdoc />
@@ -296,7 +292,19 @@ namespace Unity.Editor.Tasks
 
 		/// <inheritdoc />
 		protected virtual void ConfigureOutputProcessor()
-		{}
+		{
+			if (OutputProcessor == null && (typeof(T) != typeof(string)))
+			{
+				throw new InvalidOperationException("ProcessTask without an output processor must be defined as IProcessTask<string>");
+			}
+			OutputProcessor.OnEntry += RaiseOnOutput;
+		}
+
+		protected void RaiseOnOutput(T data)
+		{
+			OnOutput?.Invoke(data);
+		}
+
 
 		/// <inheritdoc />
 		protected override T RunWithReturn(bool success)
@@ -377,9 +385,6 @@ namespace Unity.Editor.Tasks
 		public virtual string ProcessArguments { get; protected set; }
 
 		/// <inheritdoc />
-		public bool LongRunning { get; set; }
-
-		/// <inheritdoc />
 		protected IOutputProcessor<T> OutputProcessor { get; set; }
 	}
 
@@ -448,8 +453,6 @@ namespace Unity.Editor.Tasks
 					Errors = error;
 				},
 				Token);
-
-			OutputProcessor.OnEntry += s => OnOutput?.Invoke(s);
 		}
 
 		/// <inheritdoc />
@@ -514,7 +517,13 @@ namespace Unity.Editor.Tasks
 			{
 				throw new InvalidOperationException("ProcessTask without an output processor must be defined as IProcessTask<string>");
 			}
-			OutputProcessor.OnEntry += x => RaiseOnData(x);
+			OutputProcessor.OnEntry += RaiseOnOutput;
+		}
+
+		protected void RaiseOnOutput(T data)
+		{
+			RaiseOnData(data);
+			OnOutput?.Invoke(data);
 		}
 
 		/// <inheritdoc />
@@ -573,6 +582,7 @@ namespace Unity.Editor.Tasks
 			GC.SuppressFinalize(this);
 		}
 
+
 		public BaseProcessWrapper Wrapper { get; private set; }
 		/// <inheritdoc />
 		public IProcessEnvironment ProcessEnvironment { get; private set; }
@@ -586,10 +596,8 @@ namespace Unity.Editor.Tasks
 		/// <inheritdoc />
 		public virtual string ProcessName { get; protected set; }
 		/// <inheritdoc />
-		public virtual string ProcessArguments { get; }
+		public virtual string ProcessArguments { get; protected set; }
 		/// <inheritdoc />
-		public bool LongRunning { get; set; }
-		/// <inheritdoc />
-		protected IOutputProcessor<T, List<T>> OutputProcessor { get; private set; }
+		protected IOutputProcessor<T, List<T>> OutputProcessor { get; set; }
 	}
 }

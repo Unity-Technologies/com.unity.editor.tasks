@@ -11,6 +11,8 @@ namespace Unity.Editor.Tasks
 
 	public class MainThreadSynchronizationContext: SynchronizationContext, IMainThreadSynchronizationContext
 	{
+		public MainThreadSynchronizationContext(CancellationToken token = default) { }
+
 		public void Schedule(Action action)
 		{
 			action.EnsureNotNull(nameof(action));

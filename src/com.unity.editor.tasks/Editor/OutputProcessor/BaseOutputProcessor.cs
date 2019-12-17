@@ -166,14 +166,14 @@ namespace Unity.Editor.Tasks
 		}
 	}
 
-	public abstract class BaseOutputListProcessor<T> : BaseOutputProcessor<T, List<T>>
+	public class BaseOutputListProcessor<T> : BaseOutputProcessor<T, List<T>>
 	{
 		public BaseOutputListProcessor() { }
 
 		public BaseOutputListProcessor(FuncO<string, T, bool> handler) : base(handler)
 		{}
 
-		public BaseOutputListProcessor(Func<string, T> converter)
+		public BaseOutputListProcessor(Func<string, T> converter) : base(converter)
 		{}
 
 		protected override void RaiseOnEntry(T entry)

@@ -4,6 +4,18 @@
 
 ## [VERSION] - DATE
 
+- Add process tasks that return lists of data
+- Moving CancellationToken arg to the end of all ctors
+- Restoring some functionality to the base output processor
+- Add IsChainExclusive helper method
+
+## [1.2.12] - 2019-12-16
+
+- Stop Unity complaining about namespace changing with defines
+- Renaming nuget packages to match the packman naming.
+
+## [1.2.10] - 2019-12-12
+
 - Fix url in package.json
 
 ## [1.2.9] - 2019-12-12
