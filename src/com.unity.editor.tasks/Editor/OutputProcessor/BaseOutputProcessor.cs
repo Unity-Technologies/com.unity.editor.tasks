@@ -108,7 +108,7 @@ namespace Unity.Editor.Tasks
 		public new event Action<TData> OnEntry;
 		private Func<string, TData> converter;
 		private readonly FuncO<string, TData, bool> handler;
-		private static readonly bool IsString = typeof(T) == typeof(string);
+		private static readonly bool IsString = typeof(TData) == typeof(string);
 
 		public BaseOutputProcessor() {}
 

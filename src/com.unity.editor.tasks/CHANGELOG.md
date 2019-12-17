@@ -4,6 +4,10 @@
 
 ## [VERSION] - DATE
 
+- Fix bug in BaseOutputProcess default string processing
+
+## [1.2.16] - 2019-12-17
+
 - Add process tasks that return lists of data
 - Moving CancellationToken arg to the end of all ctors
 - Restoring some functionality to the base output processor
