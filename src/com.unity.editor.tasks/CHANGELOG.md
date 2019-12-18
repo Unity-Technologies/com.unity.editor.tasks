@@ -4,6 +4,11 @@
 
 ## [VERSION] - DATE
 
+- Bump .net reference assembly version.
+- Add helper for a completed ITask<T> instance
+
+## [1.2.17] - 2019-12-17
+
 - Fix bug in BaseOutputProcess default string processing
 
 ## [1.2.16] - 2019-12-17

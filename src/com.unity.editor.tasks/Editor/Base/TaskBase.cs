@@ -956,6 +956,8 @@ namespace Unity.Editor.Tasks
 		/// </summary>
 		public new static ITask<TResult> Default = new TaskBase<TResult> { Name = "Global", Task = TaskHelpers.GetCompletedTask(default(TResult)) };
 
+		public static ITask<TResult> FromResult(TResult result) => new TaskBase<TResult> { Name = "Global", Task = TaskHelpers.GetCompletedTask(result) };
+
 		private TResult result;
 
 		/// <inheritdoc />

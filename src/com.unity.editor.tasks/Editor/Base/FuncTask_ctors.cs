@@ -3,11 +3,6 @@ namespace Unity.Editor.Tasks
 	using System;
 	using System.Collections.Generic;
 	using System.Threading;
-	using Helpers;
-
-	public partial class FuncTask<T> : TaskBase<T>
-	{
-	}
 
 	public partial class FuncTask<T, TResult> : TaskBase<T, TResult>
 	{
