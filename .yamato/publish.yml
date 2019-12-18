@@ -52,6 +52,7 @@ publish_staging_packman:
     - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
 {% for package in packages %}
     - upm-ci package publish --package-path build\packages\{{ package.name }}
+    - upm-ci package publish --package-path build\packages\{{ package.name }}.tests
 {% endfor %}
 
   dependencies:
@@ -64,6 +65,8 @@ publish_production_packman:
     image: {{ upm_agent_image }}
     flavor: {{ upm_agent_flavor }}
   skip_checkout: true
+  variables:
+    UPMCI_PROMOTION: 1
 
   commands:
     - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
@@ -72,7 +75,7 @@ publish_production_packman:
 {% endfor %}
 
   dependencies:
-    - .yamato/test.yml#test_trigger
+    - .yamato/test.yml#test_production_trigger
     - .yamato/publish.yml#publish_staging_npm
     - .yamato/publish.yml#publish_staging_packman
 
@@ -86,6 +89,7 @@ publish_production_nuget:
   skip_checkout: true
   variables:
     PUBLISH_URL: https://api.nuget.org/v3/index.json
+    UPMCI_PROMOTION: 1
 
   commands:
     - |
@@ -94,7 +98,7 @@ publish_production_nuget:
       Pop-Location
 
   dependencies:
-    - .yamato/test.yml#test_trigger
+    - .yamato/test.yml#test_production_trigger
     - .yamato/publish.yml#publish_staging_nuget
 
 
