@@ -13,33 +13,29 @@ namespace Unity.Editor.Tasks
 		private bool isSet = false;
 
 		/// <summary>
-		/// This constructor sets the processor to call the virtual <see cref="ProcessLine(string, out T)"/>
-		/// method. Override it to process inputs.
+		/// The first input that the converter can convert without throwing an exception will
+		/// be the result of this output processor, all other inputs are ignored.
 		/// </summary>
 		public FirstResultOutputProcessor(Func<string, T> converter)
 			: base(converter)
 		{}
 
 		/// <summary>
-		/// This constructor sets the <paramref name="handler"/> to be called
-		/// for every input. The first time the handler returns true, its output
-		/// will be set as the result of the processor.
+		/// The first input that the <paramref name="handler"/> returns true will be
+		/// the result of this output processor, all other inputs will be ignored.
 		/// </summary>
 		/// <param name="handler"></param>
 		public FirstResultOutputProcessor(FuncO<string, T, bool> handler = null)
 			: base(handler)
 		{}
 
-		protected override bool ProcessLine(string line, out T result)
+		protected override void LineReceived(string line)
 		{
-			result = default;
-			if (isSet) return false;
-
-			if (!base.ProcessLine(line, out result))
-				return false;
+			if (isSet) return;
+			if (!ProcessLine(line, out var entry)) return;
 
 			isSet = true;
-			return true;
+			RaiseOnEntry(entry);
 		}
 	}
 }

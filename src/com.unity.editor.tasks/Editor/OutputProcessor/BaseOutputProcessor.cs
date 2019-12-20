@@ -57,39 +57,41 @@ namespace Unity.Editor.Tasks
 
 		protected virtual void LineReceived(string line)
 		{
-			if (handler != null)
-			{
-				if (handler(line, out var result))
-					RaiseOnEntry(result);
-				return;
-			}
-
-			if (converter != null)
-			{
-				// if there's a converter, all results it returns are valid
-				var result = ConvertResult(line);
-				RaiseOnEntry(result);
-				return;
-			}
-
 			if (ProcessLine(line, out var entry))
 				RaiseOnEntry(entry);
 		}
 
-		protected virtual T ConvertResult(string line)
-		{
-			if (converter != null)
-				return converter(line);
-			else if (IsString)
-				return (T)(object)line;
-			return default;
-		}
-
 		protected virtual bool ProcessLine(string line, out T result)
 		{
-			result = ConvertResult(line);
+			result = default;
+
+			if (handler != null)
+			{
+				if (handler(line, out result))
+					return true;
+				return false;
+			}
+
+			if (converter != null)
+			{
+				// if there's a converter, all results are valid
+				try
+				{
+					result = converter(line);
+					return true;
+				}
+				catch
+				{
+					return false;
+				}
+			}
+
 			// if T is string, no conversion is needed, result is valid
-			if (IsString) return true;
+			if (IsString)
+			{
+				result = (T)(object)line;
+				return true;
+			}
 			return false;
 		}
 
@@ -124,39 +126,41 @@ namespace Unity.Editor.Tasks
 
 		protected override void LineReceived(string line)
 		{
-			if (handler != null)
-			{
-				if (handler(line, out TData result))
-					RaiseOnEntry(result);
-				return;
-			}
-
-			if (converter != null)
-			{
-				// if there's a converter, all results it returns are valid
-				var result = ConvertResult(line);
-				RaiseOnEntry(result);
-				return;
-			}
-
-			if (ProcessLine(line, out TData entry))
+			if (ProcessLine(line, out var entry))
 				RaiseOnEntry(entry);
-		}
-
-		protected new virtual TData ConvertResult(string line)
-		{
-			if (converter != null)
-				return converter(line);
-			else if (IsString)
-				return (TData)(object)line;
-			return default;
 		}
 
 		protected virtual bool ProcessLine(string line, out TData result)
 		{
-			result = ConvertResult(line);
+			result = default;
+
+			if (handler != null)
+			{
+				if (handler(line, out result))
+					return true;
+				return false;
+			}
+
+			if (converter != null)
+			{
+				// if there's a converter, all results are valid
+				try
+				{
+					result = converter(line);
+					return true;
+				}
+				catch
+				{
+					return false;
+				}
+			}
+
 			// if T is string, no conversion is needed, result is valid
-			if (IsString) return true;
+			if (IsString)
+			{
+				result = (TData)(object)line;
+				return true;
+			}
 			return false;
 		}
 

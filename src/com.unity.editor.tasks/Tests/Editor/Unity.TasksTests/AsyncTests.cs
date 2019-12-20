@@ -7,6 +7,8 @@ using Unity.Editor.Tasks;
 
 namespace ThreadingTests
 {
+	using System;
+
 	partial class AsyncTests : BaseTest
 	{
 		private async Task SetDataExclusiveAsync(ITaskManager taskManager, List<string> list, string data)
