@@ -12,8 +12,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\src\$(PackageName)\Tests\Editor\**\*.cs" Link="UnityTests\%(Filename)%(Extension)" Exclude="..\..\src\com.unity.editor.tasks\Tests\**\UnityBaseTest.cs" />
-    <None Include="..\..\src\com.unity.editor.tasks\Tests\**\UnityBaseTest.cs" Link="UnityTests\UnityBaseTest.cs" />
+    <Compile Include="..\..\src\$(PackageName)\Tests\Editor\**\*.cs" Link="UnityTests\%(Filename)%(Extension)" Exclude="..\..\src\$(PackageName)\Tests\**\UnityBaseTest.cs" />
+    <None Include="..\..\src\$(PackageName)\Tests\**\UnityBaseTest.cs" Link="UnityTests\UnityBaseTest.cs" />
     <Compile Include="**\*.cs" Link="NUnitTests\%(Filename)%(Extension)" />
   </ItemGroup>
   <ItemGroup>
