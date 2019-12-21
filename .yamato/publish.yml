@@ -21,7 +21,7 @@ publish_nuget_artifactory:
     - .yamato/test.yml#test_trigger
 
 publish_nuget_org:
-  name: Publish - Production Nuget
+  name: Publish - Nuget
   agent:
     type: {{ build_agent_type }}
     image: {{ build_agent_image }}
