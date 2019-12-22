@@ -529,7 +529,7 @@ namespace Unity.Editor.Tasks
 		/// <inheritdoc />
 		protected override List<T> RunWithReturn(bool success)
 		{
-			var result = base.RunWithReturn(success);
+			result = base.RunWithReturn(success);
 			Wrapper.Run();
 			return result;
 		}

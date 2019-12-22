@@ -60,7 +60,7 @@ namespace Unity.Editor.Tasks
 		/// <inheritdoc />
 		protected override T RunWithReturn(bool success)
 		{
-			T result = base.RunWithReturn(success);
+			var result = base.RunWithReturn(success);
 			try
 			{
 				if (Callback != null)
@@ -214,7 +214,7 @@ namespace Unity.Editor.Tasks
 		public FuncListTask(ITaskManager taskManager, Func<bool, FuncListTask<T>, List<T>> action, CancellationToken token = default)
 			: base(taskManager, token)
 		{
-			Guard.EnsureNotNull(action, "action");
+			action.EnsureNotNull("action");
 			CallbackWithSelf = action;
 		}
 
