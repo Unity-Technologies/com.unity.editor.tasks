@@ -45,7 +45,7 @@ namespace Unity.Editor.Tasks
 		}
 
 		/// <inheritdoc />
-		public T Configure<T>(T processTask, string workingDirectory = null)
+		public virtual T Configure<T>(T processTask, string workingDirectory = null)
 				where T : IProcessTask
 		{
 			var startInfo = new ProcessStartInfo {
@@ -79,7 +79,7 @@ namespace Unity.Editor.Tasks
 		}
 
 		/// <inheritdoc />
-		public void Stop()
+		public virtual void Stop()
 		{
 			foreach (var p in processes.ToArray())
 			{
