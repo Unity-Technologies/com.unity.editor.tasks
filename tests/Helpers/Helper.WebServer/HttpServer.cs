@@ -9,9 +9,7 @@ using System.Threading;
 
 namespace SpoiledCat.Tests.TestWebServer
 {
-	using System.Xml;
-	using Logging;
-	using Json;
+	using Unity.Editor.Tasks.Logging;
 
 	public class HttpServer
 	{
@@ -39,7 +37,7 @@ namespace SpoiledCat.Tests.TestWebServer
 		/// <param name="port">Port of the server.</param>
 		public HttpServer(string path = null, int port = 0)
 		{
-			if (String.IsNullOrEmpty(path) || !Directory.Exists(path))
+			if (string.IsNullOrEmpty(path) || !Directory.Exists(path))
 			{
 				path = Path.Combine(Path.GetDirectoryName(GetType().Assembly.Location), "files");
 			}
@@ -92,31 +90,6 @@ namespace SpoiledCat.Tests.TestWebServer
 		{
 			Logger.Info("Handling request {0}", context.Request.Url.AbsolutePath);
 
-			if (context.Request.Url.AbsolutePath == "/api/usage/unity")
-			{
-				var streamReader = new StreamReader(context.Request.InputStream);
-				string body = null;
-				using (streamReader)
-				{
-					body = streamReader.ReadToEnd();
-				}
-				
-				Logger.Info(body);
-
-				var json = new { result = "Cool unity usage" }.ToJson();
-				context.Response.StatusCode = (int)HttpStatusCode.OK;
-				context.Response.ContentLength64 = json.Length;
-
-				string mime;
-				context.Response.ContentType = mimeTypeMappings.TryGetValue(".json", out mime)
-					? mime
-					: "application/octet-stream";
-				Utils.Copy(new MemoryStream(Encoding.UTF8.GetBytes(json)), context.Response.OutputStream, json.Length);
-				context.Response.OutputStream.Flush();
-				context.Response.Close();
-				return;
-			}
-
 			var filename = context.Request.Url.AbsolutePath;
 			filename = filename.TrimStart('/');
 			filename = filename.Replace('/', Path.DirectorySeparatorChar);
@@ -139,6 +112,7 @@ namespace SpoiledCat.Tests.TestWebServer
 
 				context.Response.AddHeader("Date", DateTime.Now.ToString("r"));
 				context.Response.AddHeader("Last-Modified", File.GetLastWriteTime(filename).ToString("r"));
+				context.Response.AddHeader("Accept-Ranges", "bytes");
 
 				using (var input = new FileStream(filename, FileMode.Open))
 				{
@@ -168,7 +142,7 @@ namespace SpoiledCat.Tests.TestWebServer
 						if (input.CanSeek && (input.Length > start) && (end <= input.Length))
 						{
 							context.Response.StatusCode = (int)HttpStatusCode.PartialContent;
-							context.Response.Headers.Add("Content-Range", $"{start}-{end}/{input.Length}");
+							context.Response.Headers.Add("Content-Range", $"bytes {start}-{end}/{input.Length}");
 							input.Seek(start, SeekOrigin.Current);
 						}
 						else

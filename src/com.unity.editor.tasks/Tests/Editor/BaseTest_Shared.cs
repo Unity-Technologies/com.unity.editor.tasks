@@ -11,7 +11,9 @@ using NUnit.Framework;
 
 namespace BaseTests
 {
+	using SpoiledCat.Tests.TestWebServer;
 	using System.Threading;
+	using Unity.Editor.Tasks.Helpers;
 	using Unity.Editor.Tasks.Internal.IO;
 
 	internal class TestData : IDisposable
@@ -24,12 +26,18 @@ namespace BaseTests
 		public readonly IEnvironment Environment;
 		public readonly IProcessManager ProcessManager;
 		private readonly CancellationTokenSource cts;
+		public readonly SPath SourceDirectory;
+#if NUNIT
+		public readonly HttpServer HttpServer;
+#endif
 
-		public TestData(string testName, ILogging logger)
+
+		public TestData(string testName, ILogging logger, bool withHttpServer = false)
 		{
 			TestName = testName;
 			Logger = logger;
 			Watch = new Stopwatch();
+			SourceDirectory = TestContext.CurrentContext.TestDirectory.ToSPath();
 			TestPath = SPath.CreateTempDirectory(testName);
 			TaskManager = new TaskManager();
 			cts = CancellationTokenSource.CreateLinkedTokenSource(TaskManager.Token);
@@ -48,6 +56,19 @@ namespace BaseTests
 			Environment = new UnityEnvironment(testName);
 			InitializeEnvironment();
 			ProcessManager = new ProcessManager(Environment);
+
+#if NUNIT
+			if (withHttpServer)
+			{
+				var filesToServePath = SourceDirectory.Combine("files");
+				HttpServer = new HttpServer(filesToServePath, 0);
+				var started = new ManualResetEventSlim();
+				var task = TaskManager.With(HttpServer.Start, TaskAffinity.None);
+				task.OnStart += _ => started.Set();
+				task.Start();
+				started.Wait();
+			}
+#endif
 
 			Logger.Trace($"START {testName}");
 			Watch.Start();
@@ -84,6 +105,16 @@ namespace BaseTests
 		public void Dispose()
 		{
 			Watch.Stop();
+#if NUNIT
+			try
+			{
+				if (HttpServer != null)
+				{
+					HttpServer.Stop();
+				}
+			}
+			catch { }
+#endif
 
 			ProcessManager.Dispose();
 			if (SynchronizationContext.Current is IMainThreadSynchronizationContext ourContext)
@@ -98,10 +129,8 @@ namespace BaseTests
 
 	public partial class BaseTest
 	{
-		protected const int Timeout = 30000;
+		protected const int Timeout = 3000;
 		protected const int RandomSeed = 120938;
-
-
 
 		protected void StartTrackTime(Stopwatch watch, ILogging logger, string message = "")
 		{
@@ -181,6 +210,12 @@ namespace BaseTests
 		public static void Matches(this string actual, string expected) => Assert.AreEqual(expected, actual);
 		public static void Matches(this int actual, int expected) => Assert.AreEqual(expected, actual);
 		public static void Matches(this SPath actual, SPath expected) => Assert.AreEqual(expected, actual);
+
+		public static UriString FixPort(this UriString url, int port)
+		{
+			var uri = url.ToUri();
+			return UriString.TryParse(new UriBuilder(uri.Scheme, uri.Host, port, uri.PathAndQuery).Uri.ToString());
+		}
 	}
 
 	static class KeyValuePair

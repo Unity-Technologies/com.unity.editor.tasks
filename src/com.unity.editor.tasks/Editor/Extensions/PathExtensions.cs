@@ -9,14 +9,16 @@ using System.IO;
 
 namespace Unity.Editor.Tasks.Extensions
 {
-	public static class PathExtensions
+	using Internal.IO;
+
+	internal static class PathExtensions
 	{
-		public static string ToMD5(this string path)
+		public static string ToMD5(this SPath path)
 		{
 			byte[] computeHash;
 			using (var hash = System.Security.Cryptography.MD5.Create())
 			{
-				using (var stream = File.OpenRead(path))
+				using (var stream = path.OpenRead())
 				{
 					computeHash = hash.ComputeHash(stream);
 				}
@@ -25,12 +27,12 @@ namespace Unity.Editor.Tasks.Extensions
 			return BitConverter.ToString(computeHash).Replace("-", string.Empty).ToLower();
 		}
 
-		public static string ToSha256(this string path)
+		public static string ToSha256(this SPath path)
 		{
 			byte[] computeHash;
 			using (var hash = System.Security.Cryptography.SHA256.Create())
 			{
-				using (var stream = File.OpenRead(path))
+				using (var stream = path.OpenRead())
 				{
 					computeHash = hash.ComputeHash(stream);
 				}
@@ -39,5 +41,4 @@ namespace Unity.Editor.Tasks.Extensions
 			return BitConverter.ToString(computeHash).Replace("-", string.Empty).ToLower();
 		}
 	}
-
 }

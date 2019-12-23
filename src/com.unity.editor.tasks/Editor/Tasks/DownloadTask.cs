@@ -11,6 +11,7 @@ using System.Threading;
 
 namespace Unity.Editor.Tasks
 {
+	using Internal.IO;
 	using Logging;
 	using Unity.Editor.Tasks.Helpers;
 
@@ -31,7 +32,7 @@ namespace Unity.Editor.Tasks
 			RetryCount = retryCount;
 			Url = url;
 			Filename = string.IsNullOrEmpty(filename) ? url.Filename : filename;
-			TargetDirectory = targetDirectory;
+			this.targetDirectory = targetDirectory.ToSPath();
 			Name = $"Download {Url}";
 			Message = Filename;
 		}
@@ -73,8 +74,8 @@ namespace Unity.Editor.Tasks
 			Exception exception = null;
 			var attempts = 0;
 			bool result = false;
-			var partialFile = Path.Combine(TargetDirectory, Filename + ".partial");
-			Directory.CreateDirectory(TargetDirectory);
+			var partialFile = targetDirectory.Combine(Filename + ".partial");
+			targetDirectory.EnsureDirectoryExists();
 			do
 			{
 				exception = null;
@@ -86,7 +87,7 @@ namespace Unity.Editor.Tasks
 				{
 					Logger.Trace($"Download of {Url} to {Destination} Attempt {attempts + 1} of {RetryCount + 1}");
 
-					using (var destinationStream = File.OpenWrite(partialFile))
+					using (var destinationStream = partialFile.OpenWrite(FileMode.Append))
 					{
 						result = Downloader.Download(Logger, Url, destinationStream,
 							 (value, total) => {
@@ -97,7 +98,7 @@ namespace Unity.Editor.Tasks
 
 					if (result)
 					{
-						File.Move(partialFile, Destination);
+						partialFile.Move(Destination);
 					}
 				}
 				catch (Exception ex)
@@ -118,11 +119,12 @@ namespace Unity.Editor.Tasks
 
 		public UriString Url { get; }
 
-		public string TargetDirectory { get; }
+		private SPath targetDirectory;
+		public string TargetDirectory => targetDirectory.ToString();
 
 		public string Filename { get; }
 
-		public string Destination => Path.Combine(TargetDirectory, Filename);
+		public string Destination => targetDirectory.Combine(Filename).ToString();
 
 		protected int RetryCount { get; }
 	}
@@ -170,10 +172,25 @@ namespace Unity.Editor.Tasks
 
 	public class Downloader : TaskQueue<string, DownloadData>
 	{
+		/// <summary>
+		/// Called for every queued download task when it finishes.
+		/// </summary>
 		public event Action<UriString, string> OnDownloadComplete;
+		/// <summary>
+		/// Called for every queued download task when it fails.
+		/// </summary>
 		public event Action<UriString, Exception> OnDownloadFailed;
+		/// <summary>
+		/// Called for every queued download task when it starts.
+		/// </summary>
 		public event Action<UriString> OnDownloadStart;
 
+		/// <summary>
+		/// TaskQueue of DownloaderTask objects that can download multiple
+		/// things in parallel.
+		/// </summary>
+		/// <param name="taskManager"></param>
+		/// <param name="token"></param>
 		public Downloader(ITaskManager taskManager, CancellationToken token = default)
 			 : base(taskManager, t => {
 				 var dt = t as DownloadTask;

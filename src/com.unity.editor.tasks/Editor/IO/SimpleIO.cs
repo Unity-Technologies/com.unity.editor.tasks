@@ -1693,7 +1693,7 @@ namespace Unity.Editor.Tasks.Internal.IO
 		{
 			if (!Path.IsPathRooted(path))
 				throw new ArgumentException("OpenWrite requires a rooted path", nameof(path));
-			return new FileStream(path, mode);
+			return new FileStream(path, mode, FileAccess.Write);
 		}
 
 		public string CurrentDirectory

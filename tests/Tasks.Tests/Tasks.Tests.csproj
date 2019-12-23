@@ -9,6 +9,10 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <DefineConstants>NUNIT</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>$(DefineConstants);TRACE</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -37,6 +41,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\com.unity.editor.tasks\Editor\Unity.Editor.Tasks.csproj" />
     <ProjectReference Include="..\Helpers\Helper.CommandLine\Helper.CommandLine.csproj" />
+    <ProjectReference Include="..\Helpers\Helper.WebServer\Helper.WebServer.csproj" />
     <ProjectReference Include="..\Helpers\TestBase\TestBase.csproj" />
   </ItemGroup>
 

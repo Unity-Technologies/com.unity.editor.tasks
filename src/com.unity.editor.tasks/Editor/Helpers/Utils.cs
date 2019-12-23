@@ -10,6 +10,8 @@ using Unity.Editor.Tasks.Extensions;
 
 namespace Unity.Editor.Tasks.Helpers
 {
+	using Internal.IO;
+
 	public static class Utils
 	{
 		public static bool Copy(Stream source,
@@ -93,9 +95,9 @@ namespace Unity.Editor.Tasks.Helpers
 				return false;
 			string actual;
 			if (hash.Length == 32)
-				actual = file.ToMD5();
+				actual = file.ToSPath().ToMD5();
 			else
-				actual = file.ToSha256();
+				actual = file.ToSPath().ToSha256();
 			return hash.Equals(actual, StringComparison.InvariantCultureIgnoreCase);
 		}
 	}
