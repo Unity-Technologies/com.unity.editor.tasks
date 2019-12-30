@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net471</TargetFramework>
+    <Configurations>Debug;Release;ReleaseUnity;DebugUnity</Configurations>
   </PropertyGroup>
 
   <ItemGroup>

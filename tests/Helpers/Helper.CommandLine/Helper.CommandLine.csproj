@@ -4,6 +4,7 @@
     <TargetFramework>net471</TargetFramework>
     <OutputType>Exe</OutputType>
     <StartupObject />
+    <Configurations>Debug;Release;ReleaseUnity;DebugUnity</Configurations>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="SpoiledCat.Unity.Logging" Version="1.0.48" />
