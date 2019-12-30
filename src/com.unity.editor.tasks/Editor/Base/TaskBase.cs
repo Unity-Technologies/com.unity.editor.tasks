@@ -769,7 +769,7 @@ namespace Unity.Editor.Tasks
 		/// </summary>
 		protected void RaiseOnStartInternal()
 		{
-			Logger.Trace($"OnStart: {Name} [{(TaskManager.InUIThread ? "UI Thread" : Affinity.ToString())}]");
+			Logger.Debug($"OnStart: {Name} [{(TaskManager.InUIThread ? "UI Thread" : Affinity.ToString())}]");
 			OnStart?.Invoke(this);
 		}
 
