@@ -10,6 +10,7 @@ SET PUBLIC=""
 SET BUILD=0
 set UPM=0
 set UNITYVERSION=2019.2
+set UNITYBUILD=0
 
 :loop
 IF NOT "%1"=="" (
