@@ -43,12 +43,22 @@ IF NOT "%1"=="" (
   IF "%1"=="--upm" (
     SET UPM=1
   )
+  IF "%1"=="-n" (
+    SET UNITYBUILD=1
+  )
+  IF "%1"=="--unity" (
+    SET UNITYBUILD=1
+  )
   IF "%1"=="-c" (
     SET CONFIGURATION=%2
     SHIFT
   )
   SHIFT
   GOTO :loop
+)
+
+if "%UNITYBUILD%" == "1" (
+  set CONFIGURATION="%CONFIGURATION%Unity"
 )
 
 if "x%BUILD%"=="x1" (
@@ -62,6 +72,6 @@ dotnet pack --no-restore --no-build -c %CONFIGURATION% %PUBLIC%
 
 if "x%UPM%"=="x1" (
   call powershell scripts/Pack-Upm.ps1
-) else (
+) else if "x%UNITYBUILD%"=="x0" (
   call powershell scripts/Pack-Npm.ps1
 )

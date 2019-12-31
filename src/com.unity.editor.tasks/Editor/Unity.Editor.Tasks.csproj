@@ -5,7 +5,6 @@
     <PackageSourceRoot>$(MSBuildProjectDirectory)\..\</PackageSourceRoot>
     <FullBuild Condition="'$(SolutionName)' == 'Unity.Editor.Tasks'">true</FullBuild>
     <IsPackable Condition="'$(FullBuild)' != 'true'">false</IsPackable>
-    <PackageId>com.unity.editor.tasks</PackageId>
     <AssemblyName>Unity.Editor.Tasks</AssemblyName>
     <DefaultNamespace>$(AssemblyName)</DefaultNamespace>
     <Description>A friendly threaded task system for the Unity Editor.</Description>
@@ -15,12 +14,18 @@
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <PackageId>com.unity.editor.tasks</PackageId>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <PackageId>com.unity.editor.tasks</PackageId>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='DebugUnity'">
     <DefineConstants>DEBUG;TRACE;UNITY_EDITOR</DefineConstants>
+    <PackageId>Unity.Editor.Tasks</PackageId>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='ReleaseUnity'">
     <DefineConstants>UNITY_EDITOR</DefineConstants>
+    <PackageId>Unity.Editor.Tasks</PackageId>
   </PropertyGroup>
 
   <Import Project="$(RootDir)common\unityreferences.targets" Condition="'$(Configuration)'=='DebugUnity' or '$(Configuration)'=='ReleaseUnity'" />

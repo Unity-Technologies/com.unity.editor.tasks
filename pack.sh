@@ -14,6 +14,7 @@ BUILD=0
 UPM=0
 UNITYVERSION=2019.2
 YAMATO=0
+UNITYBUILD=0
 
 while (( "$#" )); do
   case "$1" in
@@ -32,6 +33,9 @@ while (( "$#" )); do
     -u|--upm)
       UPM=1
     ;;
+    -n|--unity)
+      UNITYBUILD=1
+    ;;
     -c)
       shift
       CONFIGURATION=$1
@@ -43,6 +47,10 @@ while (( "$#" )); do
   esac
   shift
 done
+
+if [[ x"$UNITYBUILD" == x"1" ]]; then
+  CONFIGURATION="${CONFIGURATION}Unity"
+fi
 
 if [[ x"${YAMATO_JOB_ID:-}" != x"" ]]; then
   YAMATO=1
@@ -66,7 +74,9 @@ dotnet pack --no-build --no-restore -c $CONFIGURATION $PUBLIC
 
 if [[ x"$UPM" == x"1" ]]; then
   powershell scripts/Pack-Upm.ps1
-elif [[ x"$OS" == x"Windows" ]]; then
+elif [[ x"$UNITYBUILD" == x"0" ]]; then
+
+if [[ x"$OS" == x"Windows" ]]; then
   powershell scripts/Pack-Npm.ps1
 else
   srcdir="$DIR/build/packages"
@@ -112,5 +122,6 @@ EOL
 }
 EOL
 
+fi
 fi
 popd >/dev/null 2>&1

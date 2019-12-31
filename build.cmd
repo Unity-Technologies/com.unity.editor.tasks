@@ -10,6 +10,7 @@ SET PUBLIC=""
 SET BUILD=0
 set UPM=0
 set UNITYVERSION=2019.2
+set UNITYBUILD=0
 
 :loop
 IF NOT "%1"=="" (
@@ -43,12 +44,22 @@ IF NOT "%1"=="" (
   IF "%1"=="--upm" (
     SET UPM=1
   )
+  IF "%1"=="-n" (
+    SET UNITYBUILD=1
+  )
+  IF "%1"=="--unity" (
+    SET UNITYBUILD=1
+  )
   IF "%1"=="-c" (
     SET CONFIGURATION=%2
     SHIFT
   )
   SHIFT
   GOTO :loop
+)
+
+if "%UNITYBUILD%" == "1" (
+  set CONFIGURATION="%CONFIGURATION%Unity"
 )
 
 if "%APPVEYOR%" == "" (

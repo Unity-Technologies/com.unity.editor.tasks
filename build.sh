@@ -14,6 +14,7 @@ BUILD=0
 UPM=0
 UNITYVERSION=2019.2
 YAMATO=0
+UNITYBUILD=0
 
 while (( "$#" )); do
   case "$1" in
@@ -22,6 +23,9 @@ while (( "$#" )); do
     ;;
     -r|--release)
       CONFIGURATION="Release"
+    ;;
+    -n|--unity)
+      UNITYBUILD=1
     ;;
     -p|--public)
       PUBLIC="-p:PublicRelease=true"
@@ -43,6 +47,10 @@ while (( "$#" )); do
   esac
   shift
 done
+
+if [[ x"$UNITYBUILD" == x"1" ]]; then
+  CONFIGURATION="${CONFIGURATION}Unity"
+fi
 
 if [[ x"${YAMATO_JOB_ID:-}" != x"" ]]; then
   YAMATO=1

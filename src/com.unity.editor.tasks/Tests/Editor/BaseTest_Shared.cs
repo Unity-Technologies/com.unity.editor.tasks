@@ -11,7 +11,9 @@ using NUnit.Framework;
 
 namespace BaseTests
 {
+#if NUNIT
 	using SpoiledCat.Tests.TestWebServer;
+#endif
 	using System.Threading;
 	using Unity.Editor.Tasks.Helpers;
 	using Unity.Editor.Tasks.Internal.IO;
