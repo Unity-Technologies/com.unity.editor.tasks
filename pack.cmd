@@ -6,7 +6,7 @@ if NOT "x%YAMATO_JOB_ID%"=="x" set CI_COMMIT_TAG=%GIT_TAG%
 if NOT "x%YAMATO_JOB_ID%"=="x" set CI_COMMIT_REF_NAME=%GIT_BRANCH%
 
 SET CONFIGURATION=Release
-SET PUBLIC=""
+SET PUBLIC=
 SET BUILD=0
 set UPM=0
 set UNITYVERSION=2019.2
@@ -58,12 +58,12 @@ IF NOT "%1"=="" (
   GOTO :loop
 )
 
-if "%UNITYBUILD%" == "1" (
-  set CONFIGURATION="%CONFIGURATION%Unity"
+if "x%UNITYBUILD%" == "x1" (
+  set CONFIGURATION=%CONFIGURATION%Unity
 )
 
 if "x%BUILD%"=="x1" (
-  if "%APPVEYOR%" == "" (
+  if "x%APPVEYOR%" == "x" (
     dotnet restore
   )
   dotnet build --no-restore -c %CONFIGURATION% %PUBLIC%
