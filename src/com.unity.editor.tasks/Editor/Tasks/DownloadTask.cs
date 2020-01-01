@@ -289,7 +289,7 @@ namespace Unity.Editor.Tasks
 
 		public void QueueDownload(UriString url, string targetDirectory, string filename = null, int retryCount = 0)
 		{
-			var download = new DownloadTask(TaskManager, url, targetDirectory, filename, retryCount);
+			var download = new DownloadTask(TaskManager, url, targetDirectory, filename, retryCount, Token);
 			download.OnStart += t => OnDownloadStart?.Invoke(((DownloadTask)t).Url);
 			download.OnEnd += (t, res, s, ex) => {
 				if (s)
