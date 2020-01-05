@@ -13,13 +13,13 @@ It's been split up for easier testing and consumption by the Git package and any
  - UI: tasks can be scheduled to the UI thread, which uses `EditorApplication.delayCall`
 
  - Exclusive/Concurrent: A pair of synchronized schedulers allow for a one writer/many readers scenario, where any task with an Exclusive affinity is guaranteed to run on its own without any other Exclusive or Concurrent affinity tasks executing at the same time. Concurrent affinity tasks can run with other tasks any affinity except Exclusive.
- 	
- 	This allows tasks to safely execute code that requires locking resources without worrying about other threads touching the same resources.
+  
+  This allows tasks to safely execute code that requires locking resources without worrying about other threads touching the same resources.
 
 - None: tasks run on the default scheduler (threadpool) without constraints.
 - LongRunning: tasks run on the default scheduler (threadpool), but the task management system doesn't expect them to finish in a short time and doesn't impose task timeouts (if the task supports such a thing);
 
-It provides easy chaining of tasks with a rx.net-like API that allows data flow from one task to the other, progress reporting, catch and finally handlers, support for wrapping async/await methods and for ensuring they run outside of play mode, and ready-made tasks for running processes and processing/streaming their output.
+It provides easy chaining of tasks with a linq-style API that allows data flow from one task to the other, progress reporting, catch and finally handlers, support for wrapping async/await methods and for ensuring they run outside of play mode, and ready-made tasks for running processes and processing/streaming their output.
 
 Standard .NET async methods can be integrated into this library and executed with specific affinities using the `TPLTask` class. Similarly, going from an Editor Task to the async/await model is just a matter of awaiting the underlying `Task` property.
 
@@ -46,7 +46,7 @@ downloader.OnStart += __ => logger.Info("Downloading assets...");
 downloader.OnEnd += (___, __, success, ex) => logger.Info($"Downloader is done with result: {success}");
 
 downloader.FinallyInUI((success, exception, results) => {
-	// do something with all the things that were downloaded
+  // do something with all the things that were downloaded
 });
 
 downloader.Start();
@@ -66,26 +66,26 @@ var taskManager = new TaskManager.Initialize();
 EditorUtility.DisplayProgressBar("Starting", "", 0);
 var chainOfTasks = new FuncTask(taskManager, () => "Do something critical and return a string.", affinity: TaskAffinity.Exclusive)
 
-	// each task has its own progress event/handler.
-	.Progress(progress => ShowProgress(progress.Message, progress.InnerProgress?.Message, progress.Percentage))
+  // each task has its own progress event/handler.
+  .Progress(progress => ShowProgress(progress.Message, progress.InnerProgress?.Message, progress.Percentage))
 
-	// do something with the value the previous task produced, with Concurrent affinity.
-	// This won't run if the previous one failed
-	.Then(str => str.ToUpper())
+  // do something with the value the previous task produced, with Concurrent affinity.
+  // This won't run if the previous one failed
+  .Then(str => str.ToUpper())
 
-	.Progress(progress => ShowProgress(progress.Message, progress.InnerProgress?.Message, progress.Percentage))
+  .Progress(progress => ShowProgress(progress.Message, progress.InnerProgress?.Message, progress.Percentage))
 
-	// finally handlers will always be called. Always end a chain with a Finally* handler!
-	.FinallyInUI((success, exception, value) => {
-		EditorUtility.ClearProgressBar();
+  // finally handlers will always be called. Always end a chain with a Finally* handler!
+  .FinallyInUI((success, exception, value) => {
+    EditorUtility.ClearProgressBar();
 
-		if (success) {
-			// do something on success
-			EditorUtility.DisplayDialog("All done", value);
-		} else {
-			Debug.LogException(exception);
-		}
-	});
+    if (success) {
+      // do something on success
+      EditorUtility.DisplayDialog("All done", value);
+    } else {
+      Debug.LogException(exception);
+    }
+  });
 
 // start executing the whole thing
 chainOfTasks.Start();
@@ -99,6 +99,42 @@ This library was originally written because Unity's old Mono C# profile/compiler
 The next best thing was to code modern .NET and use a version of the TPL library backported to .NET 3.5 (the highest that Unity's old mono supports) to have it running in Unity 5.6 and up. The nice thing about modern .NET is that it's pretty much all syntactic sugar. Ancient Mono versions can run the code just fine, they just can't compile it.
 
 These days, Unity supports modern .NET and can compile all this code just fine, so this library no longer ships with .NET 3.5 support, but it still maintains its separation from Unity - the projects don't reference Unity, and any Unity integration code in this library is behind a `#if UNITY_EDITOR` define, so you can safely consume the nuget packages in any .NET environment, and Unity-specific functionality will only be available when you consume this library as a package in a Unity project.
+
+
+## How to build
+
+Check [How to Build](https://raw.githubusercontent.com/Unity-Technologies/Git-for-Unity/master/BUILD.md) for all the build, packaging and versioning details.
+
+### Release build 
+
+`build[.sh|cmd] -r`
+
+### Release build and package
+
+`pack[.sh|cmd] -r -b`
+
+### Release build and test
+
+`test[.sh|cmd] -r -b`
+
+
+### Where are the build artifacts?
+
+Packages sources are in `build/packages`.
+
+Nuget packages are in `build/nuget`.
+
+Packman (npm) packages are in `upm-ci~/packages`.
+
+Binaries for each project are in `build/bin` for the main projects and `build/tests` for the tests.
+
+### How to bump the major or minor parts of the version
+
+The `version.json` file in the root of the repo controls the version for all packages.
+Set the major and/or minor number in it and **commit the change** so that the next build uses the new version.
+The patch part of the version is the height of the commit tree since the last manual change of the `version.json`
+file, so once you commit a change to the major or minor parts, the patch will reset back to 0.
+
 
 ## License
 
