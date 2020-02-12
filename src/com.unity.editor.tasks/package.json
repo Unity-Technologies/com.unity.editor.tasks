@@ -3,6 +3,7 @@
     "displayName": "Unity Editor Tasks",
     "description": "A friendly threaded task system for the Unity Editor.",
     "version": "0.0.0-placeholder",
+    "unity": "2018.4",
     "license" : "MIT",
     "author": {
       "name": "Andreia Gaita",
