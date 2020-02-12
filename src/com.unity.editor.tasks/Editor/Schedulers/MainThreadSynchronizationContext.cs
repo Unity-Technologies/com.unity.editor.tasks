@@ -6,12 +6,12 @@ namespace Unity.Editor.Tasks
 	using Helpers;
 
 #if UNITY_EDITOR
-	using System.Collections.Generic;
+	using System.Collections.Concurrent;
 	using UnityEditor;
 
 	public class MainThreadSynchronizationContext: SynchronizationContext, IMainThreadSynchronizationContext
 	{
-		readonly Queue<Action> m_Callbacks = new Queue<Action>();
+		private readonly ConcurrentQueue<Action> m_Callbacks = new ConcurrentQueue<Action>();
 
 		public MainThreadSynchronizationContext(CancellationToken token = default)
 		{
@@ -34,24 +34,22 @@ namespace Unity.Editor.Tasks
 			if (d == null)
 				return;
 
-			lock (m_Callbacks)
-				m_Callbacks.Enqueue(() => d(state));
+			m_Callbacks.Enqueue(() => d(state));
 		}
 
 		void Update()
 		{
-			Queue<Action> callbacks;
-
-			lock (m_Callbacks)
+			while (m_Callbacks.TryDequeue(out var callback))
 			{
-				if (m_Callbacks.Count == 0)
-					return;
-				callbacks = new Queue<Action>(m_Callbacks);
-				m_Callbacks.Clear();
+				try
+				{
+					callback();
+				}
+				catch
+				{
+					// Ignore exceptions.
+				}
 			}
-
-			foreach (var callback in callbacks)
-				callback();
 		}
 	}
 #else
