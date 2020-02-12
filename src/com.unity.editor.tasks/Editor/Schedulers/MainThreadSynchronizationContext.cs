@@ -40,16 +40,7 @@ namespace Unity.Editor.Tasks
 		void Update()
 		{
 			while (m_Callbacks.TryDequeue(out var callback))
-			{
-				try
-				{
-					callback();
-				}
-				catch
-				{
-					// Ignore exceptions.
-				}
-			}
+				callback();
 		}
 	}
 #else
