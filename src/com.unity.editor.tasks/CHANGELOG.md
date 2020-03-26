@@ -4,6 +4,15 @@
 
 ## [VERSION] - DATE
 
+- Bump version to 2.1.x (no other changes)
+
+## [1.2.32] - 2020-02-12
+
+- Tasks with UI affinity are now invoked faster.
+- Make ProcessManager methods virtual so functionality can be reused
+
+## [1.2.18] - 2019-12-17
+
 - Bump .net reference assembly version.
 - Add helper for a completed ITask<T> instance
 
