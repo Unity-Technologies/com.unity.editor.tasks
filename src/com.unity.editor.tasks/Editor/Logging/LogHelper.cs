@@ -15,8 +15,6 @@ namespace Unity.Editor.Tasks.Logging
 
 		private static LogAdapterBase logAdapter = nullLogAdapter;
 
-		private static ILogging instance;
-
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter")]
 		public static ILogging GetLogger<T>() => GetLogger(typeof(T));
 
