@@ -1,6 +1,7 @@
 # Changelog
+All notable changes to this package will be documented in this file.
 
-<!-- Do not change the line immediately below this comment, the build system will replace it with the actual version and date. -->
+The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [VERSION] - DATE
 
@@ -97,3 +98,7 @@ This release has a number of interface changes and new types.
 ## [1.1.4] - 2019-11-20
 
 - Fix native async/await support
+
+### This is the first release of *Unity Package Unity Editor Tasks*.
+
+Unity Editor Tasks is a [TPL](https://docs.microsoft.com/en-us/dotnet/standard/parallel-programming/task-parallel-library-tpl) based threading package that simplifies running asynchronous code with explicit thread and scheduler settings.

@@ -2,7 +2,7 @@
 
 # About the Tasks package
 
-Unity.Editor.Tasks is a TPL-based threading library that simplifies running asynchronous code with explicit thread and scheduler settings.
+Unity Editor Tasks is a [TPL](https://docs.microsoft.com/en-us/dotnet/standard/parallel-programming/task-parallel-library-tpl) based threading package that simplifies running asynchronous code with explicit thread and scheduler settings.
 
 This repository is a subset of the functionality in the [Git for Unity](https://github.com/Unity-Technologies/Git-for-Unity) repository, specifically the `Threading`, `OutputProcessors`, `Tasks`, `Process` and `IO` directories, as well as various helper classes found in the [Api](https://github.com/Unity-Technologies/Git-for-Unity/tree/master/src/com.unity.git.api/Api) source directory.
 
