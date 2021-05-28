@@ -1,21 +1,16 @@
 {
-    "name": "com.unity.editor.tasks",
-    "displayName": "Unity Editor Tasks",
-    "description": "Unity Editor Tasks is a TPL based threading package that simplifies running asynchronous code with explicit thread and scheduler settings.",
-    "version": "0.0.0-placeholder",
-    "unity": "2019.2",
-    "license" : "MIT",
-    "author": {
-      "name": "Andreia Gaita",
-      "email": "shana@spoiledcat.net"
-    },
-    "repository" : {
-      "type" : "git",
-      "url": "git@github.com/Unity-Technologies/com.unity.editor.tasks.git",
-      "directory": "",
-      "revision": ""
-    },
-    "testPackages": {
-      "com.unity.editor.tasks.tests": "0.0.0-placeholder"
-    }
+  "name": "com.unity.editor.tasks",
+  "displayName": "Unity Editor Tasks",
+  "description": "Unity Editor Tasks is a TPL based threading package that simplifies running asynchronous code with explicit thread and scheduler settings.",
+  "version": "0.0.0-placeholder",
+  "unity": "2019.2",
+  "license" : "MIT",
+  "repository" : {
+    "type" : "git",
+    "url": "git@github.com/Unity-Technologies/com.unity.editor.tasks.git",
+    "revision": ""
+  },
+  "testPackages": {
+    "com.unity.editor.tasks.tests": "0.0.0-placeholder"
+  }
 }
