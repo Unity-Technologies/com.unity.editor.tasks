@@ -1,22 +1,22 @@
 {
-    "name": "com.unity.editor.tasks.tests",
-    "displayName": "Tests - Unity Editor Tasks",
-    "description": "Tests - Unity Editor Tasks",
-    "type": "tests",
-    "version": "0.0.0-placeholder",
-    "unity": "2019.2",
-    "license" : "MIT",
-    "author": {
-      "name": "Andreia Gaita",
-      "email": "shana@spoiledcat.net"
-    },
-    "repository" : {
-      "type" : "git",
-      "url": "git@github.com/Unity-Technologies/com.unity.editor.tasks.git",
-      "directory": "",
-      "revision": ""
-    },
-    "dependencies": {
-        "com.unity.editor.tasks": "0.0.0-placeholder"
-    }
+  "name": "com.unity.editor.tasks.tests",
+  "displayName": "Tests - Unity Editor Tasks",
+  "description": "Tests - Unity Editor Tasks",
+  "type": "tests",
+  "version": "0.0.0-placeholder",
+  "unity": "2019.2",
+  "license" : "MIT",
+  "author": {
+    "name": "Andreia Gaita",
+    "email": "shana@spoiledcat.net"
+  },
+  "repository" : {
+    "type" : "git",
+    "url": "git@github.com/Unity-Technologies/com.unity.editor.tasks.git",
+    "directory": "",
+    "revision": ""
+  },
+  "dependencies": {
+      "com.unity.editor.tasks": "0.0.0-placeholder"
+  }
 }
